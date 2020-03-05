@@ -202,31 +202,19 @@ namespace Sockets
             {
                 byte[] data = new byte[1024];
                 IPEndPoint ipep = new IPEndPoint(IPAddress.Any, Puerto);
-                //UdpClient newsock = new UdpClient(ipep);
+
                 _newsock = new UdpClient(ipep);
 
-                //Console.WriteLine("Waiting for a client...");
-
-                //IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
                 _sender = new IPEndPoint(IPAddress.Any, 0);
                 ip_Conexion = _sender.Address.ToString();
 
                 data = _newsock.Receive(ref _sender);
                 this.Eve_DatosIn(IndiceCon, Encoding.ASCII.GetString(data, 0, data.Length));
 
-                //Console.WriteLine("Message received from {0}:", sender.ToString());
-                //Console.WriteLine(Encoding.ASCII.GetString(data, 0, data.Length));
-
-                //string welcome = "Welcome to my test server";
-                //data = Encoding.ASCII.GetBytes(welcome);
-                //_newsock.Send(data, data.Length, _sender);
-
                 while (true)
                 {
                     data = _newsock.Receive(ref _sender);
                     this.Eve_DatosIn(IndiceCon, Encoding.ASCII.GetString(data, 0, data.Length));
-                    //Console.WriteLine(Encoding.ASCII.GetString(data, 0, data.Length));
-                    //_newsock.Send(data, data.Length, _sender);
                 }
             }
             catch(Exception e)
@@ -364,11 +352,11 @@ namespace Sockets
                         EveYaDisparado = true;
                         break;
                     }
-                    //message has successfully been received
-
+                    
+                    //llegó el mensaje
                     strDatos = _encoder.GetString(message, 0, bytesRead);
 
-                    Eve_DatosIn(IndiceCon, strDatos);
+                    Eve_DatosIn(IndiceCon, strDatos + " " + _tcpCliente.Client.RemoteEndPoint.ToString());
 
                 }
                 //el cliente cerro la conexion
@@ -412,33 +400,10 @@ namespace Sockets
                 }
                 else
                 {
-                    /*
-                    //NO FUNCIONA
-                    byte[] data = new byte[65527];
-                    data = Encoding.ASCII.GetBytes(datos);
-                    buf = data.Length;
-                    _newsock.Send(data, buf, _sender);*/
-
-                    /*
-                    //FUNCIONA 1
-                    UdpClient udpClient = new UdpClient();
-                    IPAddress ipAddress = Dns.Resolve("192.168.0.6").AddressList[0];
-                    IPEndPoint ipEndPoint = new IPEndPoint(ipAddress, 1492);
-
-                    Byte[] sendBytes = Encoding.ASCII.GetBytes("Is anybody there?");
-                    try
-                    {
-                        udpClient.Send(sendBytes, sendBytes.Length, ipEndPoint);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                    }*/
-
-
+                    
                     UdpClient udpClient = new UdpClient();
 
-                    Byte[] sendBytes = Encoding.ASCII.GetBytes("Is anybody there");
+                    Byte[] sendBytes = Encoding.ASCII.GetBytes(datos);
                     try
                     {
                         udpClient.Send(sendBytes, sendBytes.Length, "192.168.0.6", 1492);

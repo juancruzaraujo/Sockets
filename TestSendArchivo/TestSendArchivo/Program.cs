@@ -240,6 +240,7 @@ namespace TestSendArchivo
             if (_obSocket.tcp)
             {
                 //ArmarArchivo(datos);
+                Console.WriteLine(datos);
             }
             else
             {
