@@ -378,18 +378,18 @@ namespace Sockets
             EventSocket(Indice, C_SERVER_EVENTO_ACEPTAR_CONEXION, _escuchando, _size, _datos, 0, _ipCliente);
         }
 
-        private void Ev_Server_DatosIn(int indice, string Datos)
+        private void Ev_Server_DatosIn(int indice, string Datos,string ipOrigen)
         {
-            EventSocket(indice, C_SERVER_EVENTO_DATOS_IN, _escuchando, _size, Datos, 0, _ipCliente);
+            EventSocket(indice, C_SERVER_EVENTO_DATOS_IN, _escuchando, _size, Datos, 0, ipOrigen);
         }
         private void Ev_Server_PosicionEnvio(int Indice, long pos)
         {
             Event_Socket(Indice, C_SERVER_EVENTO_ENVIO_ARRAY, _escuchando, 0, _datos, pos, _ipCliente);
         }
 
-        private void Ev_Server_NuevaConexion(int Indice)
+        private void Ev_Server_NuevaConexion(int Indice,string ipOrigen)
         {
-            Event_Socket(Indice, C_SERVER_EVENTO_NUEVA_CONEXION, _escuchando, 0,_datos, 0, _ipCliente);
+            Event_Socket(Indice, C_SERVER_EVENTO_NUEVA_CONEXION, _escuchando, 0,_datos, 0, ipOrigen);
         }
 
         private void Ev_Server_FinConexion(int Indice)

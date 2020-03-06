@@ -142,7 +142,7 @@ namespace TestSendArchivo
                     break;
 
                 case Socket.C_SERVER_EVENTO_DATOS_IN:
-                    DatosIn(indice, datos, true);
+                    DatosIn(indice, datos, true, ipOrigen);
                     break;
 
                 case Socket.C_EVENTO_ERROR:
@@ -162,7 +162,7 @@ namespace TestSendArchivo
 
                 case Socket.C_CLIENTE_EVENTO_DATOS_IN:
                     //Console.WriteLine(datos);
-                    DatosIn(indice, datos, false);
+                    DatosIn(indice, datos, false, ipOrigen);
                     break;
             }
         }
@@ -220,7 +220,7 @@ namespace TestSendArchivo
             }
         }
 
-        static void DatosIn(int indice,string datos,bool server)
+        static void DatosIn(int indice,string datos,bool server,string ipOrigen)
         {
             //Console.WriteLine(datos);
             //NO BORRAR COMENTARIOS
@@ -240,11 +240,11 @@ namespace TestSendArchivo
             if (_obSocket.tcp)
             {
                 //ArmarArchivo(datos);
-                Console.WriteLine(datos);
+                Console.WriteLine("[" +ipOrigen +"] " + datos);
             }
             else
             {
-                Console.WriteLine(datos);
+                Console.WriteLine("[" + ipOrigen + "] " + datos);
                 _obSocket.Enviar("bien, leo cosas enviadas por UDP, espero que esto llegue a destino");
             }
         }

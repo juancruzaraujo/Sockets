@@ -57,12 +57,12 @@ namespace Sockets
             this.Eve_AceptarConexion(Indice, IpOrigen);
         }
 
-        internal delegate void DelegadoNuevaConexion(int Indice);
+        internal delegate void DelegadoNuevaConexion(int Indice, string ipOrigen);
         internal event DelegadoNuevaConexion Eve_NuevaConexion;
-        private void NuevaConexion(int Indice)
+        private void NuevaConexion(int Indice, string ipOrigen)
         {
             //EsperandoConexion = false;
-            this.Eve_NuevaConexion(Indice);
+            this.Eve_NuevaConexion(Indice,ipOrigen);
         }
 
         internal delegate void DelegadoFinConexion(int Indice);
@@ -72,11 +72,11 @@ namespace Sockets
             this.Eve_FinConexion(Indice);
         }
 
-        internal delegate void DelegadoDatosIn(int indice, string Datos);
+        internal delegate void DelegadoDatosIn(int indice, string Datos, string ipOrigen);
         internal event DelegadoDatosIn Eve_DatosIn;
-        private void DatosIn(int Indice, string Datos)
+        private void DatosIn(int Indice, string Datos,string ipOrigen)
         {
-            this.Eve_DatosIn(Indice, Datos);
+            this.Eve_DatosIn(Indice, Datos,ipOrigen);
         }
 
         internal delegate void DelegadoEsperaConexion(int Indice, bool Escuchando);
@@ -200,21 +200,23 @@ namespace Sockets
         {
             try
             {
-                byte[] data = new byte[1024];
+                byte[] data = new byte[65535];
                 IPEndPoint ipep = new IPEndPoint(IPAddress.Any, Puerto);
 
                 _newsock = new UdpClient(ipep);
 
                 _sender = new IPEndPoint(IPAddress.Any, 0);
-                ip_Conexion = _sender.Address.ToString();
+                
 
                 data = _newsock.Receive(ref _sender);
-                this.Eve_DatosIn(IndiceCon, Encoding.ASCII.GetString(data, 0, data.Length));
+                ip_Conexion = _sender.Address.ToString();
+                this.Eve_DatosIn(IndiceCon, Encoding.ASCII.GetString(data, 0, data.Length), ip_Conexion);
 
                 while (true)
                 {
+                    ip_Conexion = _sender.Address.ToString();
                     data = _newsock.Receive(ref _sender);
-                    this.Eve_DatosIn(IndiceCon, Encoding.ASCII.GetString(data, 0, data.Length));
+                    this.Eve_DatosIn(IndiceCon, Encoding.ASCII.GetString(data, 0, data.Length), ip_Conexion);
                 }
             }
             catch(Exception e)
@@ -314,7 +316,7 @@ namespace Sockets
 
                 //levanto evento nueva conexion
                 Conectado = true;
-                this.Eve_NuevaConexion(IndiceCon);
+                this.Eve_NuevaConexion(IndiceCon,_tcpCliente.Client.RemoteEndPoint.ToString());
 
 
                 byte[] message = new byte[4096];
@@ -356,7 +358,7 @@ namespace Sockets
                     //llegó el mensaje
                     strDatos = _encoder.GetString(message, 0, bytesRead);
 
-                    Eve_DatosIn(IndiceCon, strDatos + " " + _tcpCliente.Client.RemoteEndPoint.ToString());
+                    Eve_DatosIn(IndiceCon, strDatos, _tcpCliente.Client.RemoteEndPoint.ToString());
 
                 }
                 //el cliente cerro la conexion
