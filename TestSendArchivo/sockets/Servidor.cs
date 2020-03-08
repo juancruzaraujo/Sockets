@@ -39,8 +39,8 @@ namespace Sockets
         internal bool Conectado;
         internal bool EsperandoConexion;
         internal string ip_Conexion;
-        internal int Puerto;
-        internal int IndiceCon;
+        internal int puerto;
+        internal int indiceCon;
 
         internal delegate void DelegadoError(int indice, string ErrDescrip);
         internal event DelegadoError Eve_Error;
@@ -111,7 +111,7 @@ namespace Sockets
         internal Servidor(int PuertoEscucha, int Cod, int IndiceConexion, ref string Mensaje, bool tcp=true)
         {
 
-            IndiceCon = IndiceConexion;
+            indiceCon = IndiceConexion;
 
             try
             {
@@ -122,7 +122,7 @@ namespace Sockets
                     return;
                 }
 
-                Puerto = PuertoEscucha;
+                puerto = PuertoEscucha;
                 _tcp = tcp;
             }
             catch (Exception Err)
@@ -156,7 +156,7 @@ namespace Sockets
             catch (Exception Err)
             {
                 EsperandoConexion = false;
-                Espera_Conexion(IndiceCon, false);
+                Espera_Conexion(indiceCon, false);
                 Mensaje = Err.Message;
             }
         }
@@ -169,7 +169,7 @@ namespace Sockets
         {
 
             EsperandoConexion = false;
-            Espera_Conexion(IndiceCon, false);
+            Espera_Conexion(indiceCon, false);
             try
             {
                 if (_thrCliente != null)
@@ -189,7 +189,7 @@ namespace Sockets
             {
                 if (modo_Debug == true)
                 {
-                    this.Eve_Error(IndiceCon, Err.Message + " TcpListen.Start()");
+                    this.Eve_Error(indiceCon, Err.Message + " TcpListen.Start()");
                     Mensaje = Err.Message;
                 }
                 //this.Eve_FinConexion(IndiceCon);
@@ -200,7 +200,7 @@ namespace Sockets
         {
             try
             {
-                byte[] data = new byte[65535];
+                /*byte[] data = new byte[65535];
                 IPEndPoint ipep = new IPEndPoint(IPAddress.Any, Puerto);
 
                 _newsock = new UdpClient(ipep);
@@ -217,11 +217,28 @@ namespace Sockets
                     ip_Conexion = _sender.Address.ToString();
                     data = _newsock.Receive(ref _sender);
                     this.Eve_DatosIn(IndiceCon, Encoding.ASCII.GetString(data, 0, data.Length), ip_Conexion);
+                    _newsock.Send(new byte[] { 1 }, 1, _sender);
+                }
+                */
+
+                UdpClient udpServer = new UdpClient(puerto);
+
+                while (true)
+                {
+                    var remoteEP = new IPEndPoint(IPAddress.Any, puerto);
+                    var datos = udpServer.Receive(ref remoteEP);
+                    ip_Conexion = remoteEP.Address.ToString();
+                    this.Eve_DatosIn(indiceCon, Encoding.ASCII.GetString(datos, 0, datos.Length), ip_Conexion);
+
+                    Byte[] sendBytes = Encoding.ASCII.GetBytes("<OK>");
+
+                    //Console.Write("receive data from " + remoteEP.ToString());
+                    udpServer.Send(sendBytes, sendBytes.Length, remoteEP); 
                 }
             }
             catch(Exception e)
             {
-                this.Eve_Error(IndiceCon, e.Message);
+                this.Eve_Error(indiceCon, e.Message);
             }
         }
 
@@ -231,12 +248,12 @@ namespace Sockets
 
             TcpClient Cliente = new TcpClient();
 
-            _tcpListen = new TcpListener(IPAddress.Any, Puerto);
+            _tcpListen = new TcpListener(IPAddress.Any, puerto);
             
             try
             {
                 EsperandoConexion = true;
-                Espera_Conexion(IndiceCon, true);
+                Espera_Conexion(indiceCon, true);
 
                 _tcpListen.Stop();
                 _tcpListen.Start();
@@ -246,10 +263,10 @@ namespace Sockets
             {
                 //el error salta aca, por que ya abri una nueva instancia que esta eschando aca.
                 EsperandoConexion = false;
-                Espera_Conexion(IndiceCon, EsperandoConexion);
+                Espera_Conexion(indiceCon, EsperandoConexion);
                 Escuchar = false;
-                this.Eve_Error(IndiceCon, Err.Message + " TcpListen.Start()");
-                this.Eve_FinConexion(IndiceCon);
+                this.Eve_Error(indiceCon, Err.Message + " TcpListen.Start()");
+                this.Eve_FinConexion(indiceCon);
                 return;
             }
 
@@ -264,9 +281,9 @@ namespace Sockets
                     sAux = ((System.Net.IPEndPoint)(Cliente.Client.RemoteEndPoint)).Address.ToString();
 
                     EsperandoConexion = false;
-                    Espera_Conexion(IndiceCon, EsperandoConexion);
+                    Espera_Conexion(indiceCon, EsperandoConexion);
 
-                    Aceptar_Conexion(IndiceCon, sAux);
+                    Aceptar_Conexion(indiceCon, sAux);
                     try
                     {
                         _thrClienteConexion = new Thread(new ParameterizedThreadStart(Cliente_Comunicacion));
@@ -282,14 +299,14 @@ namespace Sockets
                     catch (Exception Err)
                     {
                         Escuchar = false;
-                        this.Eve_Error(IndiceCon, Err.Message + " threadConexion");
+                        this.Eve_Error(indiceCon, Err.Message + " threadConexion");
                     }
                 }
                 catch (Exception Err)
                 {
                     if (modo_Debug == true)
                     {
-                        this.Eve_Error(IndiceCon, Err.Message + " TcpListen.Accept()");
+                        this.Eve_Error(indiceCon, Err.Message + " TcpListen.Accept()");
                     }
                     Escuchar = false;
                     _tcpListen.Stop();
@@ -316,7 +333,7 @@ namespace Sockets
 
                 //levanto evento nueva conexion
                 Conectado = true;
-                this.Eve_NuevaConexion(IndiceCon,_tcpCliente.Client.RemoteEndPoint.ToString());
+                this.Eve_NuevaConexion(indiceCon,_tcpCliente.Client.RemoteEndPoint.ToString());
 
 
                 byte[] message = new byte[4096];
@@ -340,7 +357,7 @@ namespace Sockets
                         _tcpCliente.Close();
                         if (modo_Debug == true)
                         {
-                            this.Eve_Error(IndiceCon, "Cliente Comunicacion; Servidor>\r\n" + Err.Message + "\r\n");
+                            this.Eve_Error(indiceCon, "Cliente Comunicacion; Servidor>\r\n" + Err.Message + "\r\n");
                         }
                         break;
                     }
@@ -350,7 +367,7 @@ namespace Sockets
                         //el cliente se desconecto!
                         Conectado = false;
                         _tcpCliente.Close();
-                        this.Eve_FinConexion(IndiceCon);
+                        this.Eve_FinConexion(indiceCon);
                         EveYaDisparado = true;
                         break;
                     }
@@ -358,7 +375,7 @@ namespace Sockets
                     //llegó el mensaje
                     strDatos = _encoder.GetString(message, 0, bytesRead);
 
-                    Eve_DatosIn(IndiceCon, strDatos, _tcpCliente.Client.RemoteEndPoint.ToString());
+                    Eve_DatosIn(indiceCon, strDatos, _tcpCliente.Client.RemoteEndPoint.ToString());
 
                 }
                 //el cliente cerro la conexion
@@ -367,13 +384,13 @@ namespace Sockets
 
                 if (EveYaDisparado == false)
                 {
-                    this.FinConexion(IndiceCon);
+                    this.FinConexion(indiceCon);
                 }
 
             }
             catch (SocketException Err)//(Exception Err)
             {
-                this.Eve_Error(IndiceCon, " Cliente_Comunicacion>\r\n" + Err.Message + "\r\n");
+                this.Eve_Error(indiceCon, " Cliente_Comunicacion>\r\n" + Err.Message + "\r\n");
             }
         }
 
@@ -416,13 +433,13 @@ namespace Sockets
                     }
 
                 }
-                Envio_Completo(IndiceCon, buf);
+                Envio_Completo(indiceCon, buf);
 
             }
             catch (Exception Err)
             {
                 resultado = Err.Message;
-                Error(IndiceCon, resultado);
+                Error(indiceCon, resultado);
             }
         }
 
@@ -470,14 +487,14 @@ namespace Sockets
                     }
 
                     nPosActual = nPosLectura; //ver que no me quede uno atras
-                    Posicion_Envio(IndiceCon, nPosActual); //levanto la posición en la que quede donde estoy enviando
+                    Posicion_Envio(indiceCon, nPosActual); //levanto la posición en la que quede donde estoy enviando
 
                     //envio los datos
                     byte[] buffer = _encoder.GetBytes(Datos);
 
                     clientStream.Write(buffer, 0, buffer.Length);
                     clientStream.Flush(); //envio lo datos
-                    Envio_Completo(IndiceCon, buffer.Length); //evento envio completo
+                    Envio_Completo(indiceCon, buffer.Length); //evento envio completo
 
                     Thread.Sleep(5);
 
@@ -488,7 +505,7 @@ namespace Sockets
             catch (Exception Err)
             {
                 Error = Err.ToString();
-                Eve_Error(IndiceCon, Err.Message);
+                Eve_Error(indiceCon, Err.Message);
             }
 
         }

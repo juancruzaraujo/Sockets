@@ -404,7 +404,7 @@ namespace Sockets
 
         private void Ev_Server_Error(int indice, string ErrDescrip)
         {
-            Event_Socket(indice, C_EVENTO_ERROR, _escuchando, 0, _datos, 0, _ipCliente);
+            Event_Socket(indice, C_EVENTO_ERROR, _escuchando, 0, ErrDescrip, 0, _ipCliente);
         }
 
         private void Ev_Server_EnvioCompleto(int Indice, long Size)

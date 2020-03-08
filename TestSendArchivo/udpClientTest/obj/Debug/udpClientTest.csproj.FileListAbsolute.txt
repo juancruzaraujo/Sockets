@@ -1,0 +1,7 @@
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\udpClientTest\bin\Debug\udpClientTest.exe.config
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\udpClientTest\bin\Debug\udpClientTest.exe
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\udpClientTest\bin\Debug\udpClientTest.pdb
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\udpClientTest\obj\Debug\udpClientTest.csprojAssemblyReference.cache
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\udpClientTest\obj\Debug\udpClientTest.csproj.CoreCompileInputs.cache
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\udpClientTest\obj\Debug\udpClientTest.exe
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\udpClientTest\obj\Debug\udpClientTest.pdb

@@ -82,7 +82,7 @@ namespace TestSendArchivo
             SetConsoleMode(handle, mode);
 
 
-            Console.WriteLine("\x1b[31mThis texto de prueba de color.\r\n");
+            Console.WriteLine("\x1b[93m TEST SERVER.\r\n");
 
             _obSocket = new Socket();
             _obSocket.Event_Socket += new Socket.Delegado_Socket_Event(EvSockets); 
@@ -95,7 +95,7 @@ namespace TestSendArchivo
             }
             else
             {
-                Console.WriteLine("1 MODO SERVER, 2 MODO CLIENTE, 3 MODO SERVER UDP");
+                Console.WriteLine("1 MODO SERVER, 2 MODO CLIENTE, 3 MODO SERVER UDP, 4 MODO CLIENTE UDP");
                 while (true)
                 {
                     var input = Console.ReadLine();
@@ -115,6 +115,12 @@ namespace TestSendArchivo
                     {
                         _modoServer = true;
                         Server(false);
+                        break;
+                    }
+                    if (input.Equals("4",StringComparison.OrdinalIgnoreCase))
+                    {
+                        _modoServer = false;
+                        ClienteUDP();
                         break;
                     }
 
@@ -163,6 +169,10 @@ namespace TestSendArchivo
                 case Socket.C_CLIENTE_EVENTO_DATOS_IN:
                     //Console.WriteLine(datos);
                     DatosIn(indice, datos, false, ipOrigen);
+                    break;
+
+                case Socket.C_CLIENTE_EVENTO_CONEXION_OK:
+                    Console.WriteLine("Conectado OK");
                     break;
             }
         }
@@ -264,7 +274,7 @@ namespace TestSendArchivo
             //_obCliente.Conectar("127.0.0.1", "1789", ref Mensaje);
 
             _obSocket.ModoCliente = true;
-            _obSocket.SetCliente(1987, 65001, 0, "127.0.0.1",5);
+            _obSocket.SetCliente(1492, 65001, 0, "192.168.0.6",5);
             _obSocket.Conectar();
 
 
@@ -287,13 +297,21 @@ namespace TestSendArchivo
                 }
                 else
                 {
-                    _obSocket.Enviar(input);
+                    _obSocket.Enviar(input + "\r\n");
                 }
                 
                 //si se descomenta esto, esta linea se agrega al final del archivo y lo puede romper
                 //_obCliente.EnviarDatos(input); 
 
             }
+        }
+
+        static void ClienteUDP()
+        {
+            string Mensaje = "";
+
+            Console.WriteLine("modo cliente UDP");
+            Console.Title = "MODO CLIENTE UDP";
         }
 
         static void setArchivos()
