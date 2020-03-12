@@ -31,8 +31,10 @@ namespace Sockets
 
         private TcpListener _tcpListen;
         private TcpClient _tcpCliente;
+        private IPEndPoint _remoteEP;
         private Encoding _encoder;
         UdpClient _newsock;
+        
         IPEndPoint _sender;
         private bool _tcp;
 
@@ -221,19 +223,27 @@ namespace Sockets
                 }
                 */
 
-                UdpClient udpServer = new UdpClient(puerto);
-
+                //UdpClient udpServer = new UdpClient(puerto);
+                _newsock = new UdpClient(puerto);
                 while (true)
                 {
-                    var remoteEP = new IPEndPoint(IPAddress.Any, puerto);
-                    var datos = udpServer.Receive(ref remoteEP);
-                    ip_Conexion = remoteEP.Address.ToString();
+                    //var remoteEP = new IPEndPoint(IPAddress.Any, puerto);
+                    //var datos = udpServer.Receive(ref remoteEP);
+
+                    _remoteEP = new IPEndPoint(IPAddress.Any, puerto);
+
+                    //var datos = _newsock.Receive(ref remoteEP);
+                    var datos = _newsock.Receive(ref _remoteEP);
+                    //ip_Conexion = remoteEP.Address.ToString();
+                    ip_Conexion = _remoteEP.Address.ToString();
                     this.Eve_DatosIn(indiceCon, Encoding.ASCII.GetString(datos, 0, datos.Length), ip_Conexion);
 
+                    /*
                     Byte[] sendBytes = Encoding.ASCII.GetBytes("<OK>");
 
                     //Console.Write("receive data from " + remoteEP.ToString());
-                    udpServer.Send(sendBytes, sendBytes.Length, remoteEP); 
+                    _newsock.Send(sendBytes, sendBytes.Length, remoteEP); 
+                    */
                 }
             }
             catch(Exception e)
@@ -420,12 +430,16 @@ namespace Sockets
                 else
                 {
                     
-                    UdpClient udpClient = new UdpClient();
+                    //UdpClient udpClient = new UdpClient();
 
                     Byte[] sendBytes = Encoding.ASCII.GetBytes(datos);
                     try
                     {
-                        udpClient.Send(sendBytes, sendBytes.Length, "192.168.0.6", 1492);
+                        //udpClient.Send(sendBytes, sendBytes.Length, "192.168.0.6", 1492);
+                        //Byte[] sendBytes = Encoding.ASCII.GetBytes("<OK>");
+
+                        //Console.Write("receive data from " + remoteEP.ToString());
+                        _newsock.Send(sendBytes, sendBytes.Length, _remoteEP);
                     }
                     catch (Exception e)
                     {

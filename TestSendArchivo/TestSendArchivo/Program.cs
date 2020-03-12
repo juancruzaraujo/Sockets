@@ -255,7 +255,7 @@ namespace TestSendArchivo
             else
             {
                 Console.WriteLine("[" + ipOrigen + "] " + datos);
-                _obSocket.Enviar("bien, leo cosas enviadas por UDP, espero que esto llegue a destino");
+                _obSocket.Enviar("funciona! ameo");
             }
         }
 
