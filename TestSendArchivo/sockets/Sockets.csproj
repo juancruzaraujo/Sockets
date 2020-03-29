@@ -45,6 +45,7 @@
     <Compile Include="Cliente.cs" />
     <Compile Include="Servidor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Parametrosvento.cs" />
     <Compile Include="Socket.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

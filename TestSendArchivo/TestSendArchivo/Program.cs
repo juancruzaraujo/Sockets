@@ -136,21 +136,29 @@ namespace TestSendArchivo
             Console.ReadLine();
         }
 
-        static void EvSockets(int indice, int evento, bool escuchando, long size, string datos, long posicion, string ipOrigen)
+        //static void EvSockets(int indice, int evento, bool escuchando, long size, string datos, long posicion, string ipOrigen)
+        static void EvSockets(Parametrosvento ev)
         {
             //Console.WriteLine(datos);
 
-            switch (evento)
+            switch (ev.GetEvento)
             {
 
-                case Socket.C_SERVER_EVENTO_ACEPTAR_CONEXION:
-                    Console.WriteLine("conectado desde " + ipOrigen);
+                //case Socket.C_SERVER_EVENTO_ACEPTAR_CONEXION:
+                case Parametrosvento.TipoEvento.ACEPTAR_CONEXION:
+                    Console.WriteLine("conectado desde " + ev.GetIpOrigen);
                     break;
 
-                case Socket.C_SERVER_EVENTO_DATOS_IN:
-                    DatosIn(indice, datos, true, ipOrigen);
+                case Parametrosvento.TipoEvento.DATOS_IN:
+                    //DatosIn(indice, datos, true, ipOrigen);
+                    DatosIn(ev.GetIndice, ev.GetDatos, true, ev.GetIpOrigen);
                     break;
 
+                case Parametrosvento.TipoEvento.ERROR:
+                    Console.WriteLine("error cliente");
+                    Console.WriteLine(ev.GetDatos);
+                    break;
+                /*
                 case Socket.C_EVENTO_ERROR:
                     Console.WriteLine("error cliente");
                     Console.WriteLine(datos);
@@ -174,6 +182,7 @@ namespace TestSendArchivo
                 case Socket.C_CLIENTE_EVENTO_CONEXION_OK:
                     Console.WriteLine("Conectado OK");
                     break;
+                */
             }
         }
 
