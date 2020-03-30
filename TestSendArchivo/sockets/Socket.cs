@@ -403,8 +403,17 @@ namespace Sockets
                     _ipCliente = ev.GetIpOrigen;
                 }
             }
+
             EventSocket(ev);
 
+            if ((_modoServidor) &&(!_tcp))
+            {
+                if (ev.GetEvento == Parametrosvento.TipoEvento.ERROR)
+                {
+                    string aux = "";
+                    _objServidor.Iniciar(ref aux); //volvemos a iniciar el servidor udp
+                }
+            }
 
         }
         /*

@@ -34,7 +34,7 @@ namespace Sockets
         private TcpClient _tcpCliente;
         private IPEndPoint _remoteEP;
         private Encoding _encoder;
-        private UdpClient _newsock;
+        private UdpClient _udpClient;
         //private Parametrosvento _servidorParametrosvento;
 
 
@@ -232,27 +232,29 @@ namespace Sockets
         {
             try
             {
-                _newsock = new UdpClient(puerto);
+                _udpClient = new UdpClient(puerto);
                 while (true)
                 {
                     _remoteEP = new IPEndPoint(IPAddress.Any, puerto);
-
-                    var datos = _newsock.Receive(ref _remoteEP);
+                    var datos = _udpClient.Receive(ref _remoteEP);
 
                     ip_Conexion = _remoteEP.Address.ToString();
                     Parametrosvento ev = new Parametrosvento();
                     ev.SetDatos(Encoding.ASCII.GetString(datos, 0, datos.Length)).SetIpOrigen(ip_Conexion).SetEvento(Parametrosvento.TipoEvento.DATOS_IN);
                     GenerarEvento(ev);
-
+                    
                 }
             }
             catch(Exception e)
             {
+                _udpClient.Close();
                 Parametrosvento evErr = new Parametrosvento();
                 evErr.SetDatos(e.Message).SetEvento(Parametrosvento.TipoEvento.ERROR);
                 GenerarEvento(evErr);
+                
             }
         }
+
 
         private void EscucharTCP()
         {
@@ -472,7 +474,8 @@ namespace Sockets
                         //Byte[] sendBytes = Encoding.ASCII.GetBytes("<OK>");
 
                         //Console.Write("receive data from " + remoteEP.ToString());
-                        _newsock.Send(sendBytes, sendBytes.Length, _remoteEP);
+                        _udpClient.Send(sendBytes, sendBytes.Length, _remoteEP);
+                        
                     }
                     catch (Exception e)
                     {
