@@ -24,8 +24,14 @@ namespace TestSendArchivo
 
         static int _tam;
 
-        const string C_ARCHIVO_ENVIAR = @"C:\Users\U583317\Desktop\PuttyWSCP\putty.exe";
+        static bool _enviarArchivo = false;
+        static bool _recibirArchivo = false;
+
+        //const string C_ARCHIVO_ENVIAR = @"C:\Users\U583317\Desktop\PuttyWSCP\putty.exe";
+        const string C_ARCHIVO_ENVIAR = @"C:\Users\Usuario\Desktop\Programacion\putty.exe";
         //const string C_ARCHIVO_ENVIAR = @"C:\Users\U583317\Desktop\PuttyWSCP\test.txt";
+        
+
 
         const string C_ARCHIVO_RECIBIR_SERVER = @"C:\prueba\putty.exe";
         //const string C_ARCHIVO_RECIBIR_SERVER = @"C:\prueba\test.txt";
@@ -123,20 +129,17 @@ namespace TestSendArchivo
                         ClienteUDP();
                         break;
                     }
-
-                    Console.WriteLine("asdas"); 
-
+                    
                 }
 
-                _modoServer = false;
-                Cliente();
+                //_modoServer = false;
+                //Cliente();
             }
 
             Console.WriteLine("tecla cualquiera para salir");
             Console.ReadLine();
         }
 
-        //static void EvSockets(int indice, int evento, bool escuchando, long size, string datos, long posicion, string ipOrigen)
         static void EvSockets(Parametrosvento ev)
         {
             //Console.WriteLine(datos);
@@ -228,6 +231,7 @@ namespace TestSendArchivo
                 if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
                 {
                     //mando el archivo
+                    _enviarArchivo = true;
                     EnviarArchivo(true);
                 }
                 else
@@ -258,8 +262,17 @@ namespace TestSendArchivo
             */
             if (_obSocket.tcp)
             {
-                //ArmarArchivo(datos);
-                Console.WriteLine("[" +ipOrigen +"] " + datos);
+                if (datos.Contains(C_ENVACRH + "\r\n"))
+                {
+                    ArmarArchivo(datos); //lega el archivo
+                }
+                else
+                {
+                    if ((!_enviarArchivo) && (!_recibirArchivo))
+                    {
+                        Console.WriteLine("[" + ipOrigen + "] " + datos);
+                    }
+                }
             }
             else
             {
@@ -283,7 +296,7 @@ namespace TestSendArchivo
             //_obCliente.Conectar("127.0.0.1", "1789", ref Mensaje);
 
             _obSocket.ModoCliente = true;
-            _obSocket.SetCliente(1492, 65001, 0, "192.168.0.6",5);
+            _obSocket.SetCliente(1492, 65001, 0, "127.0.0.1",5);
             _obSocket.Conectar();
 
 
