@@ -27,11 +27,8 @@ namespace TestSendArchivo
         static bool _enviarArchivo = false;
         static bool _recibirArchivo = false;
 
-        //const string C_ARCHIVO_ENVIAR = @"C:\Users\U583317\Desktop\PuttyWSCP\putty.exe";
         const string C_ARCHIVO_ENVIAR = @"C:\Users\Usuario\Desktop\Programacion\putty.exe";
-        //const string C_ARCHIVO_ENVIAR = @"C:\Users\U583317\Desktop\PuttyWSCP\test.txt";
-        
-
+        //const string C_ARCHIVO_ENVIAR = @"C:\Users\Usuario\Desktop\Programacion\test.txt";
 
         const string C_ARCHIVO_RECIBIR_SERVER = @"C:\prueba\putty.exe";
         //const string C_ARCHIVO_RECIBIR_SERVER = @"C:\prueba\test.txt";
@@ -105,45 +102,62 @@ namespace TestSendArchivo
                 while (true)
                 {
                     var input = Console.ReadLine();
-                    if (input.Equals("1", StringComparison.OrdinalIgnoreCase))
+                    if ((_obSocket.ModoCliente) || (_obSocket.ModoServidor))
                     {
-                        _modoServer = true;
-                        Server();
-                        break;
+                        if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
+                        {
+                            break;
+                        }
+                        else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
+                        {
+                            //mando el archivo
+                            EnviarArchivo(false);
+                            _enviarArchivo = true;
+                        }
+                        else
+                        {
+                            _obSocket.Enviar(input + "\r\n");
+                        }
                     }
-                    if (input.Equals("2", StringComparison.OrdinalIgnoreCase))
+                    else
                     {
-                        _modoServer = false;
-                        Cliente();
-                        break;
+                        if (input.Equals("1", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _modoServer = true;
+                            Server();
+                            _obSocket.ModoServidor = _modoServer;
+                            //break;
+                        }
+                        if (input.Equals("2", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _modoServer = false;
+                            Cliente();
+                            _obSocket.ModoCliente = true;
+                            //break;
+                        }
+                        if (input.Equals("3", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _modoServer = true;
+                            Server(false);
+                            //break;
+                        }
+                        if (input.Equals("4", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _modoServer = false;
+                            ClienteUDP();
+                            //break;
+                        }
                     }
-                    if (input.Equals("3", StringComparison.OrdinalIgnoreCase))
-                    {
-                        _modoServer = true;
-                        Server(false);
-                        break;
-                    }
-                    if (input.Equals("4",StringComparison.OrdinalIgnoreCase))
-                    {
-                        _modoServer = false;
-                        ClienteUDP();
-                        break;
-                    }
-                    
-                }
 
-                //_modoServer = false;
-                //Cliente();
+                }
             }
 
-            Console.WriteLine("tecla cualquiera para salir");
-            Console.ReadLine();
+            //Console.WriteLine("tecla cualquiera para salir");
+            //Console.ReadLine();
         }
 
         static void EvSockets(Parametrosvento ev)
         {
-            //Console.WriteLine(datos);
-
             switch (ev.GetEvento)
             {
 
@@ -208,38 +222,10 @@ namespace TestSendArchivo
             _obSocket.SetServer(1492, 65001, 0,tcp);
             _obSocket.StartServer();
 
-            //setArchivos();
-
-            //_obServer = new SockServer(1789);
-            //_obServer.Eve_Socket_Servidor += Eve_SockServidor;
-            //_obServer.IniciarServer(ref Mensaje);
             if (Mensaje != "")
             {
                 Console.WriteLine(Mensaje);
                 return;
-            }
-
-
-            while (true)
-            {
-                var input = Console.ReadLine();
-                if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
-                {
-                    System.Environment.Exit(0);
-                    break;
-                }
-                if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
-                {
-                    //mando el archivo
-                    _enviarArchivo = true;
-                    EnviarArchivo(true);
-                }
-                else
-                {
-                    _obSocket.Enviar(input);
-                }
-                //_obServer.EnviarDatos(input);
-
             }
         }
 
@@ -262,15 +248,28 @@ namespace TestSendArchivo
             */
             if (_obSocket.tcp)
             {
-                if (datos.Contains(C_ENVACRH + "\r\n"))
+                if ((datos.Contains(C_ENVACRH + "\r\n")) || (datos.Contains(C_FINARCH + "\r\n")))
                 {
+                    if (!_recibirArchivo)
+                    {
+                        _recibirArchivo = true;
+                    }
+                    else
+                    {
+                        _recibirArchivo = false;
+                    }
                     ArmarArchivo(datos); //lega el archivo
+                    return;
                 }
                 else
                 {
-                    if ((!_enviarArchivo) && (!_recibirArchivo))
+                    if (!_recibirArchivo)
                     {
                         Console.WriteLine("[" + ipOrigen + "] " + datos);
+                    }
+                    else
+                    {
+                        ArmarArchivo(datos);
                     }
                 }
             }
@@ -305,27 +304,6 @@ namespace TestSendArchivo
                 Console.WriteLine(Mensaje);
             }
 
-            while (true)
-            {
-                var input = Console.ReadLine();
-                if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
-                {
-                    break;
-                }
-                else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
-                {
-                    //mando el archivo
-                    EnviarArchivo(false);
-                }
-                else
-                {
-                    _obSocket.Enviar(input + "\r\n");
-                }
-                
-                //si se descomenta esto, esta linea se agrega al final del archivo y lo puede romper
-                //_obCliente.EnviarDatos(input); 
-
-            }
         }
 
         static void ClienteUDP()
