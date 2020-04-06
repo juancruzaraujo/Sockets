@@ -16,16 +16,6 @@ namespace Sockets
         #else
             private /*static*/ bool modo_Debug = false;
         #endif
-        
-        /*
-        internal const int EVE_ERROR = 0;
-        internal const int EVE_ENVIO_COMPLETO = 1;
-        internal const int EVE_DATOS_IN = 2;
-        internal const int EVE_NUEVA_CONEXION = 3;
-        internal const int EVE_CONEXION_FIN = 4;
-        internal const int EVE_ACEPTAR_CONEXION = 5;
-        internal const int EVE_ESPERA_CONEXION = 6;
-        */
 
         private Thread _thrCliente;
         private Thread _thrClienteConexion;
@@ -35,8 +25,6 @@ namespace Sockets
         private IPEndPoint _remoteEP;
         private Encoding _encoder;
         private UdpClient _udpClient;
-        //private Parametrosvento _servidorParametrosvento;
-
 
         IPEndPoint _sender;
         private bool _tcp;
@@ -46,66 +34,6 @@ namespace Sockets
         internal string ip_Conexion;
         internal int puerto;
         internal int indiceCon;
-
-        /*
-        internal delegate void DelegadoError(int indice, string ErrDescrip);
-        internal event DelegadoError Eve_Error;
-        private void Error(int Indice, string ErrDescrip)
-        {
-            this.Eve_Error(Indice, ErrDescrip);
-        }
-
-        internal delegate void DelegadoAceptarConexion(int Indice, string IpOrigen);
-        internal event DelegadoAceptarConexion Eve_AceptarConexion;
-        private void Aceptar_Conexion(int Indice, string IpOrigen)
-        {
-            //EsperandoConexion = false;
-            this.Eve_AceptarConexion(Indice, IpOrigen);
-        }
-
-        internal delegate void DelegadoNuevaConexion(int Indice, string ipOrigen);
-        internal event DelegadoNuevaConexion Eve_NuevaConexion;
-        private void NuevaConexion(int Indice, string ipOrigen)
-        {
-            //EsperandoConexion = false;
-            this.Eve_NuevaConexion(Indice,ipOrigen);
-        }
-
-        internal delegate void DelegadoFinConexion(int Indice);
-        internal event DelegadoFinConexion Eve_FinConexion;
-        private void FinConexion(int Indice)
-        {
-            this.Eve_FinConexion(Indice);
-        }
-
-        internal delegate void DelegadoDatosIn(int indice, string Datos, string ipOrigen);
-        internal event DelegadoDatosIn Eve_DatosIn;
-        private void DatosIn(int Indice, string Datos,string ipOrigen)
-        {
-            this.Eve_DatosIn(Indice, Datos,ipOrigen);
-        }
-
-        internal delegate void DelegadoEsperaConexion(int Indice, bool Escuchando);
-        internal event DelegadoEsperaConexion Eve_Espera_Conexion;
-        private void Espera_Conexion(int Indice, bool Escuchando)
-        {
-            this.Eve_Espera_Conexion(Indice, Escuchando);
-        }
-
-        internal delegate void Delegado_Envio_Completo(int Indice, long Size);
-        internal event Delegado_Envio_Completo Eve_Envio_Completo;
-        private void Envio_Completo(int Indice, long Size)
-        {
-            this.Eve_Envio_Completo(Indice, Size);
-        }
-
-        internal delegate void Delegado_posicion_Envio(int Indice, long pos);
-        internal event Delegado_posicion_Envio Eve_Posicion_Envio;
-        private void Posicion_Envio(int Indice, long pos)
-        {
-            this.Eve_Posicion_Envio(Indice, pos);
-        }
-        */
 
         internal delegate void Delegado_Servidor_Event(Parametrosvento servidorParametrosEvento);
         internal event Delegado_Servidor_Event evento_servidor;
@@ -125,9 +53,6 @@ namespace Sockets
         /// <param name="tcp">define si la conexión es tpc o udp, vaor default true, si es falso, la conexion es udp</param>
         internal Servidor(int PuertoEscucha, int Cod, int IndiceConexion, ref string Mensaje, bool tcp=true)
         {
-
-            //_servidorParametrosvento = new Parametrosvento();
-            //_servidorParametrosvento.indice = IndiceConexion;
             indiceCon = IndiceConexion;
 
             try
@@ -174,11 +99,6 @@ namespace Sockets
             {
                 EsperandoConexion = false;
 
-                //Espera_Conexion(indiceCon, false);
-                //_servidorParametrosvento.escuchando = false;
-                //_servidorParametrosvento.datos = Err.Message;
-                //evento_servidor(_servidorParametrosvento);
-
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetEscuchando(false).SetDatos(Err.Message).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
                 GenerarEvento(ev);
@@ -195,7 +115,6 @@ namespace Sockets
         {
 
             EsperandoConexion = false;
-            //Espera_Conexion(indiceCon, false);
             Parametrosvento ev = new Parametrosvento();
             ev.SetEscuchando(EsperandoConexion).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
             GenerarEvento(ev);
@@ -218,13 +137,11 @@ namespace Sockets
             {
                 if (modo_Debug == true)
                 {
-                    //this.Eve_Error(indiceCon, Err.Message + " TcpListen.Start()");
                     Parametrosvento evErr = new Parametrosvento();
                     ev.SetDatos(Err.Message + " TcpListen.Start()").SetEvento(Parametrosvento.TipoEvento.ERROR);
                     GenerarEvento(evErr);
                     Mensaje = Err.Message;
                 }
-                //this.Eve_FinConexion(IndiceCon);
             }
         }
 
@@ -241,8 +158,7 @@ namespace Sockets
                     ip_Conexion = _remoteEP.Address.ToString();
                     Parametrosvento ev = new Parametrosvento();
                     ev.SetDatos(Encoding.ASCII.GetString(datos, 0, datos.Length)).SetIpOrigen(ip_Conexion).SetEvento(Parametrosvento.TipoEvento.DATOS_IN);
-                    GenerarEvento(ev);
-                    
+                    GenerarEvento(ev);   
                 }
             }
             catch(Exception e)
@@ -254,7 +170,6 @@ namespace Sockets
                 
             }
         }
-
 
         private void EscucharTCP()
         {
@@ -283,14 +198,10 @@ namespace Sockets
                 Parametrosvento evErr = new Parametrosvento();
                 evErr.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
                 GenerarEvento(evErr);
-
-                //Espera_Conexion(indiceCon, EsperandoConexion);
                 
                 evErr.SetDatos(Err.Message + " TcpListen.Start()").SetEvento(Parametrosvento.TipoEvento.ERROR);
                 Escuchar = false;
-                //this.Eve_Error(indiceCon, Err.Message + " TcpListen.Start()");
                 GenerarEvento(evErr);
-                //this.Eve_FinConexion(indiceCon);
                 return;
             }
 
@@ -308,10 +219,10 @@ namespace Sockets
                     Parametrosvento ev = new Parametrosvento();
                     ev.SetIpOrigen(sAux).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
                     GenerarEvento(ev);
-                    //Espera_Conexion(indiceCon, EsperandoConexion);
+
                     ev.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION);
                     GenerarEvento(ev);
-                    //Aceptar_Conexion(indiceCon, sAux);
+                    
                     try
                     {
                         _thrClienteConexion = new Thread(new ParameterizedThreadStart(Cliente_Comunicacion));
@@ -321,15 +232,12 @@ namespace Sockets
                         //ahora tendria que dejar de escuchar
                         Escuchar = false;
                         _tcpListen.Stop();
-                        //Cliente.Close();
-                        //thrCliente.Abort();
                     }
                     catch (Exception Err)
                     {
                         Escuchar = false;
                         ev.SetDatos(Err.Message + " threadConexion").SetEvento(Parametrosvento.TipoEvento.ERROR);
                         GenerarEvento(ev);
-                        //this.Eve_Error(indiceCon, Err.Message + " threadConexion");
                     }
                 }
                 catch (Exception Err)
@@ -338,12 +246,9 @@ namespace Sockets
                     {
                         Parametrosvento evErrDebug = new Parametrosvento();
                         evErrDebug.SetDatos(Err.Message + " TcpListen.Accept()").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                        //this.Eve_Error(indiceCon, Err.Message + " TcpListen.Accept()");
                     }
                     Escuchar = false;
                     _tcpListen.Stop();
-                    //Cliente.Close();
-                    //thrCliente.Abort();
                 }
 
             } while (Escuchar == true);//fin do
@@ -356,7 +261,6 @@ namespace Sockets
 
             try
             {
-                //TcpClient tcpCliente = (TcpClient)Cliente;
                 _tcpCliente = (TcpClient)Cliente;
                 NetworkStream clientStream = _tcpCliente.GetStream();
                 string strDatos;
@@ -368,8 +272,6 @@ namespace Sockets
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetIpOrigen(_tcpCliente.Client.RemoteEndPoint.ToString()).SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION);
                 GenerarEvento(ev);
-                //this.Eve_NuevaConexion(indiceCon,_tcpCliente.Client.RemoteEndPoint.ToString());
-
 
                 byte[] message = new byte[4096];
 
@@ -381,10 +283,7 @@ namespace Sockets
 
                     try
                     {
-                        //blocks until a client sends a message
-
                         bytesRead = clientStream.Read(message, 0, 4096);
-
                     }
                     catch (Exception Err)
                     {
@@ -394,7 +293,6 @@ namespace Sockets
                         {
                             ev.SetDatos("Cliente Comunicacion; Servidor>\r\n" + Err.Message + "\r\n").SetEvento(Parametrosvento.TipoEvento.ERROR);
                             GenerarEvento(ev);
-                            //this.Eve_Error(indiceCon, "Cliente Comunicacion; Servidor>\r\n" + Err.Message + "\r\n");
                         }
                         break;
                     }
@@ -405,7 +303,6 @@ namespace Sockets
                         Conectado = false;
                         _tcpCliente.Close();
                         ev.SetDatos("").SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN);
-                        //this.Eve_FinConexion(indiceCon);
                         EveYaDisparado = true;
                         break;
                     }
@@ -414,9 +311,6 @@ namespace Sockets
                     strDatos = _encoder.GetString(message, 0, bytesRead);
                     ev.SetDatos(strDatos).SetIpOrigen(_tcpCliente.Client.RemoteEndPoint.ToString()).SetEvento(Parametrosvento.TipoEvento.DATOS_IN);
                     GenerarEvento(ev);
-
-                    //Eve_DatosIn(indiceCon, strDatos, _tcpCliente.Client.RemoteEndPoint.ToString());
-
                 }
                 //el cliente cerro la conexion
                 Conectado = false;
@@ -426,7 +320,6 @@ namespace Sockets
                 {
                     ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN).SetDatos("");
                     GenerarEvento(ev);
-                    //this.FinConexion(indiceCon);
                 }
 
             }
@@ -435,7 +328,6 @@ namespace Sockets
                 Parametrosvento evErr = new Parametrosvento();
                 evErr.SetDatos("Cliente_Comunicacion>\r\n" + Err.Message + "\r\n").SetEvento(Parametrosvento.TipoEvento.ERROR);
                 GenerarEvento(evErr);
-                //this.Eve_Error(indiceCon, "Cliente_Comunicacion>\r\n" + Err.Message + "\r\n");
             }
         }
 
@@ -464,16 +356,9 @@ namespace Sockets
                 }
                 else
                 {
-                    
-                    //UdpClient udpClient = new UdpClient();
-
                     Byte[] sendBytes = Encoding.ASCII.GetBytes(datos);
                     try
                     {
-                        //udpClient.Send(sendBytes, sendBytes.Length, "192.168.0.6", 1492);
-                        //Byte[] sendBytes = Encoding.ASCII.GetBytes("<OK>");
-
-                        //Console.Write("receive data from " + remoteEP.ToString());
                         _udpClient.Send(sendBytes, sendBytes.Length, _remoteEP);
                         
                     }
@@ -486,7 +371,6 @@ namespace Sockets
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetSize(buf).SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO);
                 GenerarEvento(ev);
-                //Envio_Completo(indiceCon, buf);
 
             }
             catch (Exception Err)
@@ -495,7 +379,6 @@ namespace Sockets
                 Parametrosvento evErr = new Parametrosvento();
                 evErr.SetDatos(Err.Message).SetEvento(Parametrosvento.TipoEvento.ERROR);
                 resultado = Err.Message;
-                //Error(indiceCon, resultado);
                 GenerarEvento(evErr);
             }
         }
@@ -548,7 +431,6 @@ namespace Sockets
                     ev.SetPosicion(nPosActual).SetEvento(Parametrosvento.TipoEvento.POSICION_ENVIO);
                     GenerarEvento(ev);
                     //ver que no me quede uno atras
-                    //Posicion_Envio(indiceCon, nPosActual); //levanto la posición en la que quede donde estoy enviando
 
                     //envio los datos
                     byte[] buffer = _encoder.GetBytes(Datos);
@@ -571,8 +453,6 @@ namespace Sockets
                 Error = Err.ToString();
                 evErr.SetDatos(Error).SetEvento(Parametrosvento.TipoEvento.ERROR);
                 GenerarEvento(evErr);
-                
-                //Eve_Error(indiceCon, Err.Message);
             }
 
         }

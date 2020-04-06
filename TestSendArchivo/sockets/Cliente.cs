@@ -63,9 +63,9 @@ namespace Sockets
         private int _tipoCod;
         private Encoding _encoder;
 
+        /*
         internal delegate void DelegadoDatosIN(int Indice,string Mensaje);
         internal event DelegadoDatosIN Eve_DatosIn;
-
 
         internal delegate void DelegadoEnvioCompleto(int Indice,long DatosSend);
         internal event DelegadoEnvioCompleto Eve_EnvioCompleto;
@@ -108,7 +108,14 @@ namespace Sockets
         {
             this.Eve_Error(Indice,Mensaje);
         }
+        */
 
+        internal delegate void Delegado_Cliente_Event(Parametrosvento servidorParametrosEvento);
+        internal event Delegado_Cliente_Event evento_cliente;
+        private void Evento_Cliente(Parametrosvento servidorParametrosEvento)
+        {
+            this.evento_cliente(servidorParametrosEvento);
+        }
 
         internal Cliente()
         {
@@ -157,7 +164,6 @@ namespace Sockets
                     {
                         _clienteSock.Connect(Host, nPuerto);
                         //DoSomethingThatMightThrowAnException();
-
                         break; // salgo del for
 
                     }
@@ -173,7 +179,11 @@ namespace Sockets
                 {
 
                     conectado = true;
-                    Eve_Conexion_OK(indiceCon);
+
+                    //Eve_Conexion_OK(indiceCon);
+                    Parametrosvento ev = new Parametrosvento();
+                    ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_OK);
+                    GenerarEvento(ev);
 
                     ThreadStart Cliente = new ThreadStart(Flujo_Datos);
                     _thrCliente = new Thread(Cliente);
@@ -182,7 +192,10 @@ namespace Sockets
                 }
                 else
                 {
-                    Eve_TimeOut(indiceCon);
+                    //Eve_TimeOut(indiceCon);
+                    Parametrosvento evTime = new Parametrosvento();
+                    evTime.SetEvento(Parametrosvento.TipoEvento.TIME_OUT);
+                    GenerarEvento(evTime);
                     return;
                 }
  
@@ -191,7 +204,8 @@ namespace Sockets
             catch (Exception error)
             {
                 conectado = false;
-                Eve_Error(indiceCon,error.Message);
+                //Eve_Error(indiceCon,error.Message);
+                Error(error.Message);
                 Err = error.Message;
             }
         }//fin conectar
@@ -217,46 +231,64 @@ namespace Sockets
                         bytesRead = clientStream.Read(message, 0, 4096);
 
                     }
-                    catch (Exception Error)
+                    catch (Exception error)
                     {
                         //un error! =(
-                        Eve_Error(indiceCon, Error.Message);
-                        Conexion_Fin(indiceCon);
+                        //Eve_Error(indiceCon, Error.Message);
+                        Error(error.Message);
+
+                        Conexion_Fin();
                         break;
                     }
 
                     if (bytesRead == 0)
                     {
                         //el cliente se desconecto!
-                        Conexion_Fin(indiceCon);
+                        //Conexion_Fin(indiceCon);
+                        Conexion_Fin();
                         break;
                     }
                     //message has successfully been received
                     //System.Diagnostics.Debug.WriteLine(encoder.GetString(message, 0, bytesRead)); //para pruebas
 
                     strDatos = _encoder.GetString(message, 0, bytesRead);
-                    System.Diagnostics.Debug.WriteLine(strDatos);
-                    Eve_DatosIn(indiceCon, strDatos);
+                    //System.Diagnostics.Debug.WriteLine(strDatos);
 
+                    //Eve_DatosIn(indiceCon, strDatos);
+                    Parametrosvento ev = new Parametrosvento();
+                    ev.SetEvento(Parametrosvento.TipoEvento.DATOS_IN).SetDatos(strDatos);
+                    GenerarEvento(ev);
 
                 }
                 //el cliente cerro la conexion
                 System.Diagnostics.Debug.WriteLine("Cierro de golpe"); //para pruebas
-                Conexion_Fin(indiceCon);
+                Conexion_Fin();
                 tcpCliente.Close(); //Sí se cierra el server.
 
-                //Eve_FinConCLiente(indice);
                 _thrCliente.Abort();
             }
             catch (Exception Err)
             {
-                Eve_Error(indiceCon, Err.Message);
-                Conexion_Fin(indiceCon);
+                Error(Err.Message);
+                Conexion_Fin();
             }
         } //fin Flujo_Datos
 
+        private void Conexion_Fin()
+        {
+            Parametrosvento ev = new Parametrosvento();
+            ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN);
+            GenerarEvento(ev);
+        }
 
-        internal void Enviar(string Datos, ref string Error)
+        private void Error(string mensaje)
+        {
+            Parametrosvento evErr = new Parametrosvento();
+            evErr.SetEvento(Parametrosvento.TipoEvento.ERROR).SetDatos(mensaje);
+            GenerarEvento(evErr);
+        }
+
+        internal void Enviar(string Datos, ref string error)
         {
             try
             {
@@ -272,18 +304,23 @@ namespace Sockets
                     clientStream.Write(buffer, 0, buffer.Length);
                     clientStream.Flush(); //envio lo datos
 
-                    Envio_Completo(indiceCon,buffer.Length);  //evento envio completo
+                    //Envio_Completo(indiceCon,buffer.Length);  //evento envio completo
+                    Parametrosvento ev = new Parametrosvento();
+                    ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO);
+                    GenerarEvento(ev);
                 }
                 else
                 {
-                    Error = "No esta conectado";
-                    Eve_Error(indiceCon,Error);
+                    error = "No esta conectado";
+                    //Eve_Error(indiceCon,Error);
+                    Error(error);
                 }
             }
-            catch (Exception Err)
+            catch (Exception err)
             {
-                Error = Err.Message;
-                Eve_Error(indiceCon,Error);
+                error = err.Message;
+                //Eve_Error(indiceCon,Error);
+                Error(error);
             }
         }
 
@@ -295,7 +332,8 @@ namespace Sockets
                 _clienteSock.Close();
                 _thrCliente.Abort();
 
-                Conexion_Fin(indiceCon);
+                //Conexion_Fin(indiceCon);
+                Conexion_Fin();
             }
         }
 
@@ -340,7 +378,7 @@ namespace Sockets
         /// </summary>
         /// <param name="Codigo">Código de pagina</param>
         /// <param name="Error">Sí hay un error se guarda en Error, de caso contrario queda vacio</param>
-        internal void CodePage(int Codigo, ref string Error)
+        internal void CodePage(int Codigo, ref string error)
         {
             try
             {
@@ -348,12 +386,13 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                Error = err.Message;
-                Eve_Error(indiceCon,Error);
+                error = err.Message;
+                //Eve_Error(indiceCon,Error);
+                Error(error);
             }
         }
 
-        internal void Enviar_ByteArray(byte[] memArray, int TamCluster, ref string Error)
+        internal void Enviar_ByteArray(byte[] memArray, int TamCluster, ref string error)
         {
             string Datos = "";
             int nPosActual = 0;
@@ -397,13 +436,20 @@ namespace Sockets
                     }
 
                     nPosActual = nPosLectura; //ver que no me quede uno atras
-                    Posicion_Envio(indiceCon, nPosActual); //levanto la posición en la que quede donde estoy enviando
+                    //Posicion_Envio(indiceCon, nPosActual); //levanto la posición en la que quede donde estoy enviando
+                    Parametrosvento evPos = new Parametrosvento();
+                    evPos.SetEvento(Parametrosvento.TipoEvento.POSICION_ENVIO).SetPosicion(nPosActual);
+                    GenerarEvento(evPos);
+
                     //envio los datos
                     byte[] buffer = _encoder.GetBytes(Datos);
 
                     clientStream.Write(buffer, 0, buffer.Length);
                     clientStream.Flush(); //envio lo datos
-                    Envio_Completo(indiceCon,buffer.Length); //evento envio completo
+                    //Envio_Completo(indiceCon,buffer.Length); //evento envio completo
+                    Parametrosvento ev = new Parametrosvento();
+                    ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(buffer.Length);
+                    GenerarEvento(ev);
                     
                     //esperamos 5milisegunbdos para continuar
                     //si, asi se evita el solapamiento de paquetes.
@@ -413,12 +459,20 @@ namespace Sockets
                 }//fin while
 
             }
-            catch (Exception Err)
+            catch (Exception err)
             {
-                Error = Err.ToString();
-                Eve_Error(indiceCon,Err.Message);
+                error = err.ToString();
+                //Eve_Error(indiceCon,Err.Message);
+                Error(err.Message);
             }
 
+        }
+
+        private void GenerarEvento(Parametrosvento ob)
+        {
+            ob.SetIndice(indiceCon);
+
+            Evento_Cliente(ob);
         }
     }
 }

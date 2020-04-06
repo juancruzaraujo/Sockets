@@ -296,6 +296,7 @@ namespace TestSendArchivo
 
             _obSocket.ModoCliente = true;
             _obSocket.SetCliente(1492, 65001, 0, "127.0.0.1",5);
+            
             _obSocket.Conectar();
 
 

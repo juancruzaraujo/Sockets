@@ -140,7 +140,7 @@ namespace Sockets
         /// <param name="indice"></param>
         /// <param name="host"></param>
         /// <param name="timeOut"></param>
-        public void SetCliente(int puerto, int codePage, int indice, string host,int timeOut = 30)
+        public void SetCliente(int puerto, int codePage, int indice, string host,int timeOut = 30,bool tcp = true)
         {
             string res = "";
             _puertoCliente = puerto;
@@ -155,14 +155,8 @@ namespace Sockets
             {
                 Error(res);
             }
-
-            _objCliente.Eve_Conexion_Fin += new Cliente.DelegadoConexion_Fin(Ev_Cliente_conexion_Fin);
-            _objCliente.Eve_Conexion_OK += new Cliente.DelegadoConexion_ok(Ev_Cliente_conexion_ok);
-            _objCliente.Eve_DatosIn += new Cliente.DelegadoDatosIN(Ev_Cliente_DatosIn);
-            _objCliente.Eve_EnvioCompleto += new Cliente.DelegadoEnvioCompleto(Ev_Cliente_EnvioCompleto);
-            _objCliente.Eve_Error += new Cliente.DelegadoError(Ev_Cliente_Error);
-            _objCliente.Eve_Posicion_Envio += new Cliente.Delegado_posicion_Envio(Ev_Cliente_PosEnvio);
-            _objCliente.Eve_TimeOut += new Cliente.DelegadoTimeOut(Ev_Cliente_Timeout);
+            _objCliente.evento_cliente += new Cliente.Delegado_Cliente_Event(ev_socket);
+            _tcp = tcp;
 
         }
 
@@ -209,7 +203,7 @@ namespace Sockets
             }
 
             _objServidor = new Servidor(_puertoEscuchaServer, _codePage, _indice, ref res, _tcp);
-            _objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(ev_server);
+            _objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(ev_socket);
 
             //_objServidor.Eve_AceptarConexion += new Servidor.DelegadoAceptarConexion(Ev_Server_AceptarConexion);
             //_objServidor.Eve_DatosIn += new Servidor.DelegadoDatosIn(Ev_Server_DatosIn);
@@ -393,8 +387,8 @@ namespace Sockets
 
         #endregion
 
-        #region eventos modo server
-        private void ev_server(Parametrosvento ev)
+        #region eventos
+        private void ev_socket(Parametrosvento ev)
         {
             if ((_ipCliente !=""))
             {
@@ -461,6 +455,7 @@ namespace Sockets
         #endregion
 
         #region eventos modo cliente
+        /*
         private void Ev_Cliente_Timeout(int Indice)
         {
             //EventSocket(Indice, C_CLIENTE_EVENTO_TIME_OUT, _escuchando, _size, _datos, 0, "");
@@ -495,6 +490,7 @@ namespace Sockets
         {
             //EventSocket(Indice, C_CLIENTE_EVENTO_CONEXION_FIN, _escuchando, 0, "", 0, "");
         }
+        */
         #endregion
 
 

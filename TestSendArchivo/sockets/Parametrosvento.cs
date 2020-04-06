@@ -24,7 +24,9 @@ namespace Sockets
             CONEXION_FIN = 4,
             ACEPTAR_CONEXION = 5,
             ESPERA_CONEXION = 6,
-            POSICION_ENVIO = 7
+            POSICION_ENVIO = 7,
+            CONEXION_OK = 8,
+            TIME_OUT = 9
 
         };
 
