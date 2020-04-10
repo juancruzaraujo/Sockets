@@ -157,6 +157,7 @@ namespace Sockets
             }
             _objCliente.evento_cliente += new Cliente.Delegado_Cliente_Event(ev_socket);
             _tcp = tcp;
+            _modoCliente = true;
 
         }
 
@@ -204,15 +205,6 @@ namespace Sockets
 
             _objServidor = new Servidor(_puertoEscuchaServer, _codePage, _indice, ref res, _tcp);
             _objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(ev_socket);
-
-            //_objServidor.Eve_AceptarConexion += new Servidor.DelegadoAceptarConexion(Ev_Server_AceptarConexion);
-            //_objServidor.Eve_DatosIn += new Servidor.DelegadoDatosIn(Ev_Server_DatosIn);
-            //_objServidor.Eve_Envio_Completo += new Servidor.Delegado_Envio_Completo(Ev_Server_EnvioCompleto);
-            //_objServidor.Eve_Error += new Servidor.DelegadoError(Ev_Server_Error);
-            //_objServidor.Eve_Espera_Conexion += new Servidor.DelegadoEsperaConexion(Ev_Server_EsperaConexion);
-            //_objServidor.Eve_FinConexion += new Servidor.DelegadoFinConexion(Ev_Server_FinConexion);
-            //_objServidor.Eve_NuevaConexion += new Servidor.DelegadoNuevaConexion(Ev_Server_NuevaConexion);
-            //_objServidor.Eve_Posicion_Envio += new Servidor.Delegado_posicion_Envio(Ev_Server_PosicionEnvio);
             
             if (res != "")
             {
@@ -221,7 +213,7 @@ namespace Sockets
                 return;
             }
             _escuchando = true;
-
+            _modoServidor = true;
         }
 
 
@@ -247,24 +239,6 @@ namespace Sockets
             }
             set
             {
-                /*
-                if (value)
-                {
-                    if (_modoCliente)
-                    {
-                        
-                        _modoServidor = false;
-                        Error(C_MENSAJE_ERROR_MODO_SOY_CLIENTE);
-                    }
-                    else
-                    {
-                        _modoServidor = value;
-                    }
-                }
-                else
-                {
-                    _modoServidor = value;
-                }*/
                 _modoServidor = value;
                  
             }
@@ -278,19 +252,6 @@ namespace Sockets
             }
             set
             {
-                /*
-                if (value)
-                {
-                    if (_modoServidor)
-                    {
-                        _modoCliente = false;
-                        Error(C_MENSAJE_ERROR_MODO_SOY_SERVER);
-                    }
-                }
-                else
-                {
-                    _modoCliente = value;
-                }*/
                 _modoCliente = value;
             }
         }
@@ -387,7 +348,6 @@ namespace Sockets
 
         #endregion
 
-        #region eventos
         private void ev_socket(Parametrosvento ev)
         {
             if ((_ipCliente !=""))
@@ -410,89 +370,6 @@ namespace Sockets
             }
 
         }
-        /*
-        private void Ev_Server_AceptarConexion(int Indice, string IpOrigen)
-        {
-            _ipCliente = IpOrigen;
-            EventSocket(Indice, C_SERVER_EVENTO_ACEPTAR_CONEXION, _escuchando, _size, _datos, 0, _ipCliente);
-        }
-
-        private void Ev_Server_DatosIn(int indice, string Datos,string ipOrigen)
-        {
-            EventSocket(indice, C_SERVER_EVENTO_DATOS_IN, _escuchando, _size, Datos, 0, ipOrigen);
-        }
-        private void Ev_Server_PosicionEnvio(int Indice, long pos)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_ENVIO_ARRAY, _escuchando, 0, _datos, pos, _ipCliente);
-        }
-
-        private void Ev_Server_NuevaConexion(int Indice,string ipOrigen)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_NUEVA_CONEXION, _escuchando, 0,_datos, 0, ipOrigen);
-        }
-
-        private void Ev_Server_FinConexion(int Indice)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_CONEXION_FIN, _escuchando, 0, _datos, 0, _ipCliente);
-        }
-
-        private void Ev_Server_EsperaConexion(int Indice, bool Escuchando)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_ESPERA_CONEXION, _escuchando,0, _datos, 0, _ipCliente);
-        }
-
-        private void Ev_Server_Error(int indice, string ErrDescrip)
-        {
-            Event_Socket(indice, C_EVENTO_ERROR, _escuchando, 0, ErrDescrip, 0, _ipCliente);
-        }
-
-        private void Ev_Server_EnvioCompleto(int Indice, long Size)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_ENVIO_COMPLETO, _escuchando, 0, _datos, 0, _ipCliente);
-        }*/
-
-
-        #endregion
-
-        #region eventos modo cliente
-        /*
-        private void Ev_Cliente_Timeout(int Indice)
-        {
-            //EventSocket(Indice, C_CLIENTE_EVENTO_TIME_OUT, _escuchando, _size, _datos, 0, "");
-        }
-
-        private void Ev_Cliente_PosEnvio(int Indice, long pos)
-        {
-            //EventSocket(Indice, C_CLIENTE_EVENTO_POS_ENVIO, _escuchando, _size, "", pos, "");
-        }
-
-        private void Ev_Cliente_Error(int Indice, string Mensaje)
-        {
-            //EventSocket(Indice, C_CLIENTE_EVENTO_ERROR, _escuchando, 0, Mensaje, 0, "");
-        }
-
-        private void Ev_Cliente_EnvioCompleto(int Indice, long DatosSend)
-        {
-            //EventSocket(Indice, C_CLIENTE_EVENTO_ENVIO_COMPLETO, _escuchando, DatosSend,"",0, "");
-        }
-
-        private void Ev_Cliente_DatosIn(int Indice, string Mensaje)
-        {
-            //EventSocket(Indice, C_CLIENTE_EVENTO_DATOS_IN, _escuchando, 0, Mensaje, 0, "");
-        }
-
-        private void Ev_Cliente_conexion_ok(int Indice)
-        {
-            //EventSocket(Indice, C_CLIENTE_EVENTO_CONEXION_OK, _escuchando, 0, "", 0, "");
-        }
-
-        private void Ev_Cliente_conexion_Fin(int Indice)
-        {
-            //EventSocket(Indice, C_CLIENTE_EVENTO_CONEXION_FIN, _escuchando, 0, "", 0, "");
-        }
-        */
-        #endregion
-
 
         /// <summary>
         /// envía un mensaje al cliente o al servidor. si hay un error se dispara un evento de error

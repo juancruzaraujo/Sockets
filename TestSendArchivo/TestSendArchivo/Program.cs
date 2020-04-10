@@ -287,13 +287,6 @@ namespace TestSendArchivo
             Console.WriteLine("modo cliente");
             Console.Title = "MODO CLIENTE";
 
-            //setArchivos();
-
-            //_obCliente = new SocksCliente();
-            //_obCliente.Eve_Socket_Cliente += _obCliente_Eve_Socket_Cliente;
-
-            //_obCliente.Conectar("127.0.0.1", "1789", ref Mensaje);
-
             _obSocket.ModoCliente = true;
             _obSocket.SetCliente(1492, 65001, 0, "127.0.0.1",5);
             
@@ -313,6 +306,10 @@ namespace TestSendArchivo
 
             Console.WriteLine("modo cliente UDP");
             Console.Title = "MODO CLIENTE UDP";
+
+            _obSocket.ModoCliente = true;
+            
+
         }
 
         static void setArchivos()
