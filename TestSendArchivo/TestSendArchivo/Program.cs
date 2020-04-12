@@ -175,31 +175,6 @@ namespace TestSendArchivo
                     Console.WriteLine("error cliente");
                     Console.WriteLine(ev.GetDatos);
                     break;
-                /*
-                case Socket.C_EVENTO_ERROR:
-                    Console.WriteLine("error cliente");
-                    Console.WriteLine(datos);
-                    break;
-
-                case Socket.C_SERVER_EVENTO_ERROR:
-                    Console.WriteLine("error cliente");
-                    Console.WriteLine(datos);
-                    break;
-
-                case Socket.C_CLIENTE_EVENTO_TIME_OUT:
-                    Console.WriteLine("error cliente time out =(");
-                    Console.WriteLine(datos);
-                    break;
-
-                case Socket.C_CLIENTE_EVENTO_DATOS_IN:
-                    //Console.WriteLine(datos);
-                    DatosIn(indice, datos, false, ipOrigen);
-                    break;
-
-                case Socket.C_CLIENTE_EVENTO_CONEXION_OK:
-                    Console.WriteLine("Conectado OK");
-                    break;
-                */
             }
         }
 
@@ -219,7 +194,7 @@ namespace TestSendArchivo
             }
                       
             _obSocket.ModoServidor = true;
-            _obSocket.SetServer(1492, 65001, 0,tcp);
+            _obSocket.SetServer(1492);
             _obSocket.StartServer();
 
             if (Mensaje != "")
@@ -231,21 +206,7 @@ namespace TestSendArchivo
 
         static void DatosIn(int indice,string datos,bool server,string ipOrigen)
         {
-            //Console.WriteLine(datos);
-            //NO BORRAR COMENTARIOS
-            /*
-            if (datos=="enviar")
-            {
-                //mando el archivo
-                Console.WriteLine("envio");
-            }
 
-            if (datos=="recibir")
-            {
-                //le pido que me mande el archivo
-                Console.WriteLine("recibo");
-            }
-            */
             if (_obSocket.tcp)
             {
                 if ((datos.Contains(C_ENVACRH + "\r\n")) || (datos.Contains(C_FINARCH + "\r\n")))
@@ -266,6 +227,7 @@ namespace TestSendArchivo
                     if (!_recibirArchivo)
                     {
                         Console.WriteLine("[" + ipOrigen + "] " + datos);
+                        _obSocket.Enviar("ok tcp");
                     }
                     else
                     {
@@ -276,7 +238,7 @@ namespace TestSendArchivo
             else
             {
                 Console.WriteLine("[" + ipOrigen + "] " + datos);
-                _obSocket.Enviar("funciona! ameo");
+                _obSocket.Enviar("ok udp");
             }
         }
 
@@ -288,7 +250,7 @@ namespace TestSendArchivo
             Console.Title = "MODO CLIENTE";
 
             _obSocket.ModoCliente = true;
-            _obSocket.SetCliente(1492, 65001, 0, "127.0.0.1",5);
+            _obSocket.SetCliente(1492, 0, "127.0.0.1",5);
             
             _obSocket.Conectar();
 
@@ -308,6 +270,7 @@ namespace TestSendArchivo
             Console.Title = "MODO CLIENTE UDP";
 
             _obSocket.ModoCliente = true;
+            _obSocket.SetCliente(1492, 0, "127.0.0.1",5, false);
             
 
         }

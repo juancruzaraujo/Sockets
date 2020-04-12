@@ -24,11 +24,14 @@ namespace Sockets
         internal const int EVE_CONEXION_OK = 3;
         internal const int EVE_CONEXION_FIN = 4;
         internal const int EVE_TIME_OUT = 5;
+        
 
-
-        private TcpClient _clienteSock; //el socket en cuestion!
+        private TcpClient _clienteSockTCP; //el socket en cuestion!
         private Thread _thrCliente; //hilo con el flujo de datos
         private Thread _thr_TimeOut; //hilo que setea cuando se inicia el timer de timeout de intento de conexion
+        private bool _tcp;
+        private UdpClient _clienteSockUDP;
+        private IPEndPoint _epUDP;
 
         /// <summary>
         /// Verdadero estoy conectado, falso, no estoy conectado
@@ -63,53 +66,6 @@ namespace Sockets
         private int _tipoCod;
         private Encoding _encoder;
 
-        /*
-        internal delegate void DelegadoDatosIN(int Indice,string Mensaje);
-        internal event DelegadoDatosIN Eve_DatosIn;
-
-        internal delegate void DelegadoEnvioCompleto(int Indice,long DatosSend);
-        internal event DelegadoEnvioCompleto Eve_EnvioCompleto;
-        private void Envio_Completo(int Indice,long DatosSend)
-        {
-            this.Eve_EnvioCompleto(Indice,DatosSend);
-        }
-
-        internal delegate void DelegadoConexion_ok(int Indice);
-        internal event DelegadoConexion_ok Eve_Conexion_OK;
-        private void Conexion_Ok(int Indice)
-        {
-            this.Eve_Conexion_OK(Indice);
-        }
-
-        internal delegate void DelegadoConexion_Fin(int Indice);
-        internal event DelegadoConexion_Fin Eve_Conexion_Fin;
-        private void Conexion_Fin(int Indice)
-        {
-            this.Eve_Conexion_Fin(Indice);
-        }
-
-        internal delegate void DelegadoTimeOut(int Indice);
-        internal event DelegadoTimeOut Eve_TimeOut;
-        private void TimeOut(int Indice)
-        {
-            this.Eve_TimeOut(Indice);
-        }
-
-        internal delegate void Delegado_posicion_Envio(int Indice, long pos);
-        internal event Delegado_posicion_Envio Eve_Posicion_Envio;
-        private void Posicion_Envio(int Indice, long pos)
-        {
-            this.Eve_Posicion_Envio(Indice, pos);
-        }
-
-        internal delegate void DelegadoError(int Indice,string Mensaje);
-        internal event DelegadoError Eve_Error;
-        private void Error(int Indice, string Mensaje)
-        {
-            this.Eve_Error(Indice,Mensaje);
-        }
-        */
-
         internal delegate void Delegado_Cliente_Event(Parametrosvento servidorParametrosEvento);
         internal event Delegado_Cliente_Event evento_cliente;
         private void Evento_Cliente(Parametrosvento servidorParametrosEvento)
@@ -117,8 +73,9 @@ namespace Sockets
             this.evento_cliente(servidorParametrosEvento);
         }
 
-        internal Cliente()
+        internal Cliente(bool tcp=true)
         {
+            _tcp = tcp;
             /*if (modo_Debug == false)
             {
                 Val_TimeOut = 30000;
@@ -129,41 +86,36 @@ namespace Sockets
             }*/
         }
 
-        internal void Conectar(int Indice,string Host, int Puerto, ref string Err)
+        internal void Conectar(int indice,string host, int puerto, ref string err)
+        {
+            if (_tcp)
+            {
+                Conectar_TCP(indice, host, puerto, ref err);
+            }
+            else
+            {
+                Conectar_UPD(indice, host, puerto, ref err);
+            }
+        }
+
+        private void Conectar_TCP(int indice, string host, int puerto, ref string err)
         {
             int nPuerto = 0;
-            indiceCon = Indice;
+            indiceCon = indice;
+            
             try
             {
                 conectado = false;
 
-                _clienteSock = new TcpClient();
-                
-                //nPuerto = Convert.ToInt32(Puerto);
-                nPuerto = Puerto;
-                //ClienteSock.Connect(Host, nPuerto);
+                _clienteSockTCP = new TcpClient();
 
-                #region con time out
-                //IAsyncResult result = ClienteSock.BeginConnect(Host, nPuerto, null, null);
-                //bool success = result.AsyncWaitHandle.WaitOne(Val_TimeOut, true);               
-                //if (!success)
-                //{
-                ////    // NOTE, MUST CLOSE THE SOCKET
-
-                    
-                //    ClienteSock.Close();
-                //    //throw new ApplicationException("TimeOut");  //no va
-                //    Eve_TimeOut(IndiceCon);
-                //    return;
-                //}
-                #endregion
+                nPuerto = puerto;
 
                 for (int i = 0; i < _val_TimeOut; ++i)
                 {
                     try
                     {
-                        _clienteSock.Connect(Host, nPuerto);
-                        //DoSomethingThatMightThrowAnException();
+                        _clienteSockTCP.Connect(host, nPuerto);
                         break; // salgo del for
 
                     }
@@ -175,7 +127,7 @@ namespace Sockets
                 }
 
 
-                if (_clienteSock.Connected)
+                if (_clienteSockTCP.Connected)
                 {
 
                     conectado = true;
@@ -185,9 +137,9 @@ namespace Sockets
                     ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_OK);
                     GenerarEvento(ev);
 
-                    ThreadStart Cliente = new ThreadStart(Flujo_Datos);
-                    _thrCliente = new Thread(Cliente);
-                    _thrCliente.Name = "ThrCliente";
+                    ThreadStart thrclienteTCP = new ThreadStart(Flujo_Datos_tcp);
+                    _thrCliente = new Thread(thrclienteTCP);
+                    _thrCliente.Name = "ThrClienteTCP";
                     _thrCliente.Start();
                 }
                 else
@@ -198,23 +150,48 @@ namespace Sockets
                     GenerarEvento(evTime);
                     return;
                 }
- 
+
 
             }
             catch (Exception error)
             {
-                conectado = false;
-                //Eve_Error(indiceCon,error.Message);
-                Error(error.Message);
-                Err = error.Message;
+                ErrorConectar(error, ref err);
             }
-        }//fin conectar
+        }
 
-        private void Flujo_Datos()
+        private void Conectar_UPD(int indice, string host, int puerto, ref string err)
         {
             try
             {
-                TcpClient tcpCliente = _clienteSock;
+
+                _clienteSockUDP = new UdpClient();
+                _epUDP = new IPEndPoint(IPAddress.Parse(host), puerto);
+                _clienteSockUDP.Connect(_epUDP);
+
+                ThreadStart thrclienteUDP = new ThreadStart(Flujo_Datos_UDP);
+                _thrCliente = new Thread(thrclienteUDP);
+                _thrCliente.Name = "thrClienteUDP";
+                _thrCliente.Start();
+            }
+            catch(Exception error)
+            {
+                ErrorConectar(error, ref err);
+            }
+
+        }
+
+        private void ErrorConectar(Exception errorDescripcion,ref string err)
+        {
+            conectado = false;
+            Error(errorDescripcion.Message);
+            err = errorDescripcion.Message;
+        }
+
+        private void Flujo_Datos_tcp()
+        {
+            try
+            {
+                TcpClient tcpCliente = _clienteSockTCP;
                 NetworkStream clientStream = tcpCliente.GetStream();
 
                 byte[] message = new byte[4096];
@@ -227,14 +204,12 @@ namespace Sockets
 
                     try
                     {
-                        //blocks until a client sends a message
+                        //se bloquea hasta que llega un mensaje
                         bytesRead = clientStream.Read(message, 0, 4096);
 
                     }
                     catch (Exception error)
                     {
-                        //un error! =(
-                        //Eve_Error(indiceCon, Error.Message);
                         Error(error.Message);
 
                         Conexion_Fin();
@@ -244,24 +219,18 @@ namespace Sockets
                     if (bytesRead == 0)
                     {
                         //el cliente se desconecto!
-                        //Conexion_Fin(indiceCon);
                         Conexion_Fin();
                         break;
                     }
-                    //message has successfully been received
-                    //System.Diagnostics.Debug.WriteLine(encoder.GetString(message, 0, bytesRead)); //para pruebas
 
                     strDatos = _encoder.GetString(message, 0, bytesRead);
-                    //System.Diagnostics.Debug.WriteLine(strDatos);
-
-                    //Eve_DatosIn(indiceCon, strDatos);
+                    
                     Parametrosvento ev = new Parametrosvento();
                     ev.SetEvento(Parametrosvento.TipoEvento.DATOS_IN).SetDatos(strDatos);
                     GenerarEvento(ev);
 
                 }
                 //el cliente cerro la conexion
-                System.Diagnostics.Debug.WriteLine("Cierro de golpe"); //para pruebas
                 Conexion_Fin();
                 tcpCliente.Close(); //Sí se cierra el server.
 
@@ -272,7 +241,23 @@ namespace Sockets
                 Error(Err.Message);
                 Conexion_Fin();
             }
-        } //fin Flujo_Datos
+        } //fin Flujo_Datos_tcp
+
+        private void Flujo_Datos_UDP()
+        {
+            try
+            {
+                var datosInUDP = _clienteSockUDP.Receive(ref _epUDP);
+                Parametrosvento ev = new Parametrosvento();
+                ev.SetEvento(Parametrosvento.TipoEvento.DATOS_IN).SetDatos(_epUDP.ToString()).SetIpOrigen(_clienteSockUDP.ToString());
+                GenerarEvento(ev);
+
+            }
+            catch(Exception err)
+            {
+                Error(err.Message);
+            }
+        }
 
         private void Conexion_Fin()
         {
@@ -288,23 +273,33 @@ namespace Sockets
             GenerarEvento(evErr);
         }
 
-        internal void Enviar(string Datos, ref string error)
+        internal void Enviar(string datos, ref string error)
+        {
+            if (_tcp)
+            {
+                EnviarTCP(datos, ref error);
+            }
+            else
+            {
+                EnviarUDP(datos, ref error);
+            }
+        }
+
+        private void EnviarTCP(string datos, ref string error)
         {
             try
             {
                 if (conectado == true)
                 {
-                    TcpClient TcpClienteDatos = _clienteSock;
+                    TcpClient TcpClienteDatos = _clienteSockTCP;
                     NetworkStream clientStream = TcpClienteDatos.GetStream();
 
-                    //byte[] buffer = encoder.GetBytes(Datos);
-                    byte[] buffer = _encoder.GetBytes(Datos);
+                    byte[] buffer = _encoder.GetBytes(datos);
 
 
                     clientStream.Write(buffer, 0, buffer.Length);
                     clientStream.Flush(); //envio lo datos
 
-                    //Envio_Completo(indiceCon,buffer.Length);  //evento envio completo
                     Parametrosvento ev = new Parametrosvento();
                     ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO);
                     GenerarEvento(ev);
@@ -312,16 +307,22 @@ namespace Sockets
                 else
                 {
                     error = "No esta conectado";
-                    //Eve_Error(indiceCon,Error);
                     Error(error);
                 }
             }
             catch (Exception err)
             {
                 error = err.Message;
-                //Eve_Error(indiceCon,Error);
                 Error(error);
             }
+        }
+
+        private void EnviarUDP(string datos, ref string error)
+        {
+            Byte[] bytesEnviar = Encoding.ASCII.GetBytes(datos);
+            _clienteSockUDP.Send(bytesEnviar, bytesEnviar.Length);
+            Parametrosvento ev = new Parametrosvento();
+            ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetSize(bytesEnviar.Length).SetIpDestino(_epUDP.ToString());
         }
 
         internal void Cerrar_Conexion()
@@ -329,10 +330,9 @@ namespace Sockets
             if (conectado == true)
             {
                 System.Diagnostics.Debug.WriteLine("Cierro Ok"); //para pruebas
-                _clienteSock.Close();
+                _clienteSockTCP.Close();
                 _thrCliente.Abort();
 
-                //Conexion_Fin(indiceCon);
                 Conexion_Fin();
             }
         }
@@ -387,7 +387,6 @@ namespace Sockets
             catch (Exception err)
             {
                 error = err.Message;
-                //Eve_Error(indiceCon,Error);
                 Error(error);
             }
         }
@@ -411,7 +410,7 @@ namespace Sockets
             try
             {
 
-                TcpClient TcpClienteDatos = _clienteSock;
+                TcpClient TcpClienteDatos = _clienteSockTCP;
                 NetworkStream clientStream = TcpClienteDatos.GetStream();
 
                 while (nPosActual < nTam - 1) //quizas aca me falte un byte (-1)
@@ -436,8 +435,7 @@ namespace Sockets
                     }
 
                     nPosActual = nPosLectura; //ver que no me quede uno atras
-                    //Posicion_Envio(indiceCon, nPosActual); //levanto la posición en la que quede donde estoy enviando
-                    Parametrosvento evPos = new Parametrosvento();
+                    Parametrosvento evPos = new Parametrosvento(); //levanto la posición en la que quede donde estoy enviando
                     evPos.SetEvento(Parametrosvento.TipoEvento.POSICION_ENVIO).SetPosicion(nPosActual);
                     GenerarEvento(evPos);
 
@@ -446,7 +444,7 @@ namespace Sockets
 
                     clientStream.Write(buffer, 0, buffer.Length);
                     clientStream.Flush(); //envio lo datos
-                    //Envio_Completo(indiceCon,buffer.Length); //evento envio completo
+
                     Parametrosvento ev = new Parametrosvento();
                     ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(buffer.Length);
                     GenerarEvento(ev);

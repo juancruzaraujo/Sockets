@@ -14,6 +14,7 @@ namespace Sockets
         private string _datos;
         private long _posicion;
         private string _ipOrigen;
+        private string _ipDestino;
 
         public enum TipoEvento
         {
@@ -72,6 +73,12 @@ namespace Sockets
             return this;
         }
 
+        internal Parametrosvento SetIpDestino(string ipDestino)
+        {
+            _ipDestino = ipDestino;
+            return this;
+        }
+
         public int GetIndice
         {
             get
@@ -125,6 +132,14 @@ namespace Sockets
             get
             {
                 return _ipOrigen;
+            }
+        }
+
+        public string GetIpDestino
+        {
+            get
+            {
+                return _ipDestino;
             }
         }
 

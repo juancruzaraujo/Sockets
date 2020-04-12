@@ -128,7 +128,7 @@ namespace Sockets
 
         public void SetCliente()
         {
-            SetCliente(_puertoCliente, _codePage, _indice, _host);
+            SetCliente(_puertoCliente, _indice, _host);
         }
 
 
@@ -140,7 +140,7 @@ namespace Sockets
         /// <param name="indice"></param>
         /// <param name="host"></param>
         /// <param name="timeOut"></param>
-        public void SetCliente(int puerto, int codePage, int indice, string host,int timeOut = 30,bool tcp = true)
+        public void SetCliente(int puerto, int indice, string host,int timeOut = 30,bool tcp = true, int codePage = 65001)
         {
             string res = "";
             _puertoCliente = puerto;
@@ -148,7 +148,7 @@ namespace Sockets
             _indice = indice;
             _host = host;
 
-            _objCliente = new Cliente();
+            _objCliente = new Cliente(tcp);
             _objCliente.SetGetTimeOut = timeOut;
             _objCliente.CodePage(_codePage, ref res);
             if (res != "")
@@ -172,11 +172,15 @@ namespace Sockets
             _host = host;
             _puertoCliente = puerto;
             
-            _objCliente.Conectar(_indice, _host, _puertoCliente, ref res);
-            if (res != "")
+            if (_tcp)
             {
-                Error(res);
+                _objCliente.Conectar(_indice, _host, _puertoCliente, ref res);
+                if (res != "")
+                {
+                    Error(res);
+                }
             }
+            
         }
 
         public void SetServer()
@@ -185,7 +189,7 @@ namespace Sockets
         }
         
 
-        public void SetServer(int puerto,int codePage,int indice=0,bool tcp =true)
+        public void SetServer(int puerto,int codePage = 65001, int indice=0,bool tcp =true)
         {
             string res = "";
             _escuchando = false;
