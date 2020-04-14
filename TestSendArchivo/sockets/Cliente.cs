@@ -323,6 +323,7 @@ namespace Sockets
             _clienteSockUDP.Send(bytesEnviar, bytesEnviar.Length);
             Parametrosvento ev = new Parametrosvento();
             ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetSize(bytesEnviar.Length).SetIpDestino(_epUDP.ToString());
+            GenerarEvento(ev);
         }
 
         internal void Cerrar_Conexion()

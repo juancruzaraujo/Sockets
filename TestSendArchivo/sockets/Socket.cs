@@ -171,16 +171,8 @@ namespace Sockets
 
             _host = host;
             _puertoCliente = puerto;
-            
-            if (_tcp)
-            {
-                _objCliente.Conectar(_indice, _host, _puertoCliente, ref res);
-                if (res != "")
-                {
-                    Error(res);
-                }
-            }
-            
+
+            _objCliente.Conectar(_indice, _host, _puertoCliente, ref res);
         }
 
         public void SetServer()

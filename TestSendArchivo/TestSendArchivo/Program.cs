@@ -194,7 +194,7 @@ namespace TestSendArchivo
             }
                       
             _obSocket.ModoServidor = true;
-            _obSocket.SetServer(1492);
+            _obSocket.SetServer(1492,65001,0,false);
             _obSocket.StartServer();
 
             if (Mensaje != "")
@@ -271,6 +271,7 @@ namespace TestSendArchivo
 
             _obSocket.ModoCliente = true;
             _obSocket.SetCliente(1492, 0, "127.0.0.1",5, false);
+            _obSocket.Conectar();
             
 
         }
