@@ -37,9 +37,8 @@ namespace Sockets
         private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE       = "modo cliente";
         private const string C_MENSAJE_ERROR_MODO_SOY_SERVER        = "modo server";
 
-
+        /*
         public const int C_EVENTO_ERROR                           = -1;
-
         //constantes publicas
         public const int C_SERVER_EVENTO_ERROR                    = 0;
         public const int C_SERVER_EVENTO_ENVIO_COMPLETO           = 1;
@@ -58,6 +57,8 @@ namespace Sockets
         public const int C_CLIENTE_EVENTO_POS_ENVIO               = 13;
         public const int C_CLIENTE_EVENTO_TIME_OUT                = 14;
         public const int C_CLIENTE_EVENTO_ERROR                   = 15;
+        */
+
 
         /*
             Ev_Cliente_EnvioCompleto);
@@ -66,17 +67,7 @@ namespace Sockets
             Ev_Cliente_Timeout);
          */
 
-        //private object ev_aceptar_conexion;
-
-        /*
-        public delegate void Delegado_Socket_Event(int Indice, int Evento, bool Escuchando, long Size, string Datos,long posicion, string IpOrigen);
-        public event Delegado_Socket_Event Event_Socket;
-        public void EventSocket(int indice, int evento, bool escuchando, long size, string datos, long posicion, string ipOrigen)
-        {
-            //this.Eve_Socket_Servidor(Indice, Evento, Escuchando, Size, Datos, IpOrigen);
-            this.Event_Socket(Indice, evento, escuchando, size, datos, posicion, ipOrigen);
-        }
-        */
+        
         public delegate void Delegado_Socket_Event(Parametrosvento parametros);
         public event Delegado_Socket_Event Event_Socket;
         public void EventSocket(Parametrosvento parametros)

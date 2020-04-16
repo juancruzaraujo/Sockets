@@ -26,9 +26,13 @@ namespace Sockets
         private Encoding _encoder;
         private UdpClient _udpClient;
 
-        IPEndPoint _sender;
+        //IPEndPoint _sender;
         private bool _tcp;
 
+        ///si es el primer mensaje, es una conexión nueva y tengo que hacer saltar el evento de nueva conexión
+        private bool _primerMensajeCliUDP; 
+        
+        
         internal bool Conectado;
         internal bool EsperandoConexion;
         internal string ip_Conexion;
@@ -88,6 +92,7 @@ namespace Sockets
                 }
                 else
                 {
+                    _primerMensajeCliUDP = false;
                     Cliente = new ThreadStart(EscucharUDP);
                 }
                 _thrCliente = new Thread(Cliente);
@@ -150,19 +155,29 @@ namespace Sockets
             try
             {
                 _udpClient = new UdpClient(puerto);
+                _remoteEP = new IPEndPoint(IPAddress.Any, puerto);
+
                 while (true)
                 {
-                    _remoteEP = new IPEndPoint(IPAddress.Any, puerto);
                     var datos = _udpClient.Receive(ref _remoteEP);
-
                     ip_Conexion = _remoteEP.Address.ToString();
+                    
+                    if (!_primerMensajeCliUDP)
+                    {
+                        _primerMensajeCliUDP = true;
+                        Parametrosvento nuevaCon = new Parametrosvento();
+                        nuevaCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION).SetIpOrigen(ip_Conexion);
+                        GenerarEvento(nuevaCon);
+                    }
+
                     Parametrosvento ev = new Parametrosvento();
                     ev.SetDatos(Encoding.ASCII.GetString(datos, 0, datos.Length)).SetIpOrigen(ip_Conexion).SetEvento(Parametrosvento.TipoEvento.DATOS_IN);
-                    GenerarEvento(ev);   
+                    GenerarEvento(ev);
                 }
             }
-            catch(Exception e)
-            {
+            catch (Exception e)
+            { 
+                _primerMensajeCliUDP = false;
                 _udpClient.Close();
                 Parametrosvento evErr = new Parametrosvento();
                 evErr.SetDatos(e.Message).SetEvento(Parametrosvento.TipoEvento.ERROR);

@@ -194,7 +194,7 @@ namespace TestSendArchivo
             }
                       
             _obSocket.ModoServidor = true;
-            _obSocket.SetServer(1492,65001,0,false);
+            _obSocket.SetServer(1492,65001,0, tcp);
             _obSocket.StartServer();
 
             if (Mensaje != "")
@@ -227,7 +227,10 @@ namespace TestSendArchivo
                     if (!_recibirArchivo)
                     {
                         Console.WriteLine("[" + ipOrigen + "] " + datos);
-                        _obSocket.Enviar("ok tcp");
+                        if (_obSocket.ModoServidor)
+                        {
+                            EnviarRespuesta("TCP");
+                        }
                     }
                     else
                     {
@@ -238,8 +241,16 @@ namespace TestSendArchivo
             else
             {
                 Console.WriteLine("[" + ipOrigen + "] " + datos);
-                _obSocket.Enviar("ok udp");
+                if (_obSocket.ModoServidor)
+                {
+                    EnviarRespuesta("UDP");
+                }
             }
+        }
+
+        static void EnviarRespuesta(string msg)
+        {
+            _obSocket.Enviar("server " + msg + " envia ok");
         }
 
         static void Cliente()

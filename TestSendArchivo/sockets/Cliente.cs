@@ -247,10 +247,15 @@ namespace Sockets
         {
             try
             {
-                var datosInUDP = _clienteSockUDP.Receive(ref _epUDP);
-                Parametrosvento ev = new Parametrosvento();
-                ev.SetEvento(Parametrosvento.TipoEvento.DATOS_IN).SetDatos(_epUDP.ToString()).SetIpOrigen(_clienteSockUDP.ToString());
-                GenerarEvento(ev);
+                while (true)
+                {
+                    var datosInUDP = _clienteSockUDP.Receive(ref _epUDP);
+                    Parametrosvento ev = new Parametrosvento();
+                    ev.SetEvento(Parametrosvento.TipoEvento.DATOS_IN)
+                        .SetDatos((Encoding.ASCII.GetString(datosInUDP, 0, datosInUDP.Length)))
+                        .SetIpOrigen(_epUDP.ToString());
+                    GenerarEvento(ev);
+                }
 
             }
             catch(Exception err)
@@ -324,6 +329,13 @@ namespace Sockets
             Parametrosvento ev = new Parametrosvento();
             ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetSize(bytesEnviar.Length).SetIpDestino(_epUDP.ToString());
             GenerarEvento(ev);
+
+            /*
+            ThreadStart thrclienteUDP = new ThreadStart(Flujo_Datos_UDP);
+            _thrCliente = new Thread(thrclienteUDP);
+            _thrCliente.Name = "thrClienteUDP";
+            _thrCliente.Start();
+            */
         }
 
         internal void Cerrar_Conexion()
