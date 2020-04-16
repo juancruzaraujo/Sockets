@@ -37,9 +37,8 @@ namespace Sockets
         private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE       = "modo cliente";
         private const string C_MENSAJE_ERROR_MODO_SOY_SERVER        = "modo server";
 
-
+        /*
         public const int C_EVENTO_ERROR                           = -1;
-
         //constantes publicas
         public const int C_SERVER_EVENTO_ERROR                    = 0;
         public const int C_SERVER_EVENTO_ENVIO_COMPLETO           = 1;
@@ -58,6 +57,8 @@ namespace Sockets
         public const int C_CLIENTE_EVENTO_POS_ENVIO               = 13;
         public const int C_CLIENTE_EVENTO_TIME_OUT                = 14;
         public const int C_CLIENTE_EVENTO_ERROR                   = 15;
+        */
+
 
         /*
             Ev_Cliente_EnvioCompleto);
@@ -66,13 +67,13 @@ namespace Sockets
             Ev_Cliente_Timeout);
          */
 
-        //private object ev_aceptar_conexion;
-        public delegate void Delegado_Socket_Event(int Indice, int Evento, bool Escuchando, long Size, string Datos,long posicion, string IpOrigen);
+        
+        public delegate void Delegado_Socket_Event(Parametrosvento parametros);
         public event Delegado_Socket_Event Event_Socket;
-        public void EventSocket(int indice, int evento, bool escuchando, long size, string datos, long posicion, string ipOrigen)
+        public void EventSocket(Parametrosvento parametros)
         {
             //this.Eve_Socket_Servidor(Indice, Evento, Escuchando, Size, Datos, IpOrigen);
-            this.Event_Socket(Indice, evento, escuchando, size, datos, posicion, ipOrigen);
+            this.Event_Socket(parametros);
         }
 
 
@@ -104,12 +105,21 @@ namespace Sockets
 
         void Error(string mensajeError)
         {
-            EventSocket(_indice, C_EVENTO_ERROR, _escuchando, _size, mensajeError, 0, _ipCliente);
+            //EventSocket(_indice, C_EVENTO_ERROR, _escuchando, _size, mensajeError, 0, _ipCliente);
+            Parametrosvento ev = new Parametrosvento();
+
+            ev.SetDatos(mensajeError)
+                .SetEvento(Parametrosvento.TipoEvento.ERROR)
+                .SetIndice(_indice).SetEscuchando(_escuchando)
+                .SetSize(_size)
+                .SetIpOrigen(_ipCliente);
+
+            EventSocket(ev);
         }
 
         public void SetCliente()
         {
-            SetCliente(_puertoCliente, _codePage, _indice, _host);
+            SetCliente(_puertoCliente, _indice, _host);
         }
 
 
@@ -121,7 +131,7 @@ namespace Sockets
         /// <param name="indice"></param>
         /// <param name="host"></param>
         /// <param name="timeOut"></param>
-        public void SetCliente(int puerto, int codePage, int indice, string host,int timeOut = 30)
+        public void SetCliente(int puerto, int indice, string host,int timeOut = 30,bool tcp = true, int codePage = 65001)
         {
             string res = "";
             _puertoCliente = puerto;
@@ -129,21 +139,16 @@ namespace Sockets
             _indice = indice;
             _host = host;
 
-            _objCliente = new Cliente();
+            _objCliente = new Cliente(tcp);
             _objCliente.SetGetTimeOut = timeOut;
             _objCliente.CodePage(_codePage, ref res);
             if (res != "")
             {
                 Error(res);
             }
-
-            _objCliente.Eve_Conexion_Fin += new Cliente.DelegadoConexion_Fin(Ev_Cliente_conexion_Fin);
-            _objCliente.Eve_Conexion_OK += new Cliente.DelegadoConexion_ok(Ev_Cliente_conexion_ok);
-            _objCliente.Eve_DatosIn += new Cliente.DelegadoDatosIN(Ev_Cliente_DatosIn);
-            _objCliente.Eve_EnvioCompleto += new Cliente.DelegadoEnvioCompleto(Ev_Cliente_EnvioCompleto);
-            _objCliente.Eve_Error += new Cliente.DelegadoError(Ev_Cliente_Error);
-            _objCliente.Eve_Posicion_Envio += new Cliente.Delegado_posicion_Envio(Ev_Cliente_PosEnvio);
-            _objCliente.Eve_TimeOut += new Cliente.DelegadoTimeOut(Ev_Cliente_Timeout);
+            _objCliente.evento_cliente += new Cliente.Delegado_Cliente_Event(ev_socket);
+            _tcp = tcp;
+            _modoCliente = true;
 
         }
 
@@ -157,12 +162,8 @@ namespace Sockets
 
             _host = host;
             _puertoCliente = puerto;
-            
+
             _objCliente.Conectar(_indice, _host, _puertoCliente, ref res);
-            if (res != "")
-            {
-                Error(res);
-            }
         }
 
         public void SetServer()
@@ -171,7 +172,7 @@ namespace Sockets
         }
         
 
-        public void SetServer(int puerto,int codePage,int indice=0,bool tcp =true)
+        public void SetServer(int puerto,int codePage = 65001, int indice=0,bool tcp =true)
         {
             string res = "";
             _escuchando = false;
@@ -185,19 +186,12 @@ namespace Sockets
 
             if (!ModoServidor) //ya esta activado de antes el modo cliente
             {
-                EventSocket(indice, C_EVENTO_ERROR,false,0,"",0,"");
+                //EventSocket(indice, C_EVENTO_ERROR,false,0,"",0,"");
                 return;
             }
 
             _objServidor = new Servidor(_puertoEscuchaServer, _codePage, _indice, ref res, _tcp);
-            _objServidor.Eve_AceptarConexion += new Servidor.DelegadoAceptarConexion(Ev_Server_AceptarConexion);
-            _objServidor.Eve_DatosIn += new Servidor.DelegadoDatosIn(Ev_Server_DatosIn);
-            _objServidor.Eve_Envio_Completo += new Servidor.Delegado_Envio_Completo(Ev_Server_EnvioCompleto);
-            _objServidor.Eve_Error += new Servidor.DelegadoError(Ev_Server_Error);
-            _objServidor.Eve_Espera_Conexion += new Servidor.DelegadoEsperaConexion(Ev_Server_EsperaConexion);
-            _objServidor.Eve_FinConexion += new Servidor.DelegadoFinConexion(Ev_Server_FinConexion);
-            _objServidor.Eve_NuevaConexion += new Servidor.DelegadoNuevaConexion(Ev_Server_NuevaConexion);
-            _objServidor.Eve_Posicion_Envio += new Servidor.Delegado_posicion_Envio(Ev_Server_PosicionEnvio);
+            _objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(ev_socket);
             
             if (res != "")
             {
@@ -206,8 +200,9 @@ namespace Sockets
                 return;
             }
             _escuchando = true;
+            _modoServidor = true;
+        }
 
-        }      
 
         public void StartServer()
         {
@@ -231,24 +226,6 @@ namespace Sockets
             }
             set
             {
-                /*
-                if (value)
-                {
-                    if (_modoCliente)
-                    {
-                        
-                        _modoServidor = false;
-                        Error(C_MENSAJE_ERROR_MODO_SOY_CLIENTE);
-                    }
-                    else
-                    {
-                        _modoServidor = value;
-                    }
-                }
-                else
-                {
-                    _modoServidor = value;
-                }*/
                 _modoServidor = value;
                  
             }
@@ -262,19 +239,6 @@ namespace Sockets
             }
             set
             {
-                /*
-                if (value)
-                {
-                    if (_modoServidor)
-                    {
-                        _modoCliente = false;
-                        Error(C_MENSAJE_ERROR_MODO_SOY_SERVER);
-                    }
-                }
-                else
-                {
-                    _modoCliente = value;
-                }*/
                 _modoCliente = value;
             }
         }
@@ -371,85 +335,28 @@ namespace Sockets
 
         #endregion
 
-        #region eventos modo server
-        private void Ev_Server_AceptarConexion(int Indice, string IpOrigen)
+        private void ev_socket(Parametrosvento ev)
         {
-            _ipCliente = IpOrigen;
-            EventSocket(Indice, C_SERVER_EVENTO_ACEPTAR_CONEXION, _escuchando, _size, _datos, 0, _ipCliente);
-        }
+            if ((_ipCliente !=""))
+            {
+                if (_ipCliente != ev.GetIpOrigen)
+                {
+                    _ipCliente = ev.GetIpOrigen;
+                }
+            }
 
-        private void Ev_Server_DatosIn(int indice, string Datos,string ipOrigen)
-        {
-            EventSocket(indice, C_SERVER_EVENTO_DATOS_IN, _escuchando, _size, Datos, 0, ipOrigen);
-        }
-        private void Ev_Server_PosicionEnvio(int Indice, long pos)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_ENVIO_ARRAY, _escuchando, 0, _datos, pos, _ipCliente);
-        }
+            EventSocket(ev);
 
-        private void Ev_Server_NuevaConexion(int Indice,string ipOrigen)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_NUEVA_CONEXION, _escuchando, 0,_datos, 0, ipOrigen);
-        }
+            if ((_modoServidor) &&(!_tcp))
+            {
+                if (ev.GetEvento == Parametrosvento.TipoEvento.ERROR)
+                {
+                    string aux = "";
+                    _objServidor.Iniciar(ref aux); //volvemos a iniciar el servidor udp
+                }
+            }
 
-        private void Ev_Server_FinConexion(int Indice)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_CONEXION_FIN, _escuchando, 0, _datos, 0, _ipCliente);
         }
-
-        private void Ev_Server_EsperaConexion(int Indice, bool Escuchando)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_ESPERA_CONEXION, _escuchando,0, _datos, 0, _ipCliente);
-        }
-
-        private void Ev_Server_Error(int indice, string ErrDescrip)
-        {
-            Event_Socket(indice, C_EVENTO_ERROR, _escuchando, 0, ErrDescrip, 0, _ipCliente);
-        }
-
-        private void Ev_Server_EnvioCompleto(int Indice, long Size)
-        {
-            Event_Socket(Indice, C_SERVER_EVENTO_ENVIO_COMPLETO, _escuchando, 0, _datos, 0, _ipCliente);
-        }
-        #endregion
-
-        #region eventos modo cliente
-        private void Ev_Cliente_Timeout(int Indice)
-        {
-            EventSocket(Indice, C_CLIENTE_EVENTO_TIME_OUT, _escuchando, _size, _datos, 0, "");
-        }
-
-        private void Ev_Cliente_PosEnvio(int Indice, long pos)
-        {
-            EventSocket(Indice, C_CLIENTE_EVENTO_POS_ENVIO, _escuchando, _size, "", pos, "");
-        }
-
-        private void Ev_Cliente_Error(int Indice, string Mensaje)
-        {
-            EventSocket(Indice, C_CLIENTE_EVENTO_ERROR, _escuchando, 0, Mensaje, 0, "");
-        }
-
-        private void Ev_Cliente_EnvioCompleto(int Indice, long DatosSend)
-        {
-            EventSocket(Indice, C_CLIENTE_EVENTO_ENVIO_COMPLETO, _escuchando, DatosSend,"",0, "");
-        }
-
-        private void Ev_Cliente_DatosIn(int Indice, string Mensaje)
-        {
-            EventSocket(Indice, C_CLIENTE_EVENTO_DATOS_IN, _escuchando, 0, Mensaje, 0, "");
-        }
-
-        private void Ev_Cliente_conexion_ok(int Indice)
-        {
-            EventSocket(Indice, C_CLIENTE_EVENTO_CONEXION_OK, _escuchando, 0, "", 0, "");
-        }
-
-        private void Ev_Cliente_conexion_Fin(int Indice)
-        {
-            EventSocket(Indice, C_CLIENTE_EVENTO_CONEXION_FIN, _escuchando, 0, "", 0, "");
-        }
-        #endregion
-
 
         /// <summary>
         /// envía un mensaje al cliente o al servidor. si hay un error se dispara un evento de error
