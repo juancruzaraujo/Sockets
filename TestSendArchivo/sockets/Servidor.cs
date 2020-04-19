@@ -30,14 +30,14 @@ namespace Sockets
         private bool _tcp;
 
         ///si es el primer mensaje, es una conexión nueva y tengo que hacer saltar el evento de nueva conexión
-        private bool _primerMensajeCliUDP; 
-        
-        
+        private bool _primerMensajeCliUDP;
+        private int _indiceCon; //va a contener el indice de conexion
+
         internal bool Conectado;
         internal bool EsperandoConexion;
         internal string ip_Conexion;
         internal int puerto;
-        internal int indiceCon;
+        
 
         internal delegate void Delegado_Servidor_Event(Parametrosvento servidorParametrosEvento);
         internal event Delegado_Servidor_Event evento_servidor;
@@ -46,19 +46,28 @@ namespace Sockets
             this.evento_servidor(servidorParametrosEvento);
         }
         
-        
+        internal int Indice
+        {
+            get
+            {
+                return _indiceCon;
+            }
+            set
+            {
+                _indiceCon = value;
+            }
+        }
+
         /// <summary>
         /// setea el socket para la escucha
         /// </summary>
         /// <param name="PuertoEscucha">puerto de escucha</param>
         /// <param name="Cod">codopage</param>
-        /// <param name="IndiceConexion">inidce de conexion</param>
         /// <param name="Mensaje">mensaje que retorna en caso de error</param>
         /// <param name="tcp">define si la conexión es tpc o udp, vaor default true, si es falso, la conexion es udp</param>
-        internal Servidor(int PuertoEscucha, int Cod, int IndiceConexion, ref string Mensaje, bool tcp=true)
+        internal Servidor(int PuertoEscucha, int Cod, ref string Mensaje, bool tcp=true)
         {
-            indiceCon = IndiceConexion;
-
+            _indiceCon = -1;
             try
             {
                 CodePage(Cod, ref Mensaje);
@@ -491,7 +500,7 @@ namespace Sockets
 
         private void GenerarEvento(Parametrosvento ob)
         {
-            ob.SetIndice(indiceCon);
+            ob.SetIndice(_indiceCon);
 
             Evento_Servidor(ob);
         }

@@ -14,7 +14,9 @@ namespace Sockets
 
         //variables y objetos privados
         private Cliente _objCliente;
-        private Servidor _objServidor;
+        //private Servidor _objServidor;
+        private List<Servidor> _lstObjServidor;
+
 
         private string _mensaje;
 
@@ -32,40 +34,12 @@ namespace Sockets
         private string _datos;
         private string _host;
         private bool _tcp;
+        private int _maxServCon;
 
         //constantes priavdas
         private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE       = "modo cliente";
         private const string C_MENSAJE_ERROR_MODO_SOY_SERVER        = "modo server";
 
-        /*
-        public const int C_EVENTO_ERROR                           = -1;
-        //constantes publicas
-        public const int C_SERVER_EVENTO_ERROR                    = 0;
-        public const int C_SERVER_EVENTO_ENVIO_COMPLETO           = 1;
-        public const int C_SERVER_EVENTO_ENVIO_ARRAY              = 2;
-        public const int C_SERVER_EVENTO_DATOS_IN                 = 3;
-        public const int C_SERVER_EVENTO_NUEVA_CONEXION           = 4;
-        public const int C_SERVER_EVENTO_CONEXION_FIN             = 5;
-        public const int C_SERVER_EVENTO_TIME_OUT                 = 6;
-        public const int C_SERVER_EVENTO_ACEPTAR_CONEXION         = 7;
-        public const int C_SERVER_EVENTO_ESPERA_CONEXION          = 8;
-
-        public const int C_CLIENTE_EVENTO_CONEXION_FIN            = 9;
-        public const int C_CLIENTE_EVENTO_CONEXION_OK             = 10;
-        public const int C_CLIENTE_EVENTO_DATOS_IN                = 11;
-        public const int C_CLIENTE_EVENTO_ENVIO_COMPLETO          = 12;
-        public const int C_CLIENTE_EVENTO_POS_ENVIO               = 13;
-        public const int C_CLIENTE_EVENTO_TIME_OUT                = 14;
-        public const int C_CLIENTE_EVENTO_ERROR                   = 15;
-        */
-
-
-        /*
-            Ev_Cliente_EnvioCompleto);
-            Ev_Cliente_Error);
-            Ev_Cliente_PosEnvio);
-            Ev_Cliente_Timeout);
-         */
 
         
         public delegate void Delegado_Socket_Event(Parametrosvento parametros);
@@ -76,6 +50,14 @@ namespace Sockets
             this.Event_Socket(parametros);
         }
 
+        
+        public int GetMaxServerConexiones
+        {
+            get
+            {
+                return _maxServCon;
+            }
+        }
 
         public bool tcp
         {
@@ -92,7 +74,7 @@ namespace Sockets
                 string res = "";
                 if (_modoServidor)
                 {
-                    res = _objServidor.ip_Conexion;
+                    //res = _objServidor.ip_Conexion;
                 }
                 return res;
             }
@@ -166,20 +148,22 @@ namespace Sockets
             _objCliente.Conectar(_indice, _host, _puertoCliente, ref res);
         }
 
+        /*
         public void SetServer()
         {
             SetServer(_puertoEscuchaServer, _codePage, _indice);
-        }
-        
+        }*/
 
-        public void SetServer(int puerto,int codePage = 65001, int indice=0,bool tcp =true)
+
+        public void SetServer(int puerto, int codePage = 65001, bool tcp = true, int maxCon = 0)
         {
             string res = "";
             _escuchando = false;
             _puertoEscuchaServer = puerto;
             _codePage = codePage;
-            _indice = indice;
+            //_indice = indice;
             _tcp = tcp;
+            _maxServCon = maxCon;
             this.ModoServidor = true;
             //_modoServidor = true;
 
@@ -190,9 +174,13 @@ namespace Sockets
                 return;
             }
 
-            _objServidor = new Servidor(_puertoEscuchaServer, _codePage, _indice, ref res, _tcp);
-            _objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(ev_socket);
+            //_objServidor = new Servidor(_puertoEscuchaServer, _codePage, _indice, ref res, _tcp);
+            //_objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(ev_socket);
+
+            _lstObjServidor = new List<Servidor>();
             
+            
+
             if (res != "")
             {
                 _mensaje = res;
@@ -203,12 +191,21 @@ namespace Sockets
             _modoServidor = true;
         }
 
+        private Servidor CrearServidor(ref string mensaje)
+        {
+            Servidor objServidor = new Servidor(_puertoEscuchaServer, _codePage, ref mensaje, _tcp);
+            objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(ev_socket);
+            _lstObjServidor.Add(objServidor);
+            _lstObjServidor[GetUltimoEspacioLibre()].Indice = GetUltimoEspacioLibre();
+            return objServidor;
+        }
 
         public void StartServer()
         {
             string res="";
 
-            _objServidor.Iniciar(ref res);
+            //_objServidor.Iniciar(ref res);
+            _lstObjServidor[GetUltimoEspacioLibre()].Iniciar(ref res);
             if (res != "")
             {
                 Error(res);
@@ -293,7 +290,7 @@ namespace Sockets
 
             if (ModoServidor)
             {
-                _objServidor.Detener(ref res);
+                //_objServidor.Detener(ref res);
             }
             if (ModoCliente)
             {
@@ -347,12 +344,22 @@ namespace Sockets
 
             EventSocket(ev);
 
-            if ((_modoServidor) &&(!_tcp))
+            //if ((_modoServidor) &&(!_tcp))
+            if (_modoServidor)
             {
-                if (ev.GetEvento == Parametrosvento.TipoEvento.ERROR)
+                if (!_tcp) //para cosas que son udp
                 {
-                    string aux = "";
-                    _objServidor.Iniciar(ref aux); //volvemos a iniciar el servidor udp
+                    if (ev.GetEvento == Parametrosvento.TipoEvento.ERROR)
+                    {
+                        string aux = "";
+                        //_objServidor.Iniciar(ref aux); //volvemos a iniciar el servidor udp
+                    }
+                }
+
+                if (ev.GetEvento == Parametrosvento.TipoEvento.NUEVA_CONEXION)
+                {
+                    string mensaje = "";
+                    _lstObjServidor.Add(CrearServidor(ref mensaje));
                 }
             }
 
@@ -362,14 +369,15 @@ namespace Sockets
         /// envía un mensaje al cliente o al servidor. si hay un error se dispara un evento de error
         /// </summary>
         /// <param name="mensaje">mensaje a enviar</param>
-        public void Enviar(string mensaje)
+        public void Enviar(string mensaje,int indice=0)
         {
 
             string res = "";
 
             if (_modoServidor)
             {
-                _objServidor.Enviar(mensaje, ref res);
+                //_objServidor.Enviar(mensaje, ref res);
+                _lstObjServidor[indice].Enviar(mensaje, ref res);
             }
 
             if (_modoCliente)
@@ -383,13 +391,14 @@ namespace Sockets
             }
         }
 
-        public void EnviarArray(byte[] memArray, int TamCluster)
+        public void EnviarArray(byte[] memArray, int TamCluster,int indice)
         {
             string res = "";
 
             if (_modoServidor)
             {
-                _objServidor.Enviar_ByteArray(memArray, TamCluster, ref res);
+                //_objServidor.Enviar_ByteArray(memArray, TamCluster, ref res);
+                _lstObjServidor[indice].Enviar_ByteArray(memArray, TamCluster, ref res);
             }
 
             if (_modoCliente)
@@ -402,6 +411,11 @@ namespace Sockets
                 Error(res);
             }
 
+        }
+
+        private int GetUltimoEspacioLibre()
+        {
+            return _lstObjServidor.Count();
         }
     }
 }

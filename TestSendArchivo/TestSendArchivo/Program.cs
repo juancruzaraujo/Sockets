@@ -38,10 +38,7 @@ namespace TestSendArchivo
 
         const string C_ENVACRH = "ARCH>";
         const string C_FINARCH = "FINARCH>";
-        //const string C_CRLF = Convert.ToChar(13).ToString() + Convert.ToChar(10).ToString();
-        //delegate void Delegado_SocketServidor(int tipo, int Indice, string Datos, int Tipo_Dato);
-        //delegate void Delegado_SocketCliente();
-
+        
         const int C_TAM_CLUSTER = 1400;
 
 
@@ -194,7 +191,7 @@ namespace TestSendArchivo
             }
                       
             _obSocket.ModoServidor = true;
-            _obSocket.SetServer(1492,65001,0, tcp);
+            _obSocket.SetServer(1492,65001, tcp,3);
             _obSocket.StartServer();
 
             if (Mensaje != "")
@@ -275,7 +272,7 @@ namespace TestSendArchivo
 
         static void ClienteUDP()
         {
-            string Mensaje = "";
+            //string Mensaje = "";
 
             Console.WriteLine("modo cliente UDP");
             Console.Title = "MODO CLIENTE UDP";
@@ -334,15 +331,6 @@ namespace TestSendArchivo
                     return;
                 }                
 
-                /*
-                sAux = Datos.Substring(0, Datos.Length - 2); //saco salto de linea y retorno de carro
-                if (sAux == C_ENVACRH)
-                {
-                    setArchivos();
-                    Datos = "";
-                    return;
-                }
-                 */
                 if (Datos.Contains(C_ENVACRH + "\r\n"))
                 {
                     nPos = Datos.IndexOf(C_ENVACRH + "\r\n");
@@ -379,23 +367,7 @@ namespace TestSendArchivo
                 Console.WriteLine(memArrayArchivo.Length);
 
                 _obSocket.Enviar(C_ENVACRH + "\r\n");
-                _obSocket.EnviarArray(memArrayArchivo, C_TAM_CLUSTER);
-
-
-                #region forma vieja
-                /*
-                if (modoServer)
-                {
-                    //_obServer.EnviarDatos(C_ENVACRH + "\r\n"); 
-                    //_obServer.EnviarArray(memArrayArchivo, C_TAM_CLUSTER, ref Err);
-
-                }
-                else
-                {
-                    //_obCliente.EnviarDatos(C_ENVACRH + "\r\n"); 
-                    //_obCliente.EnviarArray(memArrayArchivo, C_TAM_CLUSTER, ref Err);
-                }*/
-                #endregion
+                _obSocket.EnviarArray(memArrayArchivo, C_TAM_CLUSTER,0);
 
                 if (Err != "")
                 {
@@ -403,18 +375,6 @@ namespace TestSendArchivo
                 }
                 else
                 {
-                    #region forma vieja
-                    /*
-                    if (modoServer)
-                    {
-                        //_obServer.EnviarDatos(C_FINARCH + "\r\n");
-                    }
-                    else
-                    {
-                        //_obCliente.EnviarDatos(C_FINARCH + "\r\n");
-                    }*/
-                    #endregion
-
                     _obSocket.Enviar(C_FINARCH + "\r\n");
                     Console.WriteLine("envio ok");
                 }
