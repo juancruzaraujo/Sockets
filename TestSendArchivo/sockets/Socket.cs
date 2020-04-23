@@ -171,6 +171,7 @@ namespace Sockets
             if (!ModoServidor) //ya esta activado de antes el modo cliente
             {
                 //EventSocket(indice, C_EVENTO_ERROR,false,0,"",0,"");
+                Error(ModoServidor.ToString());
                 return;
             }
 
@@ -178,9 +179,8 @@ namespace Sockets
             //_objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(ev_socket);
 
             _lstObjServidor = new List<Servidor>();
+            CrearServidor(ref res);
             
-            
-
             if (res != "")
             {
                 _mensaje = res;
@@ -196,6 +196,7 @@ namespace Sockets
             Servidor objServidor = new Servidor(_puertoEscuchaServer, _codePage, ref mensaje, _tcp);
             objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(ev_socket);
             _lstObjServidor.Add(objServidor);
+
             _lstObjServidor[GetUltimoEspacioLibre()].Indice = GetUltimoEspacioLibre();
             return objServidor;
         }
@@ -206,6 +207,7 @@ namespace Sockets
 
             //_objServidor.Iniciar(ref res);
             _lstObjServidor[GetUltimoEspacioLibre()].Iniciar(ref res);
+            
             if (res != "")
             {
                 Error(res);
@@ -360,6 +362,7 @@ namespace Sockets
                 {
                     string mensaje = "";
                     _lstObjServidor.Add(CrearServidor(ref mensaje));
+                    StartServer();
                 }
             }
 
@@ -415,7 +418,7 @@ namespace Sockets
 
         private int GetUltimoEspacioLibre()
         {
-            return _lstObjServidor.Count();
+            return _lstObjServidor.Count()-1;
         }
     }
 }
