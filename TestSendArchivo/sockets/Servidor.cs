@@ -333,7 +333,10 @@ namespace Sockets
                     
                     //llegó el mensaje
                     strDatos = _encoder.GetString(message, 0, bytesRead);
-                    ev.SetDatos(strDatos).SetIpOrigen(_tcpCliente.Client.RemoteEndPoint.ToString()).SetEvento(Parametrosvento.TipoEvento.DATOS_IN);
+                    ev.SetDatos(strDatos)
+                        .SetIpOrigen(_tcpCliente.Client.RemoteEndPoint.ToString())
+                        .SetEvento(Parametrosvento.TipoEvento.DATOS_IN)
+                        .SetSize(strDatos.Length);
                     GenerarEvento(ev);
                 }
                 //el cliente cerro la conexion

@@ -160,7 +160,7 @@ namespace TestSendArchivo
 
                 //case Socket.C_SERVER_EVENTO_ACEPTAR_CONEXION:
                 case Parametrosvento.TipoEvento.ACEPTAR_CONEXION:
-                    Console.WriteLine("conectado desde " + ev.GetIpOrigen);
+                    Console.WriteLine (corchete(ev.GetIndice.ToString()) +  " conectado desde " + ev.GetIpOrigen);
                     break;
 
                 case Parametrosvento.TipoEvento.DATOS_IN:
@@ -223,10 +223,11 @@ namespace TestSendArchivo
                 {
                     if (!_recibirArchivo)
                     {
-                        Console.WriteLine("[" + ipOrigen + "] " + datos);
+                        //Console.WriteLine("[" + ipOrigen + "] " + datos);
+                        Console.WriteLine(corchete(indice.ToString()) + " " + datos);
                         if (_obSocket.ModoServidor)
                         {
-                            EnviarRespuesta("TCP");
+                            EnviarRespuesta("TCP",indice);
                         }
                     }
                     else
@@ -240,14 +241,14 @@ namespace TestSendArchivo
                 Console.WriteLine("[" + ipOrigen + "] " + datos);
                 if (_obSocket.ModoServidor)
                 {
-                    EnviarRespuesta("UDP");
+                    EnviarRespuesta("UDP",indice);
                 }
             }
         }
 
-        static void EnviarRespuesta(string msg)
+        static void EnviarRespuesta(string msg,int indice)
         {
-            _obSocket.Enviar("server " + msg + " envia ok");
+            _obSocket.Enviar("server " + msg + " envia ok",indice);
         }
 
         static void Cliente()
@@ -383,6 +384,11 @@ namespace TestSendArchivo
             {
                 Console.WriteLine(Error.Message);
             }
+        }
+
+        static string corchete(string mensaje)
+        {
+            return "[" + mensaje + "]";
         }
 
 

@@ -148,13 +148,6 @@ namespace Sockets
             _objCliente.Conectar(_indice, _host, _puertoCliente, ref res);
         }
 
-        /*
-        public void SetServer()
-        {
-            SetServer(_puertoEscuchaServer, _codePage, _indice);
-        }*/
-
-
         public void SetServer(int puerto, int codePage = 65001, bool tcp = true, int maxCon = 0)
         {
             string res = "";
@@ -394,19 +387,35 @@ namespace Sockets
             }
         }
 
-        public void EnviarArray(byte[] memArray, int TamCluster,int indice)
+        public void EnviarATodos(string mensaje)
+        {
+            for (int i=0;i<_lstObjServidor.Count(); i++)
+            {
+                Enviar(mensaje, i);
+            }
+        }
+
+        public void EnviarArrayATodos(byte[] memArray,int tamCluster)
+        {
+            for (int i = 0; i < _lstObjServidor.Count(); i++)
+            {
+                EnviarArray(memArray, tamCluster, i);
+            }
+        }
+
+        public void EnviarArray(byte[] memArray, int tamCluster,int indice)
         {
             string res = "";
 
             if (_modoServidor)
             {
                 //_objServidor.Enviar_ByteArray(memArray, TamCluster, ref res);
-                _lstObjServidor[indice].Enviar_ByteArray(memArray, TamCluster, ref res);
+                _lstObjServidor[indice].Enviar_ByteArray(memArray, tamCluster, ref res);
             }
 
             if (_modoCliente)
             {
-                _objCliente.Enviar_ByteArray(memArray, TamCluster, ref res);
+                _objCliente.Enviar_ByteArray(memArray, tamCluster, ref res);
             }
 
             if (res != "")
