@@ -8,6 +8,7 @@ namespace Sockets
     public class Parametrosvento
     {
         private int _indice;
+        private int _indiceLista;
         private TipoEvento _evento;
         private bool _escuchando;
         private long _size;
@@ -15,6 +16,7 @@ namespace Sockets
         private long _posicion;
         private string _ipOrigen;
         private string _ipDestino;
+        private int _codigoError;
 
         public enum TipoEvento
         {
@@ -27,13 +29,22 @@ namespace Sockets
             ESPERA_CONEXION = 6,
             POSICION_ENVIO = 7,
             CONEXION_OK = 8,
-            TIME_OUT = 9
+            TIME_OUT = 9,
+            NUEVO_SERVIDOR = 10,
+            SERVER_INICIADO = 11,
+            LIMITE_CONEXIONES = 12
 
         };
 
         internal Parametrosvento SetIndice(int indice)
         {
             _indice = indice;
+            return this;
+        }
+
+        internal Parametrosvento SetIndiceLista(int indiceLista)
+        {
+            _indiceLista = indiceLista;
             return this;
         }
 
@@ -79,11 +90,25 @@ namespace Sockets
             return this;
         }
 
+        internal Parametrosvento SetCodError(int codError)
+        {
+            _codigoError = codError;
+            return this;
+        }
+
         public int GetIndice
         {
             get
             {
                 return _indice;
+            }
+        }
+
+        public int GetIndiceLista
+        {
+            get
+            {
+                return _indiceLista;
             }
         }
 
@@ -140,6 +165,14 @@ namespace Sockets
             get
             {
                 return _ipDestino;
+            }
+        }
+
+        public int GetCodError
+        {
+            get
+            {
+                return _codigoError;
             }
         }
 

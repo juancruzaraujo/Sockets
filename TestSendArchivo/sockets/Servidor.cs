@@ -6,6 +6,7 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.Diagnostics;
+using System.ComponentModel;
 
 namespace Sockets
 {
@@ -26,12 +27,12 @@ namespace Sockets
         private Encoding _encoder;
         private UdpClient _udpClient;
 
-        //IPEndPoint _sender;
         private bool _tcp;
 
         ///si es el primer mensaje, es una conexión nueva y tengo que hacer saltar el evento de nueva conexión
         private bool _primerMensajeCliUDP;
         private int _indiceCon; //va a contener el indice de conexion
+        private int _indiceLista; //va a conetener el indice de la lista de sockets
 
         internal bool Conectado;
         internal bool EsperandoConexion;
@@ -46,7 +47,7 @@ namespace Sockets
             this.evento_servidor(servidorParametrosEvento);
         }
         
-        internal int Indice
+        internal int IndiceConexion
         {
             get
             {
@@ -58,6 +59,18 @@ namespace Sockets
             }
         }
 
+        internal int IndiceLista
+        {
+            get
+            {
+                return _indiceLista;
+            }
+            set
+            {
+                _indiceLista = value;
+            }
+        }
+
         /// <summary>
         /// setea el socket para la escucha
         /// </summary>
@@ -65,24 +78,25 @@ namespace Sockets
         /// <param name="Cod">codopage</param>
         /// <param name="Mensaje">mensaje que retorna en caso de error</param>
         /// <param name="tcp">define si la conexión es tpc o udp, vaor default true, si es falso, la conexion es udp</param>
-        internal Servidor(int PuertoEscucha, int Cod, ref string Mensaje, bool tcp=true)
+        internal Servidor(int PuertoEscucha, int Cod, ref string mensaje, bool tcp=true)
         {
             _indiceCon = -1;
             try
             {
-                CodePage(Cod, ref Mensaje);
-                if (Mensaje != "")
+                CodePage(Cod, ref mensaje);
+                if (mensaje != "")
                 {
-                    Mensaje = Mensaje + " No se pudo iniciar ConServer";
+                    mensaje = mensaje + " No se pudo iniciar ConServer";
                     return;
                 }
 
                 puerto = PuertoEscucha;
                 _tcp = tcp;
             }
-            catch (Exception Err)
+            catch (Exception err)
             {
-                Mensaje = Err.Message;
+                mensaje = err.Message;
+                GenerarEventoError(err);
             }
         }
 
@@ -109,15 +123,16 @@ namespace Sockets
                 _thrCliente.IsBackground = true;
                 _thrCliente.Start();
             }
-            catch (Exception Err)
+            catch (Exception err)
             {
                 EsperandoConexion = false;
 
-                Parametrosvento ev = new Parametrosvento();
-                ev.SetEscuchando(false).SetDatos(Err.Message).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
-                GenerarEvento(ev);
+                //Parametrosvento ev = new Parametrosvento();
+                //ev.SetEscuchando(false).SetDatos(Err.Message).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
+                //GenerarEvento(ev);
 
-                Mensaje = Err.Message;
+                Mensaje = err.Message;
+                GenerarEventoError(err);
             }
         }
 
@@ -147,14 +162,15 @@ namespace Sockets
                     Thread.EndCriticalRegion(); //esto cierra todo con o sin conexiones
                 }
             }
-            catch (Exception Err)
+            catch (Exception err)
             {
                 if (modo_Debug == true)
                 {
-                    Parametrosvento evErr = new Parametrosvento();
-                    ev.SetDatos(Err.Message + " TcpListen.Start()").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                    GenerarEvento(evErr);
-                    Mensaje = Err.Message;
+                    //Parametrosvento evErr = new Parametrosvento();
+                    //ev.SetDatos(err.Message + " TcpListen.Start()").SetEvento(Parametrosvento.TipoEvento.ERROR);
+                    //GenerarEvento(evErr);
+                    Mensaje = err.Message;
+                    GenerarEventoError(err);
                 }
             }
         }
@@ -188,9 +204,10 @@ namespace Sockets
             { 
                 _primerMensajeCliUDP = false;
                 _udpClient.Close();
-                Parametrosvento evErr = new Parametrosvento();
-                evErr.SetDatos(e.Message).SetEvento(Parametrosvento.TipoEvento.ERROR);
-                GenerarEvento(evErr);
+                //Parametrosvento evErr = new Parametrosvento();
+                //evErr.SetDatos(e.Message).SetEvento(Parametrosvento.TipoEvento.ERROR);
+                //GenerarEvento(evErr);
+                GenerarEventoError(e);
                 
             }
         }
@@ -209,23 +226,23 @@ namespace Sockets
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION).SetEscuchando(true);
                 GenerarEvento(ev);
-                //Espera_Conexion(indiceCon, true);
 
                 _tcpListen.Stop();
                 _tcpListen.Start();
                 Escuchar = true;
             }
-            catch (Exception Err)
+            catch (Exception err)
             {
                 //el error salta aca, por que ya abri una nueva instancia que esta eschando aca.
                 EsperandoConexion = false;
                 Parametrosvento evErr = new Parametrosvento();
                 evErr.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
                 GenerarEvento(evErr);
-                
-                evErr.SetDatos(Err.Message + " TcpListen.Start()").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                Escuchar = false;
-                GenerarEvento(evErr);
+
+                //evErr.SetDatos(Err.Message + " TcpListen.Start()").SetEvento(Parametrosvento.TipoEvento.ERROR);
+                //Escuchar = false;
+                //GenerarEvento(evErr);
+                GenerarEventoError(err);
                 return;
             }
 
@@ -257,19 +274,22 @@ namespace Sockets
                         Escuchar = false;
                         _tcpListen.Stop();
                     }
-                    catch (Exception Err)
+                    catch (Exception err)
                     {
                         Escuchar = false;
-                        ev.SetDatos(Err.Message + " threadConexion").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                        GenerarEvento(ev);
+                        //ev.SetDatos(err.Message + " threadConexion").SetEvento(Parametrosvento.TipoEvento.ERROR);
+                        //GenerarEvento(ev);
+                        GenerarEventoError(err, "threadConexion");
+
                     }
                 }
-                catch (Exception Err)
+                catch (Exception err)
                 {
                     if (modo_Debug == true)
                     {
-                        Parametrosvento evErrDebug = new Parametrosvento();
-                        evErrDebug.SetDatos(Err.Message + " TcpListen.Accept()").SetEvento(Parametrosvento.TipoEvento.ERROR);
+                        //Parametrosvento evErrDebug = new Parametrosvento();
+                        //evErrDebug.SetDatos(Err.Message + " TcpListen.Accept()").SetEvento(Parametrosvento.TipoEvento.ERROR);
+                        GenerarEventoError(err, "TcpListen.Accept()");
                     }
                     Escuchar = false;
                     _tcpListen.Stop();
@@ -309,14 +329,16 @@ namespace Sockets
                     {
                         bytesRead = clientStream.Read(message, 0, 4096);
                     }
-                    catch (Exception Err)
+                    catch (Exception err)
                     {
                         Conectado = false;
                         _tcpCliente.Close();
                         if (modo_Debug == true)
                         {
-                            ev.SetDatos("Cliente Comunicacion; Servidor>\r\n" + Err.Message + "\r\n").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                            GenerarEvento(ev);
+                            //ev.SetDatos("Cliente Comunicacion; Servidor>\r\n" + Err.Message + "\r\n").SetEvento(Parametrosvento.TipoEvento.ERROR);
+                            //GenerarEvento(ev);
+                            GenerarEventoError(err, "Cliente Comunicacion; Servidor>\r\n");
+
                         }
                         break;
                     }
@@ -350,11 +372,12 @@ namespace Sockets
                 }
 
             }
-            catch (SocketException Err)//(Exception Err)
+            catch (SocketException err)//(Exception Err)
             {
-                Parametrosvento evErr = new Parametrosvento();
-                evErr.SetDatos("Cliente_Comunicacion>\r\n" + Err.Message + "\r\n").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                GenerarEvento(evErr);
+                //Parametrosvento evErr = new Parametrosvento();
+                //evErr.SetDatos("Cliente_Comunicacion>\r\n" + Err.Message + "\r\n").SetEvento(Parametrosvento.TipoEvento.ERROR);
+                //GenerarEvento(evErr);
+                GenerarEventoError(err);
             }
         }
 
@@ -391,7 +414,8 @@ namespace Sockets
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.ToString());
+                        //Console.WriteLine(e.ToString());
+                        GenerarEventoError(e);
                     }
 
                 }
@@ -400,13 +424,14 @@ namespace Sockets
                 GenerarEvento(ev);
 
             }
-            catch (Exception Err)
+            catch (Exception err)
             {
 
-                Parametrosvento evErr = new Parametrosvento();
-                evErr.SetDatos(Err.Message).SetEvento(Parametrosvento.TipoEvento.ERROR);
-                resultado = Err.Message;
-                GenerarEvento(evErr);
+                //Parametrosvento evErr = new Parametrosvento();
+                //evErr.SetDatos(Err.Message).SetEvento(Parametrosvento.TipoEvento.ERROR);
+                //resultado = Err.Message;
+                //GenerarEvento(evErr);
+                GenerarEventoError(err);
             }
         }
 
@@ -474,12 +499,13 @@ namespace Sockets
                 }//fin while
 
             }
-            catch (Exception Err)
+            catch (Exception err)
             {
-                Parametrosvento evErr = new Parametrosvento();
-                Error = Err.ToString();
-                evErr.SetDatos(Error).SetEvento(Parametrosvento.TipoEvento.ERROR);
-                GenerarEvento(evErr);
+                //Parametrosvento evErr = new Parametrosvento();
+                //Error = Err.ToString();
+                //evErr.SetDatos(Error).SetEvento(Parametrosvento.TipoEvento.ERROR);
+                //GenerarEvento(evErr);
+                GenerarEventoError(err);
             }
 
         }
@@ -489,7 +515,7 @@ namespace Sockets
         /// </summary>
         /// <param name="Codigo">codigo de codepage</param>
         /// <param name="Error">Mensaje que retorna en caso de error</param>
-        internal void CodePage(int Codigo, ref string Error)
+        internal void CodePage(int Codigo, ref string error)
         {
             try
             {
@@ -497,16 +523,44 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                Error = err.Message;
+                error = err.Message;
+                GenerarEventoError(err);
             }
         }
 
         private void GenerarEvento(Parametrosvento ob)
         {
-            ob.SetIndice(_indiceCon);
-
+            ob.SetIndice(_indiceCon).SetIndiceLista(_indiceLista);
             Evento_Servidor(ob);
         }
 
+        private void GenerarEventoError(Exception err,string mensajeOpcional="")
+        {
+            Parametrosvento ev = new Parametrosvento();
+            if (mensajeOpcional !="")
+            {
+                mensajeOpcional = " " + mensajeOpcional;
+            }
+            ev.SetEscuchando(EsperandoConexion).
+                SetDatos(err.Message + mensajeOpcional).
+                SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION).
+                SetCodError(GetCodigoError(err));
+            GenerarEvento(ev);
+        }
+
+        private int GetCodigoError(Exception err)
+        {
+            var w32ex = err as Win32Exception;
+            int cod = -1;
+            if (w32ex == null)
+            {
+                w32ex = err.InnerException as Win32Exception;
+            }
+            if (w32ex != null)
+            {
+                cod = w32ex.ErrorCode;
+            }
+            return cod;
+        }
     }
 }

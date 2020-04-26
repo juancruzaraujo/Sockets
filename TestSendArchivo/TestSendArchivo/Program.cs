@@ -103,6 +103,7 @@ namespace TestSendArchivo
                     {
                         if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
                         {
+                            //_obSocket.Desconectarme();
                             break;
                         }
                         else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
@@ -158,7 +159,6 @@ namespace TestSendArchivo
             switch (ev.GetEvento)
             {
 
-                //case Socket.C_SERVER_EVENTO_ACEPTAR_CONEXION:
                 case Parametrosvento.TipoEvento.ACEPTAR_CONEXION:
                     Console.WriteLine (corchete(ev.GetIndice.ToString()) +  " conectado desde " + ev.GetIpOrigen);
                     break;
@@ -169,8 +169,8 @@ namespace TestSendArchivo
                     break;
 
                 case Parametrosvento.TipoEvento.ERROR:
-                    Console.WriteLine("error cliente");
-                    Console.WriteLine(ev.GetDatos);
+                    //Console.WriteLine("error cliente");
+                    Console.WriteLine(corchete(ev.GetIndice.ToString()) + "cod error " + ev.GetCodError + " descripcion" + ev.GetDatos);
                     break;
             }
         }
