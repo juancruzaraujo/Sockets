@@ -182,18 +182,17 @@ namespace Sockets
 
         private void CrearServidor(ref string mensaje)
         {
-            if (GetNumConexion() <= _maxServCon )
-            {
-                Servidor objServidor = new Servidor(_puertoEscuchaServer, _codePage, ref mensaje, _tcp);
-                objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(Evsocket);
-                _lstObjServidor.Add(objServidor);
+            
+            Servidor objServidor = new Servidor(_puertoEscuchaServer, _codePage, ref mensaje, _tcp);
+            objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(Evsocket);
+            _lstObjServidor.Add(objServidor);
 
-                int indiceLista = GetUltimoEspacioLibre();
+            int indiceLista = GetUltimoEspacioLibre();
 
-                _lstObjServidor[indiceLista].IndiceConexion = GetNumConexion();
-                _lstObjServidor[indiceLista].IndiceLista = indiceLista;
-                _cantConServidor++;
-            }
+            _lstObjServidor[indiceLista].IndiceConexion = GetNumConexion();
+            _lstObjServidor[indiceLista].IndiceLista = indiceLista;
+            _cantConServidor++;
+            
         }
 
         public void StartServer()
@@ -414,8 +413,12 @@ namespace Sockets
                         }
                         else
                         {
-                            CrearServidor(ref mensaje);
-                            StartServer();
+                            if (GetNumConexion() <= _maxServCon)
+                            {
+                                CrearServidor(ref mensaje);
+                                StartServer();
+                            }
+                            
                         }
                         break;
 

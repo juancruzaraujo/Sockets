@@ -258,11 +258,11 @@ namespace Sockets
 
                     EsperandoConexion = false;
                     Parametrosvento ev = new Parametrosvento();
-                    ev.SetIpOrigen(sAux).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
+                    ev.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
                     GenerarEvento(ev);
 
-                    ev.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION);
-                    GenerarEvento(ev);
+                    //ev.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION);
+                    //GenerarEvento(ev);
                     
                     try
                     {
@@ -270,6 +270,10 @@ namespace Sockets
                         _thrClienteConexion.Name = "ThrCliente";
                         _thrClienteConexion.IsBackground = true;
                         _thrClienteConexion.Start(Cliente);
+
+                        ev.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION).SetIpOrigen(sAux);
+                        GenerarEvento(ev);
+
                         //ahora tendria que dejar de escuchar
                         Escuchar = false;
                         _tcpListen.Stop();

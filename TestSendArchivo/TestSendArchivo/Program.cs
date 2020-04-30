@@ -41,6 +41,7 @@ namespace TestSendArchivo
         
         const int C_TAM_CLUSTER = 1400;
 
+        const int C_MAX_CONEXIONES_SERVER = 1;
 
         //[DllImport("User32.dll")]
         //public static extern int MessageBox(int h, string m, string c, int type);
@@ -156,11 +157,12 @@ namespace TestSendArchivo
 
         static void EvSockets(Parametrosvento ev)
         {
+            
             switch (ev.GetEvento)
             {
-
-                case Parametrosvento.TipoEvento.ACEPTAR_CONEXION:
+                case Parametrosvento.TipoEvento.NUEVA_CONEXION:
                     Console.WriteLine (corchete(ev.GetIndice.ToString()) +  " conectado desde " + ev.GetIpOrigen);
+                    _obSocket.Enviar("<SOS> " + ev.GetIndice.ToString(), ev.GetIndice);
                     break;
 
                 case Parametrosvento.TipoEvento.DATOS_IN:
@@ -171,6 +173,10 @@ namespace TestSendArchivo
                 case Parametrosvento.TipoEvento.ERROR:
                     //Console.WriteLine("error cliente");
                     Console.WriteLine(corchete(ev.GetIndice.ToString()) + "cod error " + ev.GetCodError + " descripcion" + ev.GetDatos);
+                    break;
+
+                default:
+                    Console.WriteLine(corchete("Evento " + ev.GetEvento) + " " +ev.GetDatos);
                     break;
             }
         }
@@ -191,7 +197,7 @@ namespace TestSendArchivo
             }
                       
             _obSocket.ModoServidor = true;
-            _obSocket.SetServer(1492,65001, tcp,3);
+            _obSocket.SetServer(1492,65001, tcp, C_MAX_CONEXIONES_SERVER);
             _obSocket.StartServer();
 
             if (Mensaje != "")

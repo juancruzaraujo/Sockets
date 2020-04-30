@@ -23,8 +23,14 @@ namespace Sockets
             ERROR = 0,
             ENVIO_COMPLETO = 1,
             DATOS_IN = 2,
+            /// <summary>
+            /// la comunucación con el cliente ya esta establecida
+            /// </summary>
             NUEVA_CONEXION = 3,
             CONEXION_FIN = 4,
+            /// <summary>
+            /// acepta conexión y se obtiene el ip del cliente, pero todavía no establece la comunucación
+            /// </summary>
             ACEPTAR_CONEXION = 5,
             ESPERA_CONEXION = 6,
             POSICION_ENVIO = 7,
