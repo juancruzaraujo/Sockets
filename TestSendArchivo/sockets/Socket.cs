@@ -26,7 +26,7 @@ namespace Sockets
 
         private int _puertoEscuchaServer;
         private int _codePage;
-        private int _indice;
+        private int _numConexion;
         private bool _escuchando;
         private int _puertoCliente;
         private long _size;
@@ -36,6 +36,7 @@ namespace Sockets
         private bool _tcp;
         private int _maxServCon;
         private int _cantConServidor;
+        private bool _serverEscuchando;
 
         //constantes priavdas
         private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE       = "modo cliente";
@@ -91,7 +92,7 @@ namespace Sockets
 
             ev.SetDatos(mensajeError)
                 .SetEvento(Parametrosvento.TipoEvento.ERROR)
-                .SetIndice(_indice).SetEscuchando(_escuchando)
+                .SetNumConexion(_numConexion).SetEscuchando(_escuchando)
                 .SetSize(_size)
                 .SetIpOrigen(_ipCliente);
 
@@ -100,7 +101,7 @@ namespace Sockets
 
         public void SetCliente()
         {
-            SetCliente(_puertoCliente, _indice, _host);
+            SetCliente(_puertoCliente, _numConexion, _host);
         }
 
 
@@ -112,12 +113,12 @@ namespace Sockets
         /// <param name="indice"></param>
         /// <param name="host"></param>
         /// <param name="timeOut"></param>
-        public void SetCliente(int puerto, int indice, string host,int timeOut = 30,bool tcp = true, int codePage = 65001)
+        public void SetCliente(int puerto, int numConexion, string host,int timeOut = 30,bool tcp = true, int codePage = 65001)
         {
             string res = "";
             _puertoCliente = puerto;
             _codePage = codePage;
-            _indice = indice;
+            _numConexion = numConexion;
             _host = host;
 
             _objCliente = new Cliente(tcp);
@@ -144,7 +145,7 @@ namespace Sockets
             _host = host;
             _puertoCliente = puerto;
 
-            _objCliente.Conectar(_indice, _host, _puertoCliente, ref res);
+            _objCliente.Conectar(_numConexion, _host, _puertoCliente, ref res);
         }
 
         public void SetServer(int puerto, int codePage = 65001, bool tcp = true, int maxCon = 0)
@@ -156,7 +157,7 @@ namespace Sockets
             //_indice = indice;
             _tcp = tcp;
             _maxServCon = maxCon;
-            _cantConServidor = 0;
+            _cantConServidor = 1;
             this.ModoServidor = true;
             //_modoServidor = true;
 
@@ -191,7 +192,7 @@ namespace Sockets
 
             _lstObjServidor[indiceLista].IndiceConexion = GetNumConexion();
             _lstObjServidor[indiceLista].IndiceLista = indiceLista;
-            _cantConServidor++;
+            //_cantConServidor++;
             
         }
 
@@ -210,6 +211,7 @@ namespace Sockets
             Parametrosvento ev = new Parametrosvento();
             ev.SetEvento(Parametrosvento.TipoEvento.SERVER_INICIADO);
             Evsocket(ev);
+            _serverEscuchando = true;
         }
 
         #region propiedades
@@ -262,15 +264,15 @@ namespace Sockets
             }
         }
 
-        public int Indice
+        public int NumConexion
         {
             get
             {
-                return _indice;
+                return _numConexion;
             }
             set
             {
-                _indice = value;
+                _numConexion = value;
             }
         }
 
@@ -365,6 +367,8 @@ namespace Sockets
         private void Evsocket(Parametrosvento ev)
         {
             //REVISAR ESTO
+            string mensaje = "";
+
             if ((_ipCliente !=""))
             {
                 if (_ipCliente != ev.GetIpOrigen)
@@ -373,28 +377,8 @@ namespace Sockets
                 }
             }
 
-            //if ((_modoServidor) &&(!_tcp))
             if (_modoServidor)
             {
-                /*
-                if (!_tcp) //para cosas que son udp
-                {
-                    //se envio un mensaje por udp, pero no se establecio una conexión
-                    if (ev.GetEvento == Parametrosvento.TipoEvento.ERROR)
-                    {
-                        string aux = "";
-                        //_objServidor.Iniciar(ref aux); //volvemos a iniciar el servidor udp
-                        
-                    }
-                }
-
-                if (ev.GetEvento == Parametrosvento.TipoEvento.NUEVA_CONEXION)
-                {
-                    string mensaje = "";
-                    CrearServidor(ref mensaje);
-                    StartServer();
-                }
-                */
                 switch(ev.GetEvento)
                 {
                     case Parametrosvento.TipoEvento.ERROR:
@@ -406,31 +390,49 @@ namespace Sockets
                         break;
 
                     case Parametrosvento.TipoEvento.NUEVA_CONEXION:
-                        string mensaje = "";
+                        
                         if (!_tcp)
                         {
 
                         }
                         else
                         {
+
+                            if (_cantConServidor >= _maxServCon)
+                            {
+                                _serverEscuchando = false;
+                                Parametrosvento evMaxCon = new Parametrosvento();
+                                evMaxCon.SetEvento(Parametrosvento.TipoEvento.LIMITE_CONEXIONES);
+                                EventSocket(evMaxCon);
+                                
+                            }
+
+                            _cantConServidor++;
                             if (GetNumConexion() <= _maxServCon)
                             {
                                 CrearServidor(ref mensaje);
                                 StartServer();
                             }
-                            
                         }
                         break;
 
                     case Parametrosvento.TipoEvento.CONEXION_FIN:
                         _lstObjServidor.RemoveAt(ev.GetIndiceLista);
                         ReacomodarListaClientes();
+                        _cantConServidor--;
+                        if (!_serverEscuchando)
+                        {
+                            CrearServidor(ref mensaje);
+                            StartServer();
+                        }
+
+
                         break;
                 }
                 
             }
 
-            EventSocket(ev); //envío el evento
+            EventSocket(ev); //envío el evento a quien lo este consumiendo(?)
         }
 
         /// <summary>
@@ -444,7 +446,6 @@ namespace Sockets
 
             if (_modoServidor)
             {
-                //_objServidor.Enviar(mensaje, ref res);
                 _lstObjServidor[indice].Enviar(mensaje, ref res);
             }
 

@@ -237,11 +237,7 @@ namespace Sockets
                 EsperandoConexion = false;
                 Parametrosvento evErr = new Parametrosvento();
                 evErr.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
-                GenerarEvento(evErr);
-
-                //evErr.SetDatos(Err.Message + " TcpListen.Start()").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                //Escuchar = false;
-                //GenerarEvento(evErr);
+                GenerarEvento(evErr); //ver porque puse dos eventos
                 GenerarEventoError(err);
                 return;
             }
@@ -291,8 +287,6 @@ namespace Sockets
                 {
                     if (modo_Debug == true)
                     {
-                        //Parametrosvento evErrDebug = new Parametrosvento();
-                        //evErrDebug.SetDatos(Err.Message + " TcpListen.Accept()").SetEvento(Parametrosvento.TipoEvento.ERROR);
                         GenerarEventoError(err, "TcpListen.Accept()");
                     }
                     Escuchar = false;
@@ -339,10 +333,7 @@ namespace Sockets
                         _tcpCliente.Close();
                         if (modo_Debug == true)
                         {
-                            //ev.SetDatos("Cliente Comunicacion; Servidor>\r\n" + Err.Message + "\r\n").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                            //GenerarEvento(ev);
                             GenerarEventoError(err, "Cliente Comunicacion; Servidor>\r\n");
-
                         }
                         break;
                     }
@@ -369,7 +360,7 @@ namespace Sockets
                 Conectado = false;
                 _tcpCliente.Close();
 
-                if (EveYaDisparado == false)
+                //if (EveYaDisparado == false)
                 {
                     ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN).SetDatos("");
                     GenerarEvento(ev);
@@ -534,7 +525,7 @@ namespace Sockets
 
         private void GenerarEvento(Parametrosvento ob)
         {
-            ob.SetIndice(_indiceCon).SetIndiceLista(_indiceLista);
+            ob.SetNumConexion(_indiceCon).SetIndiceLista(_indiceLista);
             Evento_Servidor(ob);
         }
 

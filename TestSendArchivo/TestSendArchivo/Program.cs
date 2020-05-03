@@ -22,7 +22,7 @@ namespace TestSendArchivo
 
         static Socket _obSocket;
 
-        static int _tam;
+        //static int _tam;
 
         static bool _enviarArchivo = false;
         static bool _recibirArchivo = false;
@@ -41,7 +41,7 @@ namespace TestSendArchivo
         
         const int C_TAM_CLUSTER = 1400;
 
-        const int C_MAX_CONEXIONES_SERVER = 1;
+        const int C_MAX_CONEXIONES_SERVER = 2;
 
         //[DllImport("User32.dll")]
         //public static extern int MessageBox(int h, string m, string c, int type);
@@ -115,7 +115,8 @@ namespace TestSendArchivo
                         }
                         else
                         {
-                            _obSocket.Enviar(input + "\r\n");
+                            //_obSocket.Enviar(input + "\r\n");
+                            _obSocket.EnviarATodos(input + "\r\n");
                         }
                     }
                     else
@@ -161,20 +162,24 @@ namespace TestSendArchivo
             switch (ev.GetEvento)
             {
                 case Parametrosvento.TipoEvento.NUEVA_CONEXION:
-                    Console.WriteLine (corchete(ev.GetIndice.ToString()) +  " conectado desde " + ev.GetIpOrigen);
-                    _obSocket.Enviar("<SOS> " + ev.GetIndice.ToString(), ev.GetIndice);
+                    Console.WriteLine (corchete(ev.GetNumConexion.ToString()) +  " conectado desde " + ev.GetIpOrigen);
+                    _obSocket.Enviar("<SOS> " + ev.GetNumConexion.ToString(), ev.GetIndiceLista);
                     break;
 
                 case Parametrosvento.TipoEvento.DATOS_IN:
                     //DatosIn(indice, datos, true, ipOrigen);
-                    DatosIn(ev.GetIndice, ev.GetDatos, true, ev.GetIpOrigen);
+                    DatosIn(ev.GetIndiceLista,ev.GetNumConexion, ev.GetDatos, true, ev.GetIpOrigen);
                     break;
 
                 case Parametrosvento.TipoEvento.ERROR:
                     //Console.WriteLine("error cliente");
-                    Console.WriteLine(corchete(ev.GetIndice.ToString()) + "cod error " + ev.GetCodError + " descripcion" + ev.GetDatos);
+                    Console.WriteLine(corchete(ev.GetNumConexion.ToString()) + "cod error " + ev.GetCodError + " descripcion" + ev.GetDatos);
                     break;
 
+                case Parametrosvento.TipoEvento.LIMITE_CONEXIONES:
+                    Console.WriteLine("<<LIMITE CONEXIONES>>");
+                    break;
+                
                 default:
                     Console.WriteLine(corchete("Evento " + ev.GetEvento) + " " +ev.GetDatos);
                     break;
@@ -207,7 +212,7 @@ namespace TestSendArchivo
             }
         }
 
-        static void DatosIn(int indice,string datos,bool server,string ipOrigen)
+        static void DatosIn(int indice,int nConexion,string datos,bool server,string ipOrigen)
         {
 
             if (_obSocket.tcp)
@@ -230,11 +235,11 @@ namespace TestSendArchivo
                     if (!_recibirArchivo)
                     {
                         //Console.WriteLine("[" + ipOrigen + "] " + datos);
-                        Console.WriteLine(corchete(indice.ToString()) + " " + datos);
-                        if (_obSocket.ModoServidor)
+                        Console.WriteLine(corchete(nConexion.ToString()) + " " + datos);
+                        /*if (_obSocket.ModoServidor)
                         {
                             EnviarRespuesta("TCP",indice);
-                        }
+                        }*/
                     }
                     else
                     {

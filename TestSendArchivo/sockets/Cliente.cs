@@ -481,7 +481,7 @@ namespace Sockets
 
         private void GenerarEvento(Parametrosvento ob)
         {
-            ob.SetIndice(indiceCon);
+            ob.SetNumConexion(indiceCon);
 
             Evento_Cliente(ob);
         }

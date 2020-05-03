@@ -7,7 +7,7 @@ namespace Sockets
 {
     public class Parametrosvento
     {
-        private int _indice;
+        private int _numConexion;
         private int _indiceLista;
         private TipoEvento _evento;
         private bool _escuchando;
@@ -42,9 +42,9 @@ namespace Sockets
 
         };
 
-        internal Parametrosvento SetIndice(int indice)
+        internal Parametrosvento SetNumConexion(int numConexion)
         {
-            _indice = indice;
+            _numConexion = numConexion;
             return this;
         }
 
@@ -102,11 +102,14 @@ namespace Sockets
             return this;
         }
 
-        public int GetIndice
+        /// <summary>
+        /// retorna el numero de conexión actual del cliente conectado
+        /// </summary>
+        public int GetNumConexion
         {
             get
             {
-                return _indice;
+                return _numConexion;
             }
         }
 
