@@ -531,6 +531,7 @@ namespace Sockets
 
         private void GenerarEventoError(Exception err,string mensajeOpcional="")
         {
+            Utils utils = new Utils();
             Parametrosvento ev = new Parametrosvento();
             if (mensajeOpcional !="")
             {
@@ -539,23 +540,10 @@ namespace Sockets
             ev.SetEscuchando(EsperandoConexion).
                 SetDatos(err.Message + mensajeOpcional).
                 SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION).
-                SetCodError(GetCodigoError(err));
+                SetCodError(utils.GetCodigoError(err));
             GenerarEvento(ev);
         }
 
-        private int GetCodigoError(Exception err)
-        {
-            var w32ex = err as Win32Exception;
-            int cod = -1;
-            if (w32ex == null)
-            {
-                w32ex = err.InnerException as Win32Exception;
-            }
-            if (w32ex != null)
-            {
-                cod = w32ex.ErrorCode;
-            }
-            return cod;
-        }
+        
     }
 }

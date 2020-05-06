@@ -36,6 +36,7 @@ namespace Sockets
         private bool _tcp;
         private int _maxServCon;
         private int _cantConServidor;
+        private int _numCliConServidor;
         private bool _serverEscuchando;
 
         //constantes priavdas
@@ -158,6 +159,7 @@ namespace Sockets
             _tcp = tcp;
             _maxServCon = maxCon;
             _cantConServidor = 1;
+            _numCliConServidor = 1;
             this.ModoServidor = true;
             //_modoServidor = true;
 
@@ -190,7 +192,7 @@ namespace Sockets
 
             int indiceLista = GetUltimoEspacioLibre();
 
-            _lstObjServidor[indiceLista].IndiceConexion = GetNumConexion();
+            _lstObjServidor[indiceLista].IndiceConexion = _numCliConServidor;
             _lstObjServidor[indiceLista].IndiceLista = indiceLista;
             //_cantConServidor++;
             
@@ -281,6 +283,19 @@ namespace Sockets
             get
             {
                 return _mensaje;
+            }
+        }
+
+        public int GetNumConexion()
+        {
+            return _cantConServidor;
+        }
+
+        public int GetUltimoNumeroClienteConectado
+        {
+            get
+            {
+                return _numCliConServidor;
             }
         }
 
@@ -408,6 +423,7 @@ namespace Sockets
                             }
 
                             _cantConServidor++;
+                            _numCliConServidor++;
                             if (GetNumConexion() <= _maxServCon)
                             {
                                 CrearServidor(ref mensaje);
@@ -502,10 +518,7 @@ namespace Sockets
             return _lstObjServidor.Count()-1;
         }
 
-        public int GetNumConexion()
-        { 
-            return _cantConServidor;
-        }
+        
 
         private void ReacomodarListaClientes()
         {
