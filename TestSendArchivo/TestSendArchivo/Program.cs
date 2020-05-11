@@ -115,7 +115,6 @@ namespace TestSendArchivo
                         }
                         else
                         {
-                            //_obSocket.Enviar(input + "\r\n");
                             _obSocket.EnviarATodos(input + "\r\n");
                         }
                     }
@@ -173,7 +172,7 @@ namespace TestSendArchivo
 
                 case Parametrosvento.TipoEvento.ERROR:
                     //Console.WriteLine("error cliente");
-                    Console.WriteLine(corchete(ev.GetNumConexion.ToString()) + "cod error " + ev.GetCodError + " descripcion" + ev.GetDatos);
+                    Console.WriteLine(corchete(ev.GetNumConexion.ToString()) + " cod error " + ev.GetCodError + " descripcion " + ev.GetDatos);
                     break;
 
                 case Parametrosvento.TipoEvento.LIMITE_CONEXIONES:

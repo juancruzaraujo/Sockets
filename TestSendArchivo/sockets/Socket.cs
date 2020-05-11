@@ -128,6 +128,7 @@ namespace Sockets
             if (res != "")
             {
                 Error(res);
+                return;
             }
             _objCliente.evento_cliente += new Cliente.Delegado_Cliente_Event(Evsocket);
             _tcp = tcp;
@@ -147,6 +148,10 @@ namespace Sockets
             _puertoCliente = puerto;
 
             _objCliente.Conectar(_numConexion, _host, _puertoCliente, ref res);
+            if (res != "")
+            {
+                Error(res);
+            }
         }
 
         public void SetServer(int puerto, int codePage = 65001, bool tcp = true, int maxCon = 0)
@@ -176,7 +181,7 @@ namespace Sockets
             if (res != "")
             {
                 _mensaje = res;
-                
+                Error(res);
                 return;
             }
             _escuchando = true;
@@ -187,6 +192,11 @@ namespace Sockets
         {
             
             Servidor objServidor = new Servidor(_puertoEscuchaServer, _codePage, ref mensaje, _tcp);
+            if(mensaje!="")
+            {
+                Error(mensaje);
+                return;
+            }
             objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(Evsocket);
             _lstObjServidor.Add(objServidor);
 
@@ -301,17 +311,9 @@ namespace Sockets
 
         public void Desconectarme()
         {
-            string res="";
-
-            
             if (ModoCliente)
             {
                 _objCliente.Cerrar_Conexion();
-            }
-
-            if (res != "")
-            {
-                Error(res);
             }
         }
 
@@ -406,13 +408,13 @@ namespace Sockets
 
                     case Parametrosvento.TipoEvento.NUEVA_CONEXION:
                         
-                        if (!_tcp)
+                        //if (!_tcp)
                         {
 
-                        }
-                        else
-                        {
-
+                        //}
+                        //else
+                        //{
+                            
                             if (_cantConServidor >= _maxServCon)
                             {
                                 _serverEscuchando = false;
@@ -462,7 +464,10 @@ namespace Sockets
 
             if (_modoServidor)
             {
-                _lstObjServidor[indice].Enviar(mensaje, ref res);
+                if (_lstObjServidor[indice].Conectado)
+                {
+                    _lstObjServidor[indice].Enviar(mensaje, ref res);
+                }
             }
 
             if (_modoCliente)
@@ -478,17 +483,39 @@ namespace Sockets
 
         public void EnviarATodos(string mensaje)
         {
-            for (int i=0;i<_lstObjServidor.Count(); i++)
+            try
             {
-                Enviar(mensaje, i);
+                if (_modoServidor)
+                {
+                    for (int i = 0; i < _lstObjServidor.Count(); i++)
+                    {
+                        Enviar(mensaje, i);
+                    }
+                }
+                else
+                {
+                    Enviar(mensaje);
+                }
             }
+            catch(Exception err)
+            {
+                GenerarEventoError(err);
+            }
+
         }
 
         public void EnviarArrayATodos(byte[] memArray,int tamCluster)
         {
-            for (int i = 0; i < _lstObjServidor.Count(); i++)
+            try
             {
-                EnviarArray(memArray, tamCluster, i);
+                for (int i = 0; i < _lstObjServidor.Count(); i++)
+                {
+                    EnviarArray(memArray, tamCluster, i);
+                }
+            }
+            catch(Exception err)
+            {
+                GenerarEventoError(err);
             }
         }
 
@@ -522,10 +549,18 @@ namespace Sockets
 
         private void ReacomodarListaClientes()
         {
-            for (int i = 0; i < _lstObjServidor.Count(); i++)
+            try
             {
-                _lstObjServidor[i].IndiceLista = i;
+                for (int i = 0; i < _lstObjServidor.Count(); i++)
+                {
+                    _lstObjServidor[i].IndiceLista = i;
+                }
             }
+            catch(Exception err)
+            {
+                GenerarEventoError(err);
+            }
+
         }
 
         /// <summary>
@@ -535,16 +570,35 @@ namespace Sockets
         /// <returns></returns>
         private int GetIndiceListaClienteConectado(int indiceCliente)
         {
-            for (int i=0;i<_lstObjServidor.Count();i++)
+            try
             {
-                if (_lstObjServidor[i].IndiceConexion == indiceCliente)
+                for (int i = 0; i < _lstObjServidor.Count(); i++)
                 {
-                    return i;
+                    if (_lstObjServidor[i].IndiceConexion == indiceCliente)
+                    {
+                        return i;
+                    }
                 }
             }
-            Parametrosvento evErr = new Parametrosvento();
-            Error("Cliente conectado no encontrado");
+            catch(Exception err)
+            {
+                GenerarEventoError(err);
+            }
             return -1;
+        }
+
+        private void GenerarEventoError(Exception err, string mensajeOpcional = "")
+        {
+            Utils utils = new Utils();
+            Parametrosvento ev = new Parametrosvento();
+            if (mensajeOpcional != "")
+            {
+                mensajeOpcional = " " + mensajeOpcional;
+            }
+            ev.SetDatos(err.Message + mensajeOpcional).
+                SetEvento(Parametrosvento.TipoEvento.ERROR).
+                SetCodError(utils.GetCodigoError(err));
+            Evsocket(ev);
         }
 
     }

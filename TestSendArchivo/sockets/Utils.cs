@@ -8,8 +8,10 @@ namespace Sockets
 {
     internal class Utils
     {
+      
         internal int GetCodigoError(Exception err)
         {
+
             var w32ex = err as Win32Exception;
             int cod = -1;
             if (w32ex == null)
@@ -20,6 +22,11 @@ namespace Sockets
             {
                 cod = w32ex.ErrorCode;
             }
+            if (cod ==-1)
+            {
+                cod = err.HResult;
+            }
+           
             return cod;
         }
     }

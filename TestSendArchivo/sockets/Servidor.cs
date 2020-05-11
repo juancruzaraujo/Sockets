@@ -34,7 +34,7 @@ namespace Sockets
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
 
-        internal bool Conectado;
+        private bool _conectado;
         internal bool EsperandoConexion;
         internal string ip_Conexion;
         internal int puerto;
@@ -68,6 +68,14 @@ namespace Sockets
             set
             {
                 _indiceLista = value;
+            }
+        }
+
+        internal bool Conectado
+        {
+            get
+            {
+                return _conectado;
             }
         }
 
@@ -310,7 +318,7 @@ namespace Sockets
                 _tcpCliente = (TcpClient)Cliente;
 
                 //levanto evento nueva conexion
-                Conectado = true;
+                _conectado = true;
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetIpOrigen(_tcpCliente.Client.RemoteEndPoint.ToString()).SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION);
                 GenerarEvento(ev);
@@ -329,7 +337,7 @@ namespace Sockets
                     }
                     catch (Exception err)
                     {
-                        Conectado = false;
+                        _conectado = false;
                         _tcpCliente.Close();
                         if (modo_Debug == true)
                         {
@@ -341,7 +349,7 @@ namespace Sockets
                     if (bytesRead == 0)
                     {
                         //el cliente se desconecto!
-                        Conectado = false;
+                        _conectado = false;
                         _tcpCliente.Close();
                         ev.SetDatos("").SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN);
                         EveYaDisparado = true;
@@ -357,7 +365,7 @@ namespace Sockets
                     GenerarEvento(ev);
                 }
                 //el cliente cerro la conexion
-                Conectado = false;
+                _conectado = false;
                 _tcpCliente.Close();
 
                 //if (EveYaDisparado == false)
@@ -539,7 +547,7 @@ namespace Sockets
             }
             ev.SetEscuchando(EsperandoConexion).
                 SetDatos(err.Message + mensajeOpcional).
-                SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION).
+                SetEvento(Parametrosvento.TipoEvento.ERROR).
                 SetCodError(utils.GetCodigoError(err));
             GenerarEvento(ev);
         }
