@@ -115,6 +115,7 @@ namespace TestSendArchivo
                         }
                         else
                         {
+                            //le envio a todos un texto cualquiera
                             _obSocket.EnviarATodos(input + "\r\n");
                         }
                     }
@@ -214,8 +215,8 @@ namespace TestSendArchivo
         static void DatosIn(int indice,int nConexion,string datos,bool server,string ipOrigen)
         {
 
-            if (_obSocket.tcp)
-            {
+            //if (_obSocket.tcp)
+            //{
                 if ((datos.Contains(C_ENVACRH + "\r\n")) || (datos.Contains(C_FINARCH + "\r\n")))
                 {
                     if (!_recibirArchivo)
@@ -245,15 +246,15 @@ namespace TestSendArchivo
                         ArmarArchivo(datos);
                     }
                 }
-            }
-            else
-            {
-                Console.WriteLine("[" + ipOrigen + "] " + datos);
-                if (_obSocket.ModoServidor)
-                {
-                    EnviarRespuesta("UDP",indice);
-                }
-            }
+            //}
+            //else
+            //{
+                //Console.WriteLine("[" + ipOrigen + "] " + datos);
+                //if (_obSocket.ModoServidor)
+                //{
+                    //EnviarRespuesta("UDP",indice);
+                //}
+            //}
         }
 
         static void EnviarRespuesta(string msg,int indice)

@@ -198,9 +198,18 @@ namespace Sockets
                     if (!_primerMensajeCliUDP)
                     {
                         _primerMensajeCliUDP = true;
+                        Parametrosvento aceptarCon = new Parametrosvento();
+                        aceptarCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION).SetIpOrigen(ip_Conexion);
+                        GenerarEvento(aceptarCon);
+
+                        //mantengo esto para que sea el orden de eventos tal como es en tcp
+                        //tendría que agregar algo que permita rechazar la conexion dsp de que se dispara ACEPTAR_CONEXION
                         Parametrosvento nuevaCon = new Parametrosvento();
-                        nuevaCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION).SetIpOrigen(ip_Conexion);
+                        nuevaCon.SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION).SetIpOrigen(ip_Conexion);
                         GenerarEvento(nuevaCon);
+
+                        _conectado = true;
+
                     }
 
                     Parametrosvento ev = new Parametrosvento();
@@ -209,12 +218,10 @@ namespace Sockets
                 }
             }
             catch (Exception e)
-            { 
+            {
+                _conectado = false;
                 _primerMensajeCliUDP = false;
                 _udpClient.Close();
-                //Parametrosvento evErr = new Parametrosvento();
-                //evErr.SetDatos(e.Message).SetEvento(Parametrosvento.TipoEvento.ERROR);
-                //GenerarEvento(evErr);
                 GenerarEventoError(e);
                 
             }
@@ -241,7 +248,7 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                //el error salta aca, por que ya abri una nueva instancia que esta eschando aca.
+                //el error salta acá, porque ya abrí una nueva instancia que esta eschando acá.
                 EsperandoConexion = false;
                 Parametrosvento evErr = new Parametrosvento();
                 evErr.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
@@ -265,9 +272,6 @@ namespace Sockets
                     ev.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
                     GenerarEvento(ev);
 
-                    //ev.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION);
-                    //GenerarEvento(ev);
-                    
                     try
                     {
                         _thrClienteConexion = new Thread(new ParameterizedThreadStart(Cliente_Comunicacion));

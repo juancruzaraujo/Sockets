@@ -545,8 +545,6 @@ namespace Sockets
             return _lstObjServidor.Count()-1;
         }
 
-        
-
         private void ReacomodarListaClientes()
         {
             try
