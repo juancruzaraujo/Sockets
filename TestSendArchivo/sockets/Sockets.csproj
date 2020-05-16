@@ -45,10 +45,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cliente.cs" />
-    <Compile Include="Servidor.cs" />
+    <Compile Include="ClienteTCP.cs" />
+    <Compile Include="ClienteUDP.cs" />
+    <Compile Include="ServidorTCP.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Parametrosvento.cs" />
+    <Compile Include="ServidorUDP.cs" />
     <Compile Include="Socket.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>

@@ -10,7 +10,7 @@ using System.ComponentModel;
 
 namespace Sockets
 {
-    internal class Servidor
+    internal class ServidorTCP
     {
         #if DEBUG
             private /*static*/ bool modo_Debug = true;
@@ -86,7 +86,7 @@ namespace Sockets
         /// <param name="Cod">codopage</param>
         /// <param name="Mensaje">mensaje que retorna en caso de error</param>
         /// <param name="tcp">define si la conexión es tpc o udp, vaor default true, si es falso, la conexion es udp</param>
-        internal Servidor(int PuertoEscucha, int Cod, ref string mensaje, bool tcp=true)
+        internal ServidorTCP(int PuertoEscucha, int Cod, ref string mensaje, bool tcp=true)
         {
             _indiceCon = -1;
             try
@@ -187,8 +187,17 @@ namespace Sockets
         {
             try
             {
-                _udpClient = new UdpClient(puerto);
                 _remoteEP = new IPEndPoint(IPAddress.Any, puerto);
+
+                //_udpClient = new UdpClient(puerto);
+
+                #region pruebas
+                _udpClient = new UdpClient();
+                _udpClient.ExclusiveAddressUse = false;
+
+                _udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                _udpClient.Client.Bind(_remoteEP);
+                #endregion
 
                 while (true)
                 {
@@ -209,6 +218,7 @@ namespace Sockets
                         GenerarEvento(nuevaCon);
 
                         _conectado = true;
+                        //_udpClient.Close(); //para pruebas
 
                     }
 

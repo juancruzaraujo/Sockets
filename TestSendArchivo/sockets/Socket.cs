@@ -13,9 +13,9 @@ namespace Sockets
 
 
         //variables y objetos privados
-        private Cliente _objCliente;
+        private ClienteTCP _objCliente;
         //private Servidor _objServidor;
-        private List<Servidor> _lstObjServidor;
+        private List<ServidorTCP> _lstObjServidor;
 
 
         private string _mensaje;
@@ -122,7 +122,7 @@ namespace Sockets
             _numConexion = numConexion;
             _host = host;
 
-            _objCliente = new Cliente(tcp);
+            _objCliente = new ClienteTCP(tcp);
             _objCliente.SetGetTimeOut = timeOut;
             _objCliente.CodePage(_codePage, ref res);
             if (res != "")
@@ -130,7 +130,7 @@ namespace Sockets
                 Error(res);
                 return;
             }
-            _objCliente.evento_cliente += new Cliente.Delegado_Cliente_Event(Evsocket);
+            _objCliente.evento_cliente += new ClienteTCP.Delegado_Cliente_Event(Evsocket);
             _tcp = tcp;
             _modoCliente = true;
 
@@ -175,7 +175,7 @@ namespace Sockets
                 return;
             }
 
-            _lstObjServidor = new List<Servidor>();
+            _lstObjServidor = new List<ServidorTCP>();
             CrearServidor(ref res);
             
             if (res != "")
@@ -191,13 +191,13 @@ namespace Sockets
         private void CrearServidor(ref string mensaje)
         {
             
-            Servidor objServidor = new Servidor(_puertoEscuchaServer, _codePage, ref mensaje, _tcp);
+            ServidorTCP objServidor = new ServidorTCP(_puertoEscuchaServer, _codePage, ref mensaje, _tcp);
             if(mensaje!="")
             {
                 Error(mensaje);
                 return;
             }
-            objServidor.evento_servidor += new Servidor.Delegado_Servidor_Event(Evsocket);
+            objServidor.evento_servidor += new ServidorTCP.Delegado_Servidor_Event(Evsocket);
             _lstObjServidor.Add(objServidor);
 
             int indiceLista = GetUltimoEspacioLibre();
@@ -408,12 +408,12 @@ namespace Sockets
 
                     case Parametrosvento.TipoEvento.NUEVA_CONEXION:
                         
-                        //if (!_tcp)
+                        if (!_tcp)
                         {
 
-                        //}
-                        //else
-                        //{
+                        }
+                        else
+                        {
                             
                             if (_cantConServidor >= _maxServCon)
                             {

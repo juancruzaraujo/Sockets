@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace Sockets
 {
-    internal class Cliente
+    internal class ClienteTCP
     {
 
         #if DEBUG
@@ -73,7 +73,7 @@ namespace Sockets
             this.evento_cliente(servidorParametrosEvento);
         }
 
-        internal Cliente(bool tcp=true)
+        internal ClienteTCP(bool tcp=true)
         {
             _tcp = tcp;
             /*if (modo_Debug == false)
