@@ -23,14 +23,8 @@ namespace Sockets
 
         private TcpListener _tcpListen;
         private TcpClient _tcpCliente;
-        //private IPEndPoint _remoteEP;
         private Encoding _encoder;
-        //private UdpClient _udpClient;
 
-        private bool _tcp;
-
-        ///si es el primer mensaje, es una conexión nueva y tengo que hacer saltar el evento de nueva conexión
-        //private bool _primerMensajeCliUDP;
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
 
@@ -39,7 +33,6 @@ namespace Sockets
         internal string ip_Conexion;
         internal int puerto;
         
-
         internal delegate void Delegado_Servidor_Event(Parametrosvento servidorParametrosEvento);
         internal event Delegado_Servidor_Event evento_servidor;
         private void Evento_Servidor(Parametrosvento servidorParametrosEvento)
@@ -86,7 +79,7 @@ namespace Sockets
         /// <param name="Cod">codopage</param>
         /// <param name="Mensaje">mensaje que retorna en caso de error</param>
         /// <param name="tcp">define si la conexión es tpc o udp, vaor default true, si es falso, la conexion es udp</param>
-        internal ServidorTCP(int PuertoEscucha, int Cod, ref string mensaje, bool tcp=true)
+        internal ServidorTCP(int PuertoEscucha, int Cod, ref string mensaje)
         {
             _indiceCon = -1;
             try
@@ -99,7 +92,6 @@ namespace Sockets
                 }
 
                 puerto = PuertoEscucha;
-                _tcp = tcp;
             }
             catch (Exception err)
             {
@@ -117,15 +109,8 @@ namespace Sockets
             try
             {
                 ThreadStart Cliente;
-                //if (_tcp)
-                {
-                    Cliente = new ThreadStart(EscucharTCP);
-                }
-                /*else
-                {
-                    _primerMensajeCliUDP = false;
-                    Cliente = new ThreadStart(EscucharUDP);
-                }*/
+                Cliente = new ThreadStart(EscucharTCP);
+                
                 _thrCliente = new Thread(Cliente);
                 _thrCliente.Name = "ThEscucha";
                 _thrCliente.IsBackground = true;
@@ -134,10 +119,6 @@ namespace Sockets
             catch (Exception err)
             {
                 EsperandoConexion = false;
-
-                //Parametrosvento ev = new Parametrosvento();
-                //ev.SetEscuchando(false).SetDatos(Err.Message).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
-                //GenerarEvento(ev);
 
                 Mensaje = err.Message;
                 GenerarEventoError(err);
@@ -150,7 +131,6 @@ namespace Sockets
         /// <param name="Mensaje">Mensaje que retorna en caso de error</param>
         internal void Detener(ref string Mensaje)
         {
-
             EsperandoConexion = false;
             Parametrosvento ev = new Parametrosvento();
             ev.SetEscuchando(EsperandoConexion).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
@@ -162,11 +142,8 @@ namespace Sockets
 
                     _tcpListen.Stop();
                     _tcpCliente.Close();
-
                     _thrCliente.Abort();
-
                     _thrClienteConexion.Abort();
-
                     Thread.EndCriticalRegion(); //esto cierra todo con o sin conexiones
                 }
             }
@@ -179,62 +156,6 @@ namespace Sockets
                 }
             }
         }
-
-        /*
-        private void EscucharUDP()
-        {
-            try
-            {
-                _remoteEP = new IPEndPoint(IPAddress.Any, puerto);
-
-                //_udpClient = new UdpClient(puerto);
-
-                #region pruebas
-                _udpClient = new UdpClient();
-                _udpClient.ExclusiveAddressUse = false;
-
-                _udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                _udpClient.Client.Bind(_remoteEP);
-                #endregion
-
-                while (true)
-                {
-                    var datos = _udpClient.Receive(ref _remoteEP);
-                    ip_Conexion = _remoteEP.Address.ToString();
-                    
-                    if (!_primerMensajeCliUDP)
-                    {
-                        _primerMensajeCliUDP = true;
-                        Parametrosvento aceptarCon = new Parametrosvento();
-                        aceptarCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION).SetIpOrigen(ip_Conexion);
-                        GenerarEvento(aceptarCon);
-
-                        //mantengo esto para que sea el orden de eventos tal como es en tcp
-                        //tendría que agregar algo que permita rechazar la conexion dsp de que se dispara ACEPTAR_CONEXION
-                        Parametrosvento nuevaCon = new Parametrosvento();
-                        nuevaCon.SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION).SetIpOrigen(ip_Conexion);
-                        GenerarEvento(nuevaCon);
-
-                        _conectado = true;
-                        //_udpClient.Close(); //para pruebas
-
-                    }
-
-                    Parametrosvento ev = new Parametrosvento();
-                    ev.SetDatos(Encoding.ASCII.GetString(datos, 0, datos.Length)).SetIpOrigen(ip_Conexion).SetEvento(Parametrosvento.TipoEvento.DATOS_IN);
-                    GenerarEvento(ev);
-                }
-            }
-            catch (Exception e)
-            {
-                _conectado = false;
-                _primerMensajeCliUDP = false;
-                _udpClient.Close();
-                GenerarEventoError(e);
-                
-            }
-        }
-        */
 
         private void EscucharTCP()
         {
@@ -407,31 +328,15 @@ namespace Sockets
             try
             {
                 
-               //if (_tcp)
-                {
-                    TcpClient TcpClienteDatos = _tcpCliente;
-                    NetworkStream clienteStream = TcpClienteDatos.GetStream();
+               
+                TcpClient TcpClienteDatos = _tcpCliente;
+                NetworkStream clienteStream = TcpClienteDatos.GetStream();
 
-                    byte[] buffer = _encoder.GetBytes(datos);
-                    buf = buffer.Length;
-                    clienteStream.Write(buffer, 0, buf);
-                    clienteStream.Flush(); //envio los datos
-                }
-                //else
-                /*{
-                    Byte[] sendBytes = Encoding.ASCII.GetBytes(datos);
-                    try
-                    {
-                        _udpClient.Send(sendBytes, sendBytes.Length, _remoteEP);
-                        
-                    }
-                    catch (Exception e)
-                    {
-                        //Console.WriteLine(e.ToString());
-                        GenerarEventoError(e);
-                    }
-
-                }*/
+                byte[] buffer = _encoder.GetBytes(datos);
+                buf = buffer.Length;
+                clienteStream.Write(buffer, 0, buf);
+                clienteStream.Flush(); //envio los datos
+                
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetSize(buf).SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO);
                 GenerarEvento(ev);
@@ -553,6 +458,5 @@ namespace Sockets
             GenerarEvento(ev);
         }
 
-        
     }
 }

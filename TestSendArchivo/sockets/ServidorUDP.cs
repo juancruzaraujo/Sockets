@@ -14,6 +14,7 @@ namespace Sockets
         private IPEndPoint _remoteEP;
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
+        ///si es el primer mensaje, es una conexión nueva y tengo que hacer saltar el evento de nueva conexión
         private bool _primerMensajeCliUDP;
 
         internal string ip_Conexion;
