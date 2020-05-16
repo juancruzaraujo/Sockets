@@ -23,14 +23,14 @@ namespace Sockets
 
         private TcpListener _tcpListen;
         private TcpClient _tcpCliente;
-        private IPEndPoint _remoteEP;
+        //private IPEndPoint _remoteEP;
         private Encoding _encoder;
-        private UdpClient _udpClient;
+        //private UdpClient _udpClient;
 
         private bool _tcp;
 
         ///si es el primer mensaje, es una conexión nueva y tengo que hacer saltar el evento de nueva conexión
-        private bool _primerMensajeCliUDP;
+        //private bool _primerMensajeCliUDP;
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
 
@@ -117,15 +117,15 @@ namespace Sockets
             try
             {
                 ThreadStart Cliente;
-                if (_tcp)
+                //if (_tcp)
                 {
                     Cliente = new ThreadStart(EscucharTCP);
                 }
-                else
+                /*else
                 {
                     _primerMensajeCliUDP = false;
                     Cliente = new ThreadStart(EscucharUDP);
-                }
+                }*/
                 _thrCliente = new Thread(Cliente);
                 _thrCliente.Name = "ThEscucha";
                 _thrCliente.IsBackground = true;
@@ -174,15 +174,13 @@ namespace Sockets
             {
                 if (modo_Debug == true)
                 {
-                    //Parametrosvento evErr = new Parametrosvento();
-                    //ev.SetDatos(err.Message + " TcpListen.Start()").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                    //GenerarEvento(evErr);
                     Mensaje = err.Message;
                     GenerarEventoError(err);
                 }
             }
         }
 
+        /*
         private void EscucharUDP()
         {
             try
@@ -236,6 +234,7 @@ namespace Sockets
                 
             }
         }
+        */
 
         private void EscucharTCP()
         {
@@ -389,11 +388,8 @@ namespace Sockets
                 }
 
             }
-            catch (SocketException err)//(Exception Err)
+            catch (Exception err)
             {
-                //Parametrosvento evErr = new Parametrosvento();
-                //evErr.SetDatos("Cliente_Comunicacion>\r\n" + Err.Message + "\r\n").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                //GenerarEvento(evErr);
                 GenerarEventoError(err);
             }
         }
@@ -411,7 +407,7 @@ namespace Sockets
             try
             {
                 
-                if (_tcp)
+               //if (_tcp)
                 {
                     TcpClient TcpClienteDatos = _tcpCliente;
                     NetworkStream clienteStream = TcpClienteDatos.GetStream();
@@ -421,8 +417,8 @@ namespace Sockets
                     clienteStream.Write(buffer, 0, buf);
                     clienteStream.Flush(); //envio los datos
                 }
-                else
-                {
+                //else
+                /*{
                     Byte[] sendBytes = Encoding.ASCII.GetBytes(datos);
                     try
                     {
@@ -435,7 +431,7 @@ namespace Sockets
                         GenerarEventoError(e);
                     }
 
-                }
+                }*/
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetSize(buf).SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO);
                 GenerarEvento(ev);
@@ -443,11 +439,6 @@ namespace Sockets
             }
             catch (Exception err)
             {
-
-                //Parametrosvento evErr = new Parametrosvento();
-                //evErr.SetDatos(Err.Message).SetEvento(Parametrosvento.TipoEvento.ERROR);
-                //resultado = Err.Message;
-                //GenerarEvento(evErr);
                 GenerarEventoError(err);
             }
         }
@@ -518,10 +509,6 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                //Parametrosvento evErr = new Parametrosvento();
-                //Error = Err.ToString();
-                //evErr.SetDatos(Error).SetEvento(Parametrosvento.TipoEvento.ERROR);
-                //GenerarEvento(evErr);
                 GenerarEventoError(err);
             }
 
