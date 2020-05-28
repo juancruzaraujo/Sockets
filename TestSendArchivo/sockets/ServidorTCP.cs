@@ -112,7 +112,7 @@ namespace Sockets
                 Cliente = new ThreadStart(EscucharTCP);
                 
                 _thrCliente = new Thread(Cliente);
-                _thrCliente.Name = "ThEscucha";
+                _thrCliente.Name = "ThTCP";
                 _thrCliente.IsBackground = true;
                 _thrCliente.Start();
             }
@@ -327,8 +327,6 @@ namespace Sockets
             int buf=0;
             try
             {
-                
-               
                 TcpClient TcpClienteDatos = _tcpCliente;
                 NetworkStream clienteStream = TcpClienteDatos.GetStream();
 

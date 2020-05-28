@@ -4,28 +4,59 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sockets
 {
     internal class ServidorUDP
     {
+
+        //private static Socket _serverSocketUDP;
+        //private IPEndPoint _serverUDP;
+
+        private static IPEndPoint _remoteEP;
+
+        //lo viejo
+        private Thread _thrCliente;
         private UdpClient _udpClient;
-        private IPEndPoint _remoteEP;
+        //private IPEndPoint _remoteEP;
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
         ///si es el primer mensaje, es una conexión nueva y tengo que hacer saltar el evento de nueva conexión
         private bool _primerMensajeCliUDP;
+        private int _puerto;
 
         internal string ip_Conexion;
-        internal int puerto;
+        //internal int puerto;
         internal bool EsperandoConexion;
 
         private bool _conectado;
 
-        internal ServidorUDP()
-        {
 
+        internal int IndiceConexion
+        {
+            get
+            {
+                return _indiceCon;
+            }
+            set
+            {
+                _indiceCon = value;
+            }
+        }
+
+
+        internal int IndiceLista
+        {
+            get
+            {
+                return _indiceLista;
+            }
+            set
+            {
+                _indiceLista = value;
+            }
         }
 
         internal delegate void Delegado_Servidor_Event(Parametrosvento servidorParametrosEvento);
@@ -33,6 +64,43 @@ namespace Sockets
         private void Evento_Servidor(Parametrosvento servidorParametrosEvento)
         {
             this.evento_servidor(servidorParametrosEvento);
+        }
+
+        internal ServidorUDP(int PuertoEscucha)
+        {
+            /*if (_serverSocketUDP == null)
+            {
+                _serverSocketUDP = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            }*/
+
+            _puerto = PuertoEscucha;
+            
+        }
+
+        internal void Iniciar()
+        {
+            //_serverUDP = new IPEndPoint(IPAddress.Any, _puerto);
+            //_serverSocketUDP.Bind(_serverUDP);
+            //EscucharUDP();
+
+            try
+            {
+                ThreadStart Cliente;
+                Cliente = new ThreadStart(EscucharUDP);
+
+                _thrCliente = new Thread(Cliente);
+                _thrCliente.Name = "ThTCP";
+                _thrCliente.IsBackground = true;
+                _thrCliente.Start();
+            }
+            catch (Exception err)
+            {
+                EsperandoConexion = false;
+
+                //Mensaje = err.Message;
+                GenerarEventoError(err);
+            }
+
         }
 
         internal void Enviar(string datos, ref string resultado)
@@ -61,8 +129,10 @@ namespace Sockets
         {
             try
             {
-                _remoteEP = new IPEndPoint(IPAddress.Any, puerto);
-
+                if (_remoteEP == null)
+                {
+                    _remoteEP = new IPEndPoint(IPAddress.Any, _puerto);
+                }
                 //_udpClient = new UdpClient(puerto);
 
                 #region pruebas
@@ -131,6 +201,6 @@ namespace Sockets
                 SetCodError(utils.GetCodigoError(err));
             GenerarEvento(ev);
         }
-
+        
     }
 }

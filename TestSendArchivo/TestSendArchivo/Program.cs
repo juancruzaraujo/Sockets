@@ -7,7 +7,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Sockets;
 
-
 namespace TestSendArchivo
 {
     class Program
@@ -20,7 +19,7 @@ namespace TestSendArchivo
         static FileStream _ArchStream;
         static BinaryWriter _ArchWriter;
 
-        static Socket _obSocket;
+        static Sockets.Sockets _obSocket;
 
         //static int _tam;
 
@@ -85,8 +84,8 @@ namespace TestSendArchivo
 
             Console.WriteLine("\x1b[93m TEST SERVER.\r\n");
 
-            _obSocket = new Socket();
-            _obSocket.Event_Socket += new Socket.Delegado_Socket_Event(EvSockets); 
+            _obSocket = new Sockets.Sockets();
+            _obSocket.Event_Socket += new Sockets.Sockets.Delegado_Socket_Event(EvSockets); 
 
             if (args.Length > 0)
             {
@@ -115,7 +114,7 @@ namespace TestSendArchivo
                         }
                         else
                         {
-                            //le envio a todos un texto cualquiera
+                            //<<<<<<<<<<<<le envio a todos un texto cualquiera>>>>>>>>>>>>>>>>
                             _obSocket.EnviarATodos(input + "\r\n");
                         }
                     }
@@ -181,7 +180,7 @@ namespace TestSendArchivo
                     break;
                 
                 default:
-                    Console.WriteLine(corchete("Evento " + ev.GetEvento) + " " +ev.GetDatos);
+                    //Console.WriteLine(corchete("Evento " + ev.GetEvento) + " " +ev.GetDatos);
                     break;
             }
         }
@@ -193,7 +192,7 @@ namespace TestSendArchivo
             if (tcp)
             {
                 Console.WriteLine("modo server");
-                Console.Title = "MODO SERVER"; 
+                Console.Title = "MODO SERVER TCP"; 
             }
             else
             {

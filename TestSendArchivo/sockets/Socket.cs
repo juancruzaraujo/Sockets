@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Sockets
 {
-    public class Socket
+    public class Sockets
     {
         //variables y objectos publicos
         //public Cliente cliente;
@@ -15,7 +15,8 @@ namespace Sockets
         //variables y objetos privados
         private ClienteTCP _objCliente;
         private List<ServidorTCP> _lstObjServidorTCP;
-        
+        private List<ServidorUDP> _lstObjServidorUDP;
+
         private string _mensaje;
 
         private bool _modoServidor;
@@ -79,7 +80,7 @@ namespace Sockets
             }
         }
 
-        public Socket()
+        public Sockets()
         {
                         
         }
@@ -175,7 +176,7 @@ namespace Sockets
             }
             else
             {
-                //crear objeto UDP
+                _lstObjServidorUDP = new List<ServidorUDP>();
             }
 
             CrearServidor(ref res);
@@ -192,6 +193,7 @@ namespace Sockets
 
         private void CrearServidor(ref string mensaje)
         {
+            int indiceLista = GetUltimoEspacioLibre();
 
             if (_tcp)
             {
@@ -203,35 +205,52 @@ namespace Sockets
                 }
                 objServidor.evento_servidor += new ServidorTCP.Delegado_Servidor_Event(Evsocket);
                 _lstObjServidorTCP.Add(objServidor);
-
-                int indiceLista = GetUltimoEspacioLibre();
-
+                
                 _lstObjServidorTCP[indiceLista].IndiceConexion = _numCliConServidor;
                 _lstObjServidorTCP[indiceLista].IndiceLista = indiceLista;
             }
             else
             {
-                //crear server udp
+                ServidorUDP objServidorUDP = new ServidorUDP(_puertoEscuchaServer);
+                if (mensaje != "")
+                {
+                    Error(mensaje);
+                    return;
+                }
+                objServidorUDP.evento_servidor += new ServidorUDP.Delegado_Servidor_Event(Evsocket);
+                _lstObjServidorUDP.Add(objServidorUDP);
+
+                _lstObjServidorUDP[indiceLista].IndiceConexion = _numCliConServidor;
+                _lstObjServidorUDP[indiceLista].IndiceLista = indiceLista;
+
             }
             
         }
 
+        
         public void StartServer()
         {
             string res="";
-
-            //_objServidor.Iniciar(ref res);
-            _lstObjServidorTCP[GetUltimoEspacioLibre()].Iniciar(ref res);
-            
-            if (res != "")
+            if (_tcp)
             {
-                Error(res);
-                return;
+                //_objServidor.Iniciar(ref res);
+                //_lstObjServidorTCP[GetUltimoEspacioLibre()].Iniciar(ref res);
+                _lstObjServidorTCP[_lstObjServidorTCP.Count() -1].Iniciar(ref res);
+
+                if (res != "")
+                {
+                    Error(res);
+                    return;
+                }
+                Parametrosvento ev = new Parametrosvento();
+                ev.SetEvento(Parametrosvento.TipoEvento.SERVER_INICIADO);
+                Evsocket(ev);
+                _serverEscuchando = true;
             }
-            Parametrosvento ev = new Parametrosvento();
-            ev.SetEvento(Parametrosvento.TipoEvento.SERVER_INICIADO);
-            Evsocket(ev);
-            _serverEscuchando = true;
+            else
+            {
+                _lstObjServidorUDP[GetUltimoEspacioLibre()].Iniciar();
+            }
         }
 
         #region propiedades
@@ -420,18 +439,18 @@ namespace Sockets
                     case Parametrosvento.TipoEvento.ERROR:
                         if (!_tcp)
                         {
-                            string aux = "";
+                            //string aux = "";
                             //_objServidor.Iniciar(ref aux); //volvemos a iniciar el servidor udp
                         }
                         break;
 
                     case Parametrosvento.TipoEvento.NUEVA_CONEXION:
                         
-                        if (!_tcp)
-                        {
-
-                        }
-                        else
+                        //if (!_tcp)
+                        //{
+                            
+                        //}
+                        //else
                         {
                             
                             if (_cantConServidor >= _maxServCon)
@@ -492,7 +511,7 @@ namespace Sockets
                 }
                 else
                 {
-                    //UDP
+                    _lstObjServidorUDP[indice].Enviar(mensaje, ref res);
                 }
             }
 
@@ -523,6 +542,10 @@ namespace Sockets
                     else
                     {
                         //UDP
+                        for (int i=0; i<_lstObjServidorUDP.Count();i++)
+                        {
+                            Enviar(mensaje, i);
+                        }
                     }
                 }
                 else
@@ -589,16 +612,15 @@ namespace Sockets
 
         private int GetUltimoEspacioLibre()
         {
-            int res=0;
+            int res;//=0;
             if (_tcp)
             {
-                res = _lstObjServidorTCP.Count() - 1;
+                res = _lstObjServidorTCP.Count();
             }
             else
             {
-                //UDP
+                res = _lstObjServidorUDP.Count();
             }
-
             return res;
         }
 
