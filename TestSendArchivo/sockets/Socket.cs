@@ -249,7 +249,7 @@ namespace Sockets
             }
             else
             {
-                _lstObjServidorUDP[GetUltimoEspacioLibre()].Iniciar();
+                _lstObjServidorUDP[_lstObjServidorUDP.Count() -1].Iniciar();
             }
         }
 
