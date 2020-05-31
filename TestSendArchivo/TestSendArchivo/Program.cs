@@ -162,7 +162,8 @@ namespace TestSendArchivo
             {
                 case Parametrosvento.TipoEvento.NUEVA_CONEXION:
                     Console.WriteLine (corchete(ev.GetNumConexion.ToString()) +  " conectado desde " + ev.GetIpOrigen);
-                    _obSocket.Enviar("<SOS> " + ev.GetNumConexion.ToString(), ev.GetIndiceLista);
+                    //_obSocket.Enviar("<SOS> " + ev.GetNumConexion.ToString(), ev.GetIndiceLista);
+                    //_obSocket.Enviar("<SOS> " + ev.GetNumConexion.ToString(), 0);
                     break;
 
                 case Parametrosvento.TipoEvento.DATOS_IN:

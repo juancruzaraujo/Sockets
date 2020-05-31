@@ -20,6 +20,7 @@ namespace Sockets
         //lo viejo
         private Thread _thrCliente;
         private UdpClient _udpClient;
+        private List<UdpClient> _lstUDPClient;
         //private IPEndPoint _remoteEP;
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
@@ -97,7 +98,6 @@ namespace Sockets
             {
                 EsperandoConexion = false;
 
-                //Mensaje = err.Message;
                 GenerarEventoError(err);
             }
 
@@ -109,7 +109,7 @@ namespace Sockets
             Byte[] sendBytes = Encoding.ASCII.GetBytes(datos);
             try
             {
-                _udpClient.Send(sendBytes, sendBytes.Length, _remoteEP);
+                //_udpClient.Send(sendBytes, sendBytes.Length, _remoteEP);
 
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetSize(buf).SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO);
@@ -118,7 +118,7 @@ namespace Sockets
             }
             catch (Exception e)
             {
-                //Console.WriteLine(e.ToString());
+                
                 GenerarEventoError(e);
             }
 
@@ -134,6 +134,8 @@ namespace Sockets
                     _remoteEP = new IPEndPoint(IPAddress.Any, _puerto);
                 }
                 //_udpClient = new UdpClient(puerto);
+
+                //if (_remoteEP.Port) //aca quede
 
                 #region pruebas
                 _udpClient = new UdpClient();
@@ -157,9 +159,10 @@ namespace Sockets
 
                         //mantengo esto para que sea el orden de eventos tal como es en tcp
                         //tendría que agregar algo que permita rechazar la conexion dsp de que se dispara ACEPTAR_CONEXION
-                        Parametrosvento nuevaCon = new Parametrosvento();
-                        nuevaCon.SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION).SetIpOrigen(ip_Conexion);
-                        GenerarEvento(nuevaCon);
+
+                        //Parametrosvento nuevaCon = new Parametrosvento();
+                        //nuevaCon.SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION).SetIpOrigen(ip_Conexion);
+                        //GenerarEvento(nuevaCon);
 
                         _conectado = true;
                         //_udpClient.Close(); //para pruebas

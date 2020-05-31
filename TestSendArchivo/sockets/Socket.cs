@@ -511,7 +511,7 @@ namespace Sockets
                 }
                 else
                 {
-                    _lstObjServidorUDP[indice].Enviar(mensaje, ref res);
+                    _lstObjServidorUDP[0].Enviar(mensaje, ref res);
                 }
             }
 
