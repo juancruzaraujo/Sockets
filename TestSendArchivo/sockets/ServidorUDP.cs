@@ -20,7 +20,7 @@ namespace Sockets
         //lo viejo
         private Thread _thrCliente;
         private UdpClient _udpClient;
-        private List<UdpClient> _lstUDPClient;
+        //private List<UdpClient> _lstUDPClient;
         //private IPEndPoint _remoteEP;
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
@@ -34,6 +34,11 @@ namespace Sockets
 
         private bool _conectado;
 
+        struct InfoClienteUDP
+        {
+            internal int puerto;
+            internal UdpClient udpClient;
+        }
 
         internal int IndiceConexion
         {
@@ -75,6 +80,7 @@ namespace Sockets
             }*/
 
             _puerto = PuertoEscucha;
+            
             
         }
 
