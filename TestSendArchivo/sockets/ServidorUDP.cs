@@ -12,6 +12,12 @@ namespace Sockets
     internal class ServidorUDP
     {
 
+        struct InfoClienteUDP
+        {
+            internal int puerto;
+            internal UdpClient udpClient;
+        }
+        private List<InfoClienteUDP> _lstClientesUDP;
         //private static Socket _serverSocketUDP;
         //private IPEndPoint _serverUDP;
 
@@ -33,12 +39,7 @@ namespace Sockets
         internal bool EsperandoConexion;
 
         private bool _conectado;
-
-        struct InfoClienteUDP
-        {
-            internal int puerto;
-            internal UdpClient udpClient;
-        }
+                
 
         internal int IndiceConexion
         {
@@ -80,6 +81,7 @@ namespace Sockets
             }*/
 
             _puerto = PuertoEscucha;
+            _lstClientesUDP = new List<InfoClienteUDP>();
             
             
         }
@@ -135,20 +137,47 @@ namespace Sockets
         {
             try
             {
+
+                bool clienteExistente = false;
                 if (_remoteEP == null)
                 {
                     _remoteEP = new IPEndPoint(IPAddress.Any, _puerto);
                 }
                 //_udpClient = new UdpClient(puerto);
 
-                //if (_remoteEP.Port) //aca quede
+
+                //me fijo si ya no estaba conectado
+                for (int i=0;i<_lstClientesUDP.Count();i++)
+                {
+                    if (_lstClientesUDP[i].puerto == _remoteEP.Port)
+                    {
+                        clienteExistente = true;
+                        i = _lstClientesUDP.Count();
+                    }
+                }
+                if (!clienteExistente)
+                {
+                    
+                    InfoClienteUDP aux = new InfoClienteUDP();
+                    aux.puerto = _remoteEP.Port;
+                    aux.udpClient = new UdpClient();
+                    aux.udpClient.ExclusiveAddressUse = false;
+                    aux.udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                    aux.udpClient.Client.Bind(_remoteEP);
+
+                    _lstClientesUDP.Add(aux);
+
+                }
+
 
                 #region pruebas
+                /*
                 _udpClient = new UdpClient();
                 _udpClient.ExclusiveAddressUse = false;
 
                 _udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 _udpClient.Client.Bind(_remoteEP);
+                */
                 #endregion
 
                 while (true)
