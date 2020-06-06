@@ -12,16 +12,16 @@ namespace Sockets
     internal class ServidorUDP
     {
 
-        struct InfoClienteUDP
+        class InfoCliente
         {
-            internal int puerto;
-            internal UdpClient udpClient;
+            internal IPEndPoint clienteEndPoint;
+            internal bool primerMensaje;
         }
-        private List<InfoClienteUDP> _lstClientesUDP;
+        private List<InfoCliente> _lstClientesUDP;
         //private static Socket _serverSocketUDP;
         //private IPEndPoint _serverUDP;
 
-        private static IPEndPoint _remoteEP;
+        //private static IPEndPoint _remoteEP;
 
         //lo viejo
         private Thread _thrCliente;
@@ -31,7 +31,7 @@ namespace Sockets
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
         ///si es el primer mensaje, es una conexión nueva y tengo que hacer saltar el evento de nueva conexión
-        private bool _primerMensajeCliUDP;
+        //private bool _primerMensajeCliUDP;
         private int _puerto;
 
         internal string ip_Conexion;
@@ -81,7 +81,7 @@ namespace Sockets
             }*/
 
             _puerto = PuertoEscucha;
-            _lstClientesUDP = new List<InfoClienteUDP>();
+            _lstClientesUDP = new List<InfoCliente>();
             
             
         }
@@ -135,85 +135,109 @@ namespace Sockets
 
         private void EscucharUDP()
         {
+            int indiceMsg=0;
+            UdpClient auxCli;
+            
             try
             {
-
+                
                 bool clienteExistente = false;
+
+                /*
                 if (_remoteEP == null)
                 {
                     _remoteEP = new IPEndPoint(IPAddress.Any, _puerto);
-                }
-                //_udpClient = new UdpClient(puerto);
+                }*/
+
+                UdpClient clienteUDP = new UdpClient();
+                clienteUDP.ExclusiveAddressUse = false;
+                clienteUDP.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+                //InfoCliente aux = new InfoCliente();
+                //aux.puerto = _remoteEP.Port;
 
 
-                //me fijo si ya no estaba conectado
-                for (int i=0;i<_lstClientesUDP.Count();i++)
-                {
-                    if (_lstClientesUDP[i].puerto == _remoteEP.Port)
-                    {
-                        clienteExistente = true;
-                        i = _lstClientesUDP.Count();
-                    }
-                }
-                if (!clienteExistente)
-                {
-                    
-                    InfoClienteUDP aux = new InfoClienteUDP();
-                    aux.puerto = _remoteEP.Port;
-                    aux.udpClient = new UdpClient();
-                    aux.udpClient.ExclusiveAddressUse = false;
-                    aux.udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                    aux.udpClient.Client.Bind(_remoteEP);
+                //aux.udpClient = new UdpClient();
+                //aux.udpClient.ExclusiveAddressUse = false;
+                //aux.udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                //aux.udpClient.Client.Bind(_remoteEP);
+                //aux.primerMensaje = false;
 
-                    _lstClientesUDP.Add(aux);
-
-                }
-
-
-                #region pruebas
-                /*
-                _udpClient = new UdpClient();
-                _udpClient.ExclusiveAddressUse = false;
-
-                _udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                _udpClient.Client.Bind(_remoteEP);
-                */
-                #endregion
-
+                bool bindeado = false;
                 while (true)
                 {
-                    var datos = _udpClient.Receive(ref _remoteEP);
-                    ip_Conexion = _remoteEP.Address.ToString();
-
-                    if (!_primerMensajeCliUDP)
+                    InfoCliente auxCliente = new InfoCliente();
+                    auxCliente.clienteEndPoint = new IPEndPoint(IPAddress.Any, _puerto);
+                    if (!bindeado)
                     {
-                        _primerMensajeCliUDP = true;
-                        Parametrosvento aceptarCon = new Parametrosvento();
-                        aceptarCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION).SetIpOrigen(ip_Conexion);
-                        GenerarEvento(aceptarCon);
-
-                        //mantengo esto para que sea el orden de eventos tal como es en tcp
-                        //tendría que agregar algo que permita rechazar la conexion dsp de que se dispara ACEPTAR_CONEXION
-
-                        //Parametrosvento nuevaCon = new Parametrosvento();
-                        //nuevaCon.SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION).SetIpOrigen(ip_Conexion);
-                        //GenerarEvento(nuevaCon);
-
-                        _conectado = true;
-                        //_udpClient.Close(); //para pruebas
-
+                        clienteUDP.Client.Bind(auxCliente.clienteEndPoint);
+                        bindeado = true;
                     }
+                    var datosEntrada = clienteUDP.Receive(ref auxCliente.clienteEndPoint); //ACÁ LLEGA TODO SIEMPRE Y AHI ES DONDE TENGO QUE VER QUE HACER
 
-                    Parametrosvento ev = new Parametrosvento();
-                    ev.SetDatos(Encoding.ASCII.GetString(datos, 0, datos.Length)).SetIpOrigen(ip_Conexion).SetEvento(Parametrosvento.TipoEvento.DATOS_IN);
-                    GenerarEvento(ev);
+                    if (auxCliente.clienteEndPoint.Port != _puerto)
+                    {
+
+                        for (int i = 0; i < _lstClientesUDP.Count(); i++)
+                        {
+
+                            if (_lstClientesUDP[i].clienteEndPoint.Port == auxCliente.clienteEndPoint.Port)
+                            {
+                                clienteExistente = true;
+                                indiceMsg = i;
+                                i = _lstClientesUDP.Count();
+                            }
+                        }
+                        if (!clienteExistente)
+                        {
+                            _lstClientesUDP.Add(auxCliente);
+                            indiceMsg = _lstClientesUDP.Count() - 1;
+                            _lstClientesUDP[indiceMsg].primerMensaje = true;
+
+                        }
+
+                        //var datos = _udpClient.Receive(ref _remoteEP);
+                        //var datos = _lstClientesUDP[indiceMsg].udpClient.Receive(ref _remoteEP);
+                        ip_Conexion = _lstClientesUDP[indiceMsg].clienteEndPoint.Address.ToString();
+
+                        if (_lstClientesUDP[indiceMsg].primerMensaje)
+                        {
+                            _lstClientesUDP[indiceMsg].primerMensaje = false;
+
+                            Parametrosvento aceptarCon = new Parametrosvento();
+                            aceptarCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION)
+                                .SetIpOrigen(ip_Conexion)
+                                .SetIndiceLista(indiceMsg);
+                            
+                            GenerarEvento(aceptarCon);
+
+                            //mantengo esto para que sea el orden de eventos tal como es en tcp
+                            //tendría que agregar algo que permita rechazar la conexion dsp de que se dispara ACEPTAR_CONEXION
+
+                            //Parametrosvento nuevaCon = new Parametrosvento();
+                            //nuevaCon.SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION).SetIpOrigen(ip_Conexion);
+                            //GenerarEvento(nuevaCon);
+
+                            _conectado = true;
+                            //_udpClient.Close(); //para pruebas
+
+                        }
+
+                        Parametrosvento ev = new Parametrosvento();
+                        ev.SetDatos(Encoding.ASCII.GetString(datosEntrada, 0, datosEntrada.Length))
+                            .SetIpOrigen(ip_Conexion)
+                            .SetEvento(Parametrosvento.TipoEvento.DATOS_IN)
+                            .SetIndiceLista(indiceMsg);
+                        GenerarEvento(ev);
+                    } //fin if (_remoteEP.Port == _puerto) 
                 }
+                
             }
             catch (Exception e)
             {
                 _conectado = false;
-                _primerMensajeCliUDP = false;
-                _udpClient.Close();
+                //_primerMensajeCliUDP = false;
+                //_udpClient.Close();
                 GenerarEventoError(e);
 
             }
@@ -221,7 +245,7 @@ namespace Sockets
 
         private void GenerarEvento(Parametrosvento ob)
         {
-            ob.SetNumConexion(_indiceCon).SetIndiceLista(_indiceLista);
+            //ob.SetNumConexion(_indiceCon).SetIndiceLista(_indiceLista);
             Evento_Servidor(ob);
         }
 
