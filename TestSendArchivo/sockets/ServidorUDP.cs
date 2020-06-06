@@ -16,6 +16,7 @@ namespace Sockets
         {
             internal IPEndPoint clienteEndPoint;
             internal bool primerMensaje;
+            internal int numConexion;
         }
         private List<InfoCliente> _lstClientesUDP;
         //private static Socket _serverSocketUDP;
@@ -137,7 +138,8 @@ namespace Sockets
         {
             int indiceMsg=0;
             UdpClient auxCli;
-            
+            int cantidadConexiones = 0;            
+
             try
             {
                 
@@ -203,6 +205,8 @@ namespace Sockets
                         if (_lstClientesUDP[indiceMsg].primerMensaje)
                         {
                             _lstClientesUDP[indiceMsg].primerMensaje = false;
+                            cantidadConexiones++;
+                            _lstClientesUDP[indiceMsg].numConexion = cantidadConexiones;
 
                             Parametrosvento aceptarCon = new Parametrosvento();
                             aceptarCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION)
@@ -227,7 +231,8 @@ namespace Sockets
                         ev.SetDatos(Encoding.ASCII.GetString(datosEntrada, 0, datosEntrada.Length))
                             .SetIpOrigen(ip_Conexion)
                             .SetEvento(Parametrosvento.TipoEvento.DATOS_IN)
-                            .SetIndiceLista(indiceMsg);
+                            .SetIndiceLista(indiceMsg)
+                            .SetNumConexion(_lstClientesUDP[indiceMsg].numConexion);
                         GenerarEvento(ev);
                     } //fin if (_remoteEP.Port == _puerto) 
                 }
