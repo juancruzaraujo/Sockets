@@ -81,6 +81,25 @@ namespace Sockets
             }
         }
 
+        public int MaxServerConexiones
+        {
+            set
+            {
+                _maxServCon = value;
+                if (_modoServidor)
+                {
+                    if (!_tcp)
+                    {
+                        _objServidorUDP.MaxClientesUDP = _maxServCon;
+                    }
+                }
+            }
+            get
+            {
+                return _maxServCon;
+            }
+        }
+
         public Sockets()
         {
                         
@@ -215,6 +234,7 @@ namespace Sockets
             {
                 //ServidorUDP objServidorUDP = new ServidorUDP(_puertoEscuchaServer);
                 _objServidorUDP = new ServidorUDP(_puertoEscuchaServer);
+                _objServidorUDP.MaxClientesUDP = _maxServCon;
                 if (mensaje != "")
                 {
                     Error(mensaje);

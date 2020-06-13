@@ -17,31 +17,28 @@ namespace Sockets
             internal IPEndPoint clienteEndPoint;
             internal bool primerMensaje;
             internal int numConexion;
+            internal string datosIn;
         }
         private List<InfoCliente> _lstClientesUDP;
-        //private static Socket _serverSocketUDP;
-        //private IPEndPoint _serverUDP;
 
-        //private static IPEndPoint _remoteEP;
-
-        //lo viejo
         private Thread _thrCliente;
         private UdpClient _udpClient;
-        //private List<UdpClient> _lstUDPClient;
-        //private IPEndPoint _remoteEP;
-        private int _indiceCon; //va a contener el indice de conexion
-        private int _indiceLista; //va a conetener el indice de la lista de sockets
-        ///si es el primer mensaje, es una conexión nueva y tengo que hacer saltar el evento de nueva conexión
-        //private bool _primerMensajeCliUDP;
+
+
+        //internal int puerto;
+        //internal bool EsperandoConexion;
+        //private int _indiceCon; //va a contener el indice de conexion
+        //private int _indiceLista; //va a conetener el indice de la lista de sockets
         private int _puerto;
+        private int _maxClientesUDP;
+        private bool _maximoConexiones;
 
         internal string ip_Conexion;
-        //internal int puerto;
-        internal bool EsperandoConexion;
+        
 
         private bool _conectado;
                 
-
+        /*
         internal int IndiceConexion
         {
             get
@@ -66,6 +63,18 @@ namespace Sockets
                 _indiceLista = value;
             }
         }
+        */
+        internal int MaxClientesUDP
+        {
+            get
+            {
+                return _maxClientesUDP;
+            }
+            set
+            {
+                _maxClientesUDP = value;
+            }
+        }
 
         internal delegate void Delegado_Servidor_Event(Parametrosvento servidorParametrosEvento);
         internal event Delegado_Servidor_Event evento_servidor;
@@ -76,36 +85,26 @@ namespace Sockets
 
         internal ServidorUDP(int PuertoEscucha)
         {
-            /*if (_serverSocketUDP == null)
-            {
-                _serverSocketUDP = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            }*/
-
             _puerto = PuertoEscucha;
-            _lstClientesUDP = new List<InfoCliente>();
-            
-            
+            _lstClientesUDP = new List<InfoCliente>();   
         }
 
         internal void Iniciar()
         {
-            //_serverUDP = new IPEndPoint(IPAddress.Any, _puerto);
-            //_serverSocketUDP.Bind(_serverUDP);
-            //EscucharUDP();
-
+            
             try
             {
                 ThreadStart Cliente;
                 Cliente = new ThreadStart(EscucharUDP);
 
                 _thrCliente = new Thread(Cliente);
-                _thrCliente.Name = "ThTCP";
+                _thrCliente.Name = "ThUDP";
                 _thrCliente.IsBackground = true;
                 _thrCliente.Start();
             }
             catch (Exception err)
             {
-                EsperandoConexion = false;
+                //EsperandoConexion = false;
 
                 GenerarEventoError(err);
             }
@@ -149,7 +148,7 @@ namespace Sockets
         private void EscucharUDP()
         {
             int indiceMsg=0;
-            UdpClient auxCli;
+            //UdpClient auxCli;
             int cantidadConexiones = 0;            
 
             try
@@ -157,13 +156,7 @@ namespace Sockets
                 
                 bool clienteExistente = false;
 
-                /*
-                if (_remoteEP == null)
-                {
-                    _remoteEP = new IPEndPoint(IPAddress.Any, _puerto);
-                }*/
-
-                //UdpClient clienteUDP = new UdpClient();
+                
                 _udpClient = new UdpClient();
 
                 _udpClient.ExclusiveAddressUse = false;
@@ -188,62 +181,82 @@ namespace Sockets
 
                         for (int i = 0; i < _lstClientesUDP.Count(); i++)
                         {
-
                             if (_lstClientesUDP[i].clienteEndPoint.Port == auxCliente.clienteEndPoint.Port)
                             {
                                 clienteExistente = true;
                                 indiceMsg = i;
+                                _lstClientesUDP[i].datosIn = Encoding.ASCII.GetString(datosEntrada, 0, datosEntrada.Length);
                                 i = _lstClientesUDP.Count();
                             }
                         }
                         if (!clienteExistente)
                         {
-                            _lstClientesUDP.Add(auxCliente);
-                            indiceMsg = _lstClientesUDP.Count() - 1;
-                            _lstClientesUDP[indiceMsg].primerMensaje = true;
+                            if (cantidadConexiones < _maxClientesUDP) //rompe acá
+                            {
+                                _lstClientesUDP.Add(auxCliente);
+                                indiceMsg = _lstClientesUDP.Count() - 1;
+                                _lstClientesUDP[indiceMsg].primerMensaje = true;
+                                _lstClientesUDP[indiceMsg].datosIn = Encoding.ASCII.GetString(datosEntrada, 0, datosEntrada.Length); 
+                            }
+                            else
+                            {
+                                //LIMITE DE CONEXIONES
+                                if (!_maximoConexiones)
+                                {
+                                    _maximoConexiones = true; //así evito disparar esto siempre
+                                    Parametrosvento maxCons = new Parametrosvento();
+                                    maxCons.SetEvento(Parametrosvento.TipoEvento.LIMITE_CONEXIONES);
+                                    GenerarEvento(maxCons);
+                                }
+
+                            }
 
                         }
 
-                        
-                        ip_Conexion = _lstClientesUDP[indiceMsg].clienteEndPoint.Address.ToString();
-
-                        if (_lstClientesUDP[indiceMsg].primerMensaje)
+                        if (cantidadConexiones < _maxClientesUDP) //lo que llego esta fuera del limite de conexiones
                         {
-                            _lstClientesUDP[indiceMsg].primerMensaje = false;
-                            cantidadConexiones++;
-                            _lstClientesUDP[indiceMsg].numConexion = cantidadConexiones;
 
-                            Parametrosvento aceptarCon = new Parametrosvento();
-                            aceptarCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION)
+                            ip_Conexion = _lstClientesUDP[indiceMsg].clienteEndPoint.Address.ToString();
+
+                            if (_lstClientesUDP[indiceMsg].primerMensaje)
+                            {
+                                _lstClientesUDP[indiceMsg].primerMensaje = false;
+                                cantidadConexiones++;
+                                _lstClientesUDP[indiceMsg].numConexion = cantidadConexiones;
+
+                                Parametrosvento aceptarCon = new Parametrosvento();
+                                aceptarCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION)
+                                    .SetIpOrigen(ip_Conexion)
+                                    .SetIndiceLista(indiceMsg)
+                                    .SetNumConexion(_lstClientesUDP[indiceMsg].numConexion);
+
+                                GenerarEvento(aceptarCon);
+
+                                //mantengo esto para que sea el orden de eventos tal como es en tcp
+                                //tendría que agregar algo que permita rechazar la conexion dsp de que se dispara ACEPTAR_CONEXION
+
+                                Parametrosvento nuevaCon = new Parametrosvento();
+                                nuevaCon.SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION)
                                 .SetIpOrigen(ip_Conexion)
                                 .SetIndiceLista(indiceMsg)
                                 .SetNumConexion(_lstClientesUDP[indiceMsg].numConexion);
 
-                            GenerarEvento(aceptarCon);
+                                GenerarEvento(nuevaCon);
 
-                            //mantengo esto para que sea el orden de eventos tal como es en tcp
-                            //tendría que agregar algo que permita rechazar la conexion dsp de que se dispara ACEPTAR_CONEXION
+                                _conectado = true;
 
-                            Parametrosvento nuevaCon = new Parametrosvento();
-                            nuevaCon.SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION)
-                            .SetIpOrigen(ip_Conexion)
-                            .SetIndiceLista(indiceMsg)
-                            .SetNumConexion(_lstClientesUDP[indiceMsg].numConexion);
+                            }
 
-                            GenerarEvento(nuevaCon);
+                            Parametrosvento ev = new Parametrosvento();
+                            ev.SetDatos(_lstClientesUDP[indiceMsg].datosIn)
+                            //.SetDatos(Encoding.ASCII.GetString(datosEntrada, 0, datosEntrada.Length))
+                                .SetIpOrigen(ip_Conexion)
+                                .SetEvento(Parametrosvento.TipoEvento.DATOS_IN)
+                                .SetIndiceLista(indiceMsg)
+                                .SetNumConexion(_lstClientesUDP[indiceMsg].numConexion);
+                            GenerarEvento(ev);
 
-                            _conectado = true;
-                            //_udpClient.Close(); //para pruebas
-
-                        }
-
-                        Parametrosvento ev = new Parametrosvento();
-                        ev.SetDatos(Encoding.ASCII.GetString(datosEntrada, 0, datosEntrada.Length))
-                            .SetIpOrigen(ip_Conexion)
-                            .SetEvento(Parametrosvento.TipoEvento.DATOS_IN)
-                            .SetIndiceLista(indiceMsg)
-                            .SetNumConexion(_lstClientesUDP[indiceMsg].numConexion);
-                        GenerarEvento(ev);
+                        } //fin if (_maxClientesUDP < cantidadConexiones)
                     } //fin if (_remoteEP.Port == _puerto) 
                 }
                 
@@ -260,7 +273,6 @@ namespace Sockets
 
         private void GenerarEvento(Parametrosvento ob)
         {
-            //ob.SetNumConexion(_indiceCon).SetIndiceLista(_indiceLista);
             Evento_Servidor(ob);
         }
 
@@ -272,8 +284,8 @@ namespace Sockets
             {
                 mensajeOpcional = " " + mensajeOpcional;
             }
-            ev.SetEscuchando(EsperandoConexion).
-                SetDatos(err.Message + mensajeOpcional).
+            //ev.SetEscuchando(EsperandoConexion).
+                ev.SetDatos(err.Message + mensajeOpcional).
                 SetEvento(Parametrosvento.TipoEvento.ERROR).
                 SetCodError(utils.GetCodigoError(err));
             GenerarEvento(ev);
