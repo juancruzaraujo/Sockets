@@ -213,7 +213,7 @@ namespace Sockets
 
                         }
 
-                        if (cantidadConexiones < _maxClientesUDP) //lo que llego esta fuera del limite de conexiones
+                        //if (cantidadConexiones < _maxClientesUDP) //lo que llego esta fuera del limite de conexiones
                         {
 
                             ip_Conexion = _lstClientesUDP[indiceMsg].clienteEndPoint.Address.ToString();
