@@ -18,6 +18,9 @@ namespace Sockets
         private string _ipDestino;
         private int _codigoError;
 
+        /// <summary>
+        /// Numero de evento que se dispara
+        /// </summary>
         public enum TipoEvento
         {
             ERROR = 0,
@@ -38,8 +41,8 @@ namespace Sockets
             TIME_OUT = 9,
             NUEVO_SERVIDOR = 10,
             SERVER_INICIADO = 11,
-            LIMITE_CONEXIONES = 12
-
+            LIMITE_CONEXIONES = 12,
+            SERVER_DETENIDO = 13
         };
 
         internal Parametrosvento SetNumConexion(int numConexion)

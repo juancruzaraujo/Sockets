@@ -391,7 +391,7 @@ namespace Sockets
                     int indiceClienteDesconectar = GetIndiceListaClienteConectado(indice);
                     if (indiceClienteDesconectar >= 0)
                     {
-                        _lstObjServidorTCP[indiceClienteDesconectar].Detener(ref res);
+                        _lstObjServidorTCP[indiceClienteDesconectar].DesconectarCliente(ref res);
                         ReacomodarListaClientes();
                         _cantConServidor--;
 
@@ -415,7 +415,7 @@ namespace Sockets
                 for (int i = 0; i < _lstObjServidorTCP.Count; i++)
                 {
                     string res = "";
-                    _lstObjServidorTCP[i].Detener(ref res);
+                    _lstObjServidorTCP[i].DesconectarCliente(ref res);
                     _cantConServidor--;
                     if (res != "")
                     {
@@ -426,6 +426,18 @@ namespace Sockets
             else
             {
                 //UDP
+            }
+        }
+
+        public void DetenerServer()
+        {
+            if (tcp)
+            {
+
+            }
+            else
+            {
+                _objServidorUDP.DetenerServer();
             }
         }
 

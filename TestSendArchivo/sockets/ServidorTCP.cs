@@ -129,7 +129,7 @@ namespace Sockets
         /// Detiene todas las conexiones
         /// </summary>
         /// <param name="Mensaje">Mensaje que retorna en caso de error</param>
-        internal void Detener(ref string Mensaje)
+        internal void DesconectarCliente(ref string Mensaje)
         {
             EsperandoConexion = false;
             Parametrosvento ev = new Parametrosvento();

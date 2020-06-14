@@ -103,7 +103,7 @@ namespace TestSendArchivo
                     {
                         if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
                         {
-                            //_obSocket.Desconectarme();
+                            _obSocket.Desconectarme();
                             break;
                         }
                         else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
@@ -111,6 +111,10 @@ namespace TestSendArchivo
                             //mando el archivo
                             EnviarArchivo(false);
                             _enviarArchivo = true;
+                        }
+                        else if(input.Equals("stop", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _obSocket.DetenerServer();
                         }
                         else
                         {
@@ -179,7 +183,11 @@ namespace TestSendArchivo
                 case Parametrosvento.TipoEvento.LIMITE_CONEXIONES:
                     Console.WriteLine("<<LIMITE CONEXIONES>>");
                     break;
-                
+
+                case Parametrosvento.TipoEvento.SERVER_DETENIDO:
+                    Console.WriteLine("<<server detenido>>");
+                    break;
+
                 default:
                     //Console.WriteLine(corchete("Evento " + ev.GetEvento) + " " +ev.GetDatos);
                     break;
