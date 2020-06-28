@@ -4,3 +4,9 @@ C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.csprojAs
 C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.csproj.CoreCompileInputs.cache
 C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.dll
 C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.pdb
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\sockets\bin\Debug\Sockets.dll
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\sockets\bin\Debug\Sockets.pdb
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.csprojAssemblyReference.cache
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.csproj.CoreCompileInputs.cache
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.dll
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.pdb

@@ -381,14 +381,14 @@ namespace Sockets
             }
         }
 
-        public void DesconectarCliente(int indice)
+        public void DesconectarCliente(int numConexion)
         {
             string res = "";
             if (ModoServidor)
             {
                 if (_tcp)
                 {
-                    int indiceClienteDesconectar = GetIndiceListaClienteConectado(indice);
+                    int indiceClienteDesconectar = GetIndiceListaClienteConectado(numConexion);
                     if (indiceClienteDesconectar >= 0)
                     {
                         _lstObjServidorTCP[indiceClienteDesconectar].DesconectarCliente(ref res);
@@ -683,7 +683,7 @@ namespace Sockets
         /// </summary>
         /// <param name="indiceCliente">le paso el numero de indice de cliente</param>
         /// <returns></returns>
-        private int GetIndiceListaClienteConectado(int indiceCliente)
+        private int GetIndiceListaClienteConectado(int numConexion)
         {
             try
             {
@@ -691,7 +691,7 @@ namespace Sockets
                 {
                     for (int i = 0; i < _lstObjServidorTCP.Count(); i++)
                     {
-                        if (_lstObjServidorTCP[i].IndiceConexion == indiceCliente)
+                        if (_lstObjServidorTCP[i].IndiceConexion == numConexion)
                         {
                             return i;
                         }

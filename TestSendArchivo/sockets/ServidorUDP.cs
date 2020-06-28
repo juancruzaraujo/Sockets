@@ -32,6 +32,7 @@ namespace Sockets
         private int _puerto;
         private int _maxClientesUDP;
         private bool _maximoConexiones;
+        private bool _serverIniciado;
 
         internal string _ip_Conexion;
         
@@ -94,6 +95,7 @@ namespace Sockets
             
             try
             {
+                _serverIniciado = true;
                 ThreadStart Cliente;
                 Cliente = new ThreadStart(EscucharUDP);
 
@@ -164,7 +166,7 @@ namespace Sockets
                 _udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
                 bool bindeado = false;
-                while (true)
+                while (_serverIniciado)
                 {
                     generarEventoDatosIn = false;
                     InfoCliente auxCliente = new InfoCliente();
@@ -253,12 +255,13 @@ namespace Sockets
 
                             Parametrosvento ev = new Parametrosvento();
                             ev.SetDatos(_lstClientesUDP[indiceMsg].datosIn)
-                            //.SetDatos(Encoding.ASCII.GetString(datosEntrada, 0, datosEntrada.Length))
                                 .SetIpOrigen(_ip_Conexion)
                                 .SetEvento(Parametrosvento.TipoEvento.DATOS_IN)
                                 .SetIndiceLista(indiceMsg)
                                 .SetNumConexion(_lstClientesUDP[indiceMsg].numConexion);
                             GenerarEvento(ev);
+
+                            //if (_lstClientesUDP[0].clienteEndPoint.)
 
                         } //fin if (generarEventoDatosIn)
                     } //fin if (_remoteEP.Port == _puerto) 
@@ -268,30 +271,42 @@ namespace Sockets
             catch (Exception e)
             {
                 _conectado = false;
-                //_primerMensajeCliUDP = false;
-                //_udpClient.Close();
-                GenerarEventoError(e);
+                
+                _udpClient.Close();
+                if (e.HResult != -2146233040) //error que se da cuando se detiene el server udp
+                {
+                    GenerarEventoError(e);
+                }
 
             }
         }
 
-        internal void Desconectar(int indice)
+        internal void Desconectar(int numConexion)
         {
+            for (int i = 0;i<_lstClientesUDP.Count();i++)
+            {
+                if (_lstClientesUDP[i].numConexion == numConexion)
+                {
+                    _lstClientesUDP.RemoveAt(i);
 
+                }
+            }
         }
 
         internal void DesconectarTodos()
         {
-
+            for (int i=0;i<_lstClientesUDP.Count();i++)
+            {
+                Desconectar(_lstClientesUDP[i].numConexion);
+            }
         }
 
         internal void DetenerServer()
         {
+            //_thrCliente.Abort();   
             _udpClient.Close();
-
-
-            //CREAR VARIABLE BOOL QUE DIGA QUE EL SERVER SE DETUVO Y CIERRE TODO EL THREAD
-
+            _serverIniciado = false;
+            _thrCliente.Abort();
 
             Parametrosvento ev = new Parametrosvento();
             ev.SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);

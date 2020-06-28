@@ -47,7 +47,7 @@ namespace TestSendArchivo
 
         const int STD_OUTPUT_HANDLE = -11;
         const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
-
+        /*
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern IntPtr GetStdHandle(int nStdHandle);
 
@@ -56,7 +56,7 @@ namespace TestSendArchivo
 
         [DllImport("kernel32.dll")]
         static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
-
+        */
         static void Main(string[] args)
         {
             /* //con esto no se escriben los caracteres, como los passwords de linux
@@ -74,13 +74,14 @@ namespace TestSendArchivo
 
             //MessageBox(0, "hola mundo", "mensajin", 2); muestra un mensaje y se para todo hasta que se toque un boton
 
+            /*
             //para poder mostrar colores usando los comandos de vt100 que si tiene telnet
             var handle = GetStdHandle(STD_OUTPUT_HANDLE);
             uint mode;
             GetConsoleMode(handle, out mode);
             mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
             SetConsoleMode(handle, mode);
-
+            */
 
             Console.WriteLine("\x1b[93m TEST SERVER.\r\n");
 
