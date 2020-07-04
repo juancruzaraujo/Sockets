@@ -1,12 +1,2 @@
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\bin\Release\TestSendArchivo.exe.config
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\bin\Release\TestSendArchivo.exe
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\bin\Release\TestSendArchivo.pdb
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\bin\Release\Sockets.dll
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\bin\Release\Sockets.pdb
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.csprojAssemblyReference.cache
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.csproj.CoreCompileInputs.cache
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.csproj.CopyComplete
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.exe
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.pdb
 F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\TestSendArchivo\bin\Release\TestSendArchivo.exe
 F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\TestSendArchivo\bin\Release\Sockets.dll

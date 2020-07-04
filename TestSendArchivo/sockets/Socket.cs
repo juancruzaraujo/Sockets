@@ -417,7 +417,7 @@ namespace Sockets
                     string res = "";
                     _lstObjServidorTCP[i].DesconectarCliente(ref res);
                     ReacomodarListaClientes();
-                    _cantConServidor--;
+                    //_cantConServidor--;
                     if (res != "")
                     {
                         Error(res);
@@ -460,6 +460,7 @@ namespace Sockets
         {
             //REVISAR ESTO
             string mensaje = "";
+            bool mostrarEvMaxConexiones = false;
 
             if ((_ipCliente !=""))
             {
@@ -489,7 +490,7 @@ namespace Sockets
                         }
                         else
                         {
-                            
+                            /*
                             if (_cantConServidor >= _maxServCon)
                             {
                                 _serverEscuchando = false;
@@ -499,7 +500,11 @@ namespace Sockets
                                 EventSocket(evMaxCon); 
                                 
                             }
-
+                            */
+                            if (_cantConServidor >= _maxServCon)
+                            {
+                                mostrarEvMaxConexiones = true;
+                            }
                             _cantConServidor++;
                             _numCliConServidor++;
                             if (GetNumConexion() <= _maxServCon)
@@ -527,6 +532,18 @@ namespace Sockets
             }
 
             EventSocket(ev); //envío el evento a quien lo este consumiendo(?)
+
+            //pongo esto acá ya que tengo que ser lo último que muestro
+            if (mostrarEvMaxConexiones)
+            {
+                mostrarEvMaxConexiones = false;
+                _serverEscuchando = false;
+                Parametrosvento evMaxCon = new Parametrosvento();
+                evMaxCon.SetEvento(Parametrosvento.TipoEvento.LIMITE_CONEXIONES);
+                //aca esta el quilombo 
+                EventSocket(evMaxCon);
+
+            }
         }
 
         /// <summary>

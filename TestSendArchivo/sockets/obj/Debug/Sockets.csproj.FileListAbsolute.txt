@@ -1,6 +1,0 @@
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\bin\Debug\Sockets.dll
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\bin\Debug\Sockets.pdb
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.csprojAssemblyReference.cache
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.csproj.CoreCompileInputs.cache
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.dll
-C:\Fuentes\C#\TestSendArchivo\TestSendArchivo\sockets\obj\Debug\Sockets.pdb
