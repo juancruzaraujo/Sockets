@@ -393,7 +393,7 @@ namespace Sockets
                     {
                         _lstObjServidorTCP[indiceClienteDesconectar].DesconectarCliente(ref res);
                         ReacomodarListaClientes();
-                        _cantConServidor--;
+                        //_cantConServidor--;
 
                     }
                     if (res != "")
@@ -416,6 +416,7 @@ namespace Sockets
                 {
                     string res = "";
                     _lstObjServidorTCP[i].DesconectarCliente(ref res);
+                    ReacomodarListaClientes();
                     _cantConServidor--;
                     if (res != "")
                     {
@@ -494,7 +495,8 @@ namespace Sockets
                                 _serverEscuchando = false;
                                 Parametrosvento evMaxCon = new Parametrosvento();
                                 evMaxCon.SetEvento(Parametrosvento.TipoEvento.LIMITE_CONEXIONES);
-                                EventSocket(evMaxCon);
+                                //aca esta el quilombo 
+                                EventSocket(evMaxCon); 
                                 
                             }
 

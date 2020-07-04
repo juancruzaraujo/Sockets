@@ -27,6 +27,7 @@ namespace Sockets
 
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
+        private bool _bucleCliComunucacion;
 
         private bool _conectado;
         internal bool EsperandoConexion;
@@ -143,7 +144,8 @@ namespace Sockets
                     _tcpListen.Stop();
                     _tcpCliente.Close();
                     _thrCliente.Abort();
-                    _thrClienteConexion.Abort();
+                    _bucleCliComunucacion = false;
+                    //_thrClienteConexion.Abort();
                     Thread.EndCriticalRegion(); //esto cierra todo con o sin conexiones
                 }
             }
@@ -151,8 +153,11 @@ namespace Sockets
             {
                 if (modo_Debug == true)
                 {
-                    Mensaje = err.Message;
-                    GenerarEventoError(err);
+                    if (err.HResult != -2146233040)
+                    {
+                        Mensaje = err.Message;
+                        GenerarEventoError(err);
+                    }
                 }
             }
         }
@@ -204,6 +209,7 @@ namespace Sockets
 
                     try
                     {
+                        _bucleCliComunucacion = true;
                         _thrClienteConexion = new Thread(new ParameterizedThreadStart(Cliente_Comunicacion));
                         _thrClienteConexion.Name = "ThrCliente";
                         _thrClienteConexion.IsBackground = true;
@@ -261,7 +267,7 @@ namespace Sockets
 
                 int bytesRead;
 
-                while (true)
+                while (_bucleCliComunucacion)
                 {
                     bytesRead = 0;
 
@@ -269,14 +275,14 @@ namespace Sockets
                     {
                         bytesRead = clientStream.Read(message, 0, 4096);
                     }
-                    catch (Exception err)
+                    catch 
                     {
                         _conectado = false;
                         _tcpCliente.Close();
-                        if (modo_Debug == true)
+                        /*if (modo_Debug == true)
                         {
                             GenerarEventoError(err, "Cliente Comunicacion; Servidor>\r\n");
-                        }
+                        }*/
                         break;
                     }
 
@@ -311,7 +317,10 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                GenerarEventoError(err);
+                if (err.HResult != -2146233040)
+                {
+                    GenerarEventoError(err);
+                }
             }
         }
 
