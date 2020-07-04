@@ -241,6 +241,8 @@ namespace TestSendArchivo
                 }
                 else
                 {
+                    
+                    
                     if (!_recibirArchivo)
                     {
                         //Console.WriteLine("[" + ipOrigen + "] " + datos);
@@ -249,6 +251,17 @@ namespace TestSendArchivo
                         {
                             EnviarRespuesta("TCP",indice);
                         }*/
+
+                        if (datos.Contains("kill\r\n"))
+                        {
+                            _obSocket.DesconectarCliente(nConexion);
+                        }
+
+                        if (datos.Contains("killall\r\n"))
+                        {
+                            _obSocket.DesconectarTodosClientes();
+                        }
+
                     }
                     else
                     {

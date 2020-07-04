@@ -31,40 +31,14 @@ namespace Sockets
         //private int _indiceLista; //va a conetener el indice de la lista de sockets
         private int _puerto;
         private int _maxClientesUDP;
+        private int _cantidadConexiones = 0;
         private bool _maximoConexiones;
         private bool _serverIniciado;
 
         internal string _ip_Conexion;
         
-
         private bool _conectado;
                 
-        /*
-        internal int IndiceConexion
-        {
-            get
-            {
-                return _indiceCon;
-            }
-            set
-            {
-                _indiceCon = value;
-            }
-        }
-
-
-        internal int IndiceLista
-        {
-            get
-            {
-                return _indiceLista;
-            }
-            set
-            {
-                _indiceLista = value;
-            }
-        }
-        */
         internal int MaxClientesUDP
         {
             get
@@ -151,7 +125,7 @@ namespace Sockets
         {
             int indiceMsg=0;
             //UdpClient auxCli;
-            int cantidadConexiones = 0;
+            //int cantidadConexiones = 0;
             bool generarEventoDatosIn=false;
 
             try
@@ -159,7 +133,6 @@ namespace Sockets
                 
                 bool clienteExistente = false;
 
-                
                 _udpClient = new UdpClient();
 
                 _udpClient.ExclusiveAddressUse = false;
@@ -168,6 +141,7 @@ namespace Sockets
                 bool bindeado = false;
                 while (_serverIniciado)
                 {
+                    clienteExistente = false;
                     generarEventoDatosIn = false;
                     InfoCliente auxCliente = new InfoCliente();
                     auxCliente.clienteEndPoint = new IPEndPoint(IPAddress.Any, _puerto);
@@ -196,7 +170,7 @@ namespace Sockets
                         }
                         if (!clienteExistente)
                         {
-                            if (cantidadConexiones < _maxClientesUDP) 
+                            if (_cantidadConexiones < _maxClientesUDP) 
                             {
                                 _lstClientesUDP.Add(auxCliente);
                                 indiceMsg = _lstClientesUDP.Count() - 1;
@@ -227,8 +201,8 @@ namespace Sockets
                             if (_lstClientesUDP[indiceMsg].primerMensaje)
                             {
                                 _lstClientesUDP[indiceMsg].primerMensaje = false;
-                                cantidadConexiones++;
-                                _lstClientesUDP[indiceMsg].numConexion = cantidadConexiones;
+                                _cantidadConexiones++;
+                                _lstClientesUDP[indiceMsg].numConexion = _cantidadConexiones;
 
                                 Parametrosvento aceptarCon = new Parametrosvento();
                                 aceptarCon.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION)
@@ -288,6 +262,11 @@ namespace Sockets
                 if (_lstClientesUDP[i].numConexion == numConexion)
                 {
                     _lstClientesUDP.RemoveAt(i);
+                    _cantidadConexiones--;
+                    if (_maximoConexiones)
+                    {
+                        _maximoConexiones = false;
+                    }
 
                 }
             }

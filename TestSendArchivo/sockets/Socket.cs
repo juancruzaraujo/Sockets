@@ -403,7 +403,7 @@ namespace Sockets
                 }
                 else
                 {
-                    //UDP
+                    _objServidorUDP.Desconectar(numConexion);
                 }
             }
         }
@@ -425,7 +425,7 @@ namespace Sockets
             }
             else
             {
-                //UDP
+                _objServidorUDP.DesconectarTodos();
             }
         }
 
