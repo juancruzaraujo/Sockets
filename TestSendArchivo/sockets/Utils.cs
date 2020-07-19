@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -28,6 +29,13 @@ namespace Sockets
             }
            
             return cod;
+        }
+
+        internal int GetNumeroDeLineaError(Exception err)
+        {
+            var st = new StackTrace(err, true);
+            var frame = st.GetFrame(0);
+            return frame.GetFileLineNumber();
         }
     }
 }

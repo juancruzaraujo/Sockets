@@ -1,2 +1,0 @@
-F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\TestSendArchivo\bin\Release\TestSendArchivo.exe
-F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\TestSendArchivo\bin\Release\Sockets.dll

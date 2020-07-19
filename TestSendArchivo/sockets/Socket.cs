@@ -256,8 +256,6 @@ namespace Sockets
             string res="";
             if (_tcp)
             {
-                //_objServidor.Iniciar(ref res);
-                //_lstObjServidorTCP[GetUltimoEspacioLibre()].Iniciar(ref res);
                 _lstObjServidorTCP[_lstObjServidorTCP.Count() -1].Iniciar(ref res);
 
                 if (res != "")
@@ -265,9 +263,7 @@ namespace Sockets
                     Error(res);
                     return;
                 }
-                Parametrosvento ev = new Parametrosvento();
-                ev.SetEvento(Parametrosvento.TipoEvento.SERVER_INICIADO);
-                Evsocket(ev);
+                
                 _serverEscuchando = true;
             }
             else
@@ -275,6 +271,11 @@ namespace Sockets
                 //_lstObjServidorUDP[_lstObjServidorUDP.Count() -1].Iniciar();
                 _objServidorUDP.Iniciar();
             }
+
+            Parametrosvento ev = new Parametrosvento();
+            ev.SetEvento(Parametrosvento.TipoEvento.SERVER_INICIADO);
+            Evsocket(ev);
+
         }
 
         #region propiedades
@@ -430,11 +431,14 @@ namespace Sockets
             }
         }
 
-        public void DetenerServer()
+        public void StopServer()
         {
             if (tcp)
             {
-
+                //_serverEscuchando = false;
+                DesconectarTodosClientes();
+                _serverEscuchando = false;
+                _lstObjServidorTCP.Clear();
             }
             else
             {

@@ -104,10 +104,10 @@ namespace Sockets
                 GenerarEvento(ev);
 
             }
-            catch (Exception e)
+            catch (Exception err)
             {
                 
-                GenerarEventoError(e);
+                GenerarEventoError(err);
             }
 
 
@@ -242,14 +242,14 @@ namespace Sockets
                 }
                 
             }
-            catch (Exception e)
+            catch (Exception err)
             {
                 _conectado = false;
                 
                 _udpClient.Close();
-                if (e.HResult != -2146233040) //error que se da cuando se detiene el server udp
+                if (err.HResult != -2146233040) //error que se da cuando se detiene el server udp
                 {
-                    GenerarEventoError(e);
+                    GenerarEventoError(err);
                 }
 
             }
@@ -274,10 +274,20 @@ namespace Sockets
 
         internal void DesconectarTodos()
         {
-            for (int i=0;i<_lstClientesUDP.Count();i++)
+            _lstClientesUDP.Clear();
+            _cantidadConexiones = 0;
+            _maximoConexiones = false;
+
+            /*for (int i=_lstClientesUDP.Count();i>0;i--)
             {
-                Desconectar(_lstClientesUDP[i].numConexion);
-            }
+                //Desconectar(_lstClientesUDP[i].numConexion);
+                _lstClientesUDP.RemoveAt(i);
+                _cantidadConexiones--;
+                if (_maximoConexiones)
+                {
+                    _maximoConexiones = false;
+                }
+            }*/
         }
 
         internal void DetenerServer()
@@ -309,7 +319,8 @@ namespace Sockets
             //ev.SetEscuchando(EsperandoConexion).
                 ev.SetDatos(err.Message + mensajeOpcional).
                 SetEvento(Parametrosvento.TipoEvento.ERROR).
-                SetCodError(utils.GetCodigoError(err));
+                SetCodError(utils.GetCodigoError(err)).
+                SetLineNumberError(utils.GetNumeroDeLineaError(err));
             GenerarEvento(ev);
         }
         

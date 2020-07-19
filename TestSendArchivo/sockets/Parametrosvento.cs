@@ -17,6 +17,7 @@ namespace Sockets
         private string _ipOrigen;
         private string _ipDestino;
         private int _codigoError;
+        private int _lineNumberError;
 
         /// <summary>
         /// Numero de evento que se dispara
@@ -39,10 +40,9 @@ namespace Sockets
             POSICION_ENVIO = 7,
             CONEXION_OK = 8,
             TIME_OUT = 9,
-            NUEVO_SERVIDOR = 10,
-            SERVER_INICIADO = 11,
-            LIMITE_CONEXIONES = 12,
-            SERVER_DETENIDO = 13
+            SERVER_INICIADO = 10,
+            LIMITE_CONEXIONES = 11,
+            SERVER_DETENIDO = 12
         };
 
         internal Parametrosvento SetNumConexion(int numConexion)
@@ -102,6 +102,12 @@ namespace Sockets
         internal Parametrosvento SetCodError(int codError)
         {
             _codigoError = codError;
+            return this;
+        }
+
+        internal Parametrosvento SetLineNumberError(int lineNumber)
+        {
+            _lineNumberError = lineNumber;
             return this;
         }
 
@@ -185,6 +191,14 @@ namespace Sockets
             get
             {
                 return _codigoError;
+            }
+        }
+
+        public int GetLineNumberError
+        {
+            get
+            {
+                return _lineNumberError;
             }
         }
 

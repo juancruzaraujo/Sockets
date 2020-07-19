@@ -115,7 +115,11 @@ namespace TestSendArchivo
                         }
                         else if(input.Equals("stop", StringComparison.OrdinalIgnoreCase))
                         {
-                            _obSocket.DetenerServer();
+                            _obSocket.StopServer();
+                        }
+                        else if(input.Equals("start", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _obSocket.StartServer();
                         }
                         else
                         {
@@ -178,7 +182,9 @@ namespace TestSendArchivo
 
                 case Parametrosvento.TipoEvento.ERROR:
                     //Console.WriteLine("error cliente");
-                    Console.WriteLine(corchete(ev.GetNumConexion.ToString()) + " cod error " + ev.GetCodError + " descripcion " + ev.GetDatos);
+                    Console.WriteLine(corchete(ev.GetNumConexion.ToString()) + " cod error " + ev.GetCodError + 
+                        " en linea " +ev.GetLineNumberError.ToString()  + 
+                        " descripcion " + ev.GetDatos);
                     break;
 
                 case Parametrosvento.TipoEvento.LIMITE_CONEXIONES:
@@ -249,13 +255,8 @@ namespace TestSendArchivo
                     
                     if (!_recibirArchivo)
                     {
-                        //Console.WriteLine("[" + ipOrigen + "] " + datos);
                         Console.WriteLine(corchete(nConexion.ToString()) + " " + datos);
-                        /*if (_obSocket.ModoServidor)
-                        {
-                            EnviarRespuesta("TCP",indice);
-                        }*/
-
+                        
                         if (datos.Contains("kill\r\n"))
                         {
                             _obSocket.DesconectarCliente(nConexion);
@@ -266,7 +267,21 @@ namespace TestSendArchivo
                             _obSocket.DesconectarTodosClientes();
                         }
 
-                    }
+                        if (datos.Contains("detener\r\n"))
+                        {
+                            _obSocket.StopServer();
+                            Console.WriteLine("SERVER DETENIDO");
+                            _obSocket.StartServer();
+                        }
+
+                        if (datos.Contains("iniciar\r\n"))
+                        {
+                            _obSocket.StartServer();
+                        }
+
+
+
+                }
                     else
                     {
                         ArmarArchivo(datos);

@@ -126,6 +126,11 @@ namespace Sockets
             }
         }
 
+        /*internal void Detener()
+        {
+            _bucleCliComunucacion = false;
+        }*/
+
         /// <summary>
         /// Detiene todas las conexiones
         /// </summary>
@@ -140,24 +145,26 @@ namespace Sockets
             {
                 if (_thrCliente != null)
                 {
-
-                    _tcpListen.Stop();
-                    _tcpCliente.Close();
-                    _thrCliente.Abort();
-                    _bucleCliComunucacion = false;
-                    //_thrClienteConexion.Abort();
-                    Thread.EndCriticalRegion(); //esto cierra todo con o sin conexiones
+                    if (Conectado)
+                    {
+                        _tcpListen.Stop();
+                        if (_tcpCliente != null)
+                        {
+                            _tcpCliente.Close();
+                        }
+                        _thrCliente.Abort();
+                        _bucleCliComunucacion = false;
+                        //_thrClienteConexion.Abort();
+                        Thread.EndCriticalRegion(); //esto cierra todo con o sin conexiones
+                    }
                 }
             }
             catch (Exception err)
             {
                 if (modo_Debug == true)
                 {
-                    if (err.HResult != -2146233040)
-                    {
-                        Mensaje = err.Message;
-                        GenerarEventoError(err);
-                    }
+                    Mensaje = err.Message;
+                    GenerarEventoError(err);
                 }
             }
         }
@@ -233,10 +240,7 @@ namespace Sockets
                 }
                 catch (Exception err)
                 {
-                    if (modo_Debug == true)
-                    {
-                        GenerarEventoError(err, "TcpListen.Accept()");
-                    }
+                    GenerarEventoError(err, "TcpListen.Accept()");
                     Escuchar = false;
                     _tcpListen.Stop();
                 }
@@ -317,10 +321,7 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                if (err.HResult != -2146233040)
-                {
-                    GenerarEventoError(err);
-                }
+                GenerarEventoError(err);
             }
         }
 
@@ -411,7 +412,6 @@ namespace Sockets
                     clientStream.Flush(); //envio lo datos
                     ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(buffer.Length);
                     GenerarEvento(ev);
-                    //Envio_Completo(indiceCon, buffer.Length); //evento envio completo
 
                     Thread.Sleep(5);
 
@@ -452,17 +452,25 @@ namespace Sockets
 
         private void GenerarEventoError(Exception err,string mensajeOpcional="")
         {
-            Utils utils = new Utils();
-            Parametrosvento ev = new Parametrosvento();
-            if (mensajeOpcional !="")
+            if (err.HResult != -2146233040)
             {
-                mensajeOpcional = " " + mensajeOpcional;
+                //-2146233040
+                //-2146233040
+                //-2146233040
+
+                Utils utils = new Utils();
+                Parametrosvento ev = new Parametrosvento();
+                if (mensajeOpcional != "")
+                {
+                    mensajeOpcional = " " + mensajeOpcional;
+                }
+                ev.SetEscuchando(EsperandoConexion).
+                    SetDatos(err.Message + mensajeOpcional).
+                    SetEvento(Parametrosvento.TipoEvento.ERROR).
+                    SetCodError(utils.GetCodigoError(err)).
+                    SetLineNumberError(utils.GetNumeroDeLineaError(err));
+                GenerarEvento(ev);
             }
-            ev.SetEscuchando(EsperandoConexion).
-                SetDatos(err.Message + mensajeOpcional).
-                SetEvento(Parametrosvento.TipoEvento.ERROR).
-                SetCodError(utils.GetCodigoError(err));
-            GenerarEvento(ev);
         }
 
     }
