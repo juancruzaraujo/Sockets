@@ -435,10 +435,9 @@ namespace Sockets
         {
             if (tcp)
             {
-                //_serverEscuchando = false;
-                DesconectarTodosClientes();
                 _serverEscuchando = false;
-                _lstObjServidorTCP.Clear();
+                DesconectarTodosClientes();
+                //_lstObjServidorTCP.Clear(); //esto se ejecuta antes de que todas se desconecten
             }
             else
             {

@@ -28,12 +28,13 @@ namespace Sockets
         private int _indiceCon; //va a contener el indice de conexion
         private int _indiceLista; //va a conetener el indice de la lista de sockets
         private bool _bucleCliComunucacion;
+        private bool _escuchar;
 
         private bool _conectado;
         internal bool EsperandoConexion;
         internal string ip_Conexion;
         internal int puerto;
-        
+
         internal delegate void Delegado_Servidor_Event(Parametrosvento servidorParametrosEvento);
         internal event Delegado_Servidor_Event evento_servidor;
         private void Evento_Servidor(Parametrosvento servidorParametrosEvento)
@@ -41,6 +42,18 @@ namespace Sockets
             this.evento_servidor(servidorParametrosEvento);
         }
         
+        internal bool Escuchar
+        {
+            get
+            {
+                return _escuchar;
+            }
+            set
+            {
+                _escuchar = false;
+            }
+        }
+
         internal int IndiceConexion
         {
             get
@@ -109,13 +122,16 @@ namespace Sockets
         {
             try
             {
-                ThreadStart Cliente;
-                Cliente = new ThreadStart(EscucharTCP);
+                ThreadStart cliente;
+                cliente = new ThreadStart(EscucharTCP);
                 
-                _thrCliente = new Thread(Cliente);
+                _thrCliente = new Thread(cliente);
                 _thrCliente.Name = "ThTCP";
                 _thrCliente.IsBackground = true;
                 _thrCliente.Start();
+
+                
+                
             }
             catch (Exception err)
             {
@@ -171,7 +187,7 @@ namespace Sockets
 
         private void EscucharTCP()
         {
-            bool Escuchar;
+            //bool _escuchar;
 
             TcpClient Cliente = new TcpClient();
 
@@ -186,7 +202,7 @@ namespace Sockets
 
                 _tcpListen.Stop();
                 _tcpListen.Start();
-                Escuchar = true;
+                _escuchar = true;
             }
             catch (Exception err)
             {
@@ -226,12 +242,12 @@ namespace Sockets
                         GenerarEvento(ev);
 
                         //ahora tendria que dejar de escuchar
-                        Escuchar = false;
+                        _escuchar = false;
                         _tcpListen.Stop();
                     }
                     catch (Exception err)
                     {
-                        Escuchar = false;
+                        _escuchar = false;
                         //ev.SetDatos(err.Message + " threadConexion").SetEvento(Parametrosvento.TipoEvento.ERROR);
                         //GenerarEvento(ev);
                         GenerarEventoError(err, "threadConexion");
@@ -241,11 +257,12 @@ namespace Sockets
                 catch (Exception err)
                 {
                     GenerarEventoError(err, "TcpListen.Accept()");
-                    Escuchar = false;
+                    _escuchar = false;
                     _tcpListen.Stop();
+                    _thrClienteConexion.Abort();
                 }
 
-            } while (Escuchar == true);//fin do
+            } while (_escuchar == true);//fin do
         }
 
         private void Cliente_Comunicacion(object Cliente)
@@ -281,12 +298,10 @@ namespace Sockets
                     }
                     catch 
                     {
+                        EveYaDisparado = true;
                         _conectado = false;
                         _tcpCliente.Close();
-                        /*if (modo_Debug == true)
-                        {
-                            GenerarEventoError(err, "Cliente Comunicacion; Servidor>\r\n");
-                        }*/
+                        
                         break;
                     }
 
@@ -296,7 +311,7 @@ namespace Sockets
                         _conectado = false;
                         _tcpCliente.Close();
                         ev.SetDatos("").SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN);
-                        EveYaDisparado = true;
+                        //EveYaDisparado = true;
                         break;
                     }
                     
@@ -308,15 +323,18 @@ namespace Sockets
                         .SetSize(strDatos.Length);
                     GenerarEvento(ev);
                 }
-                //el cliente cerro la conexion
-                _conectado = false;
-                _tcpCliente.Close();
 
-                //if (EveYaDisparado == false)
+                if (!EveYaDisparado)
                 {
-                    ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN).SetDatos("");
-                    GenerarEvento(ev);
+                    //el cliente cerro la conexion
+                    _conectado = false;
+                    _tcpCliente.Close();
                 }
+
+                
+                ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN).SetDatos("");
+                GenerarEvento(ev);
+                
 
             }
             catch (Exception err)

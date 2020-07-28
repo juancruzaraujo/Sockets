@@ -100,61 +100,69 @@ namespace TestSendArchivo
                 while (true)
                 {
                     var input = Console.ReadLine();
-                    if ((_obSocket.ModoCliente) || (_obSocket.ModoServidor))
+                    if (_obSocket != null)
                     {
-                        if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
+                        if ((_obSocket.ModoCliente) || (_obSocket.ModoServidor))
                         {
-                            _obSocket.Desconectarme();
-                            break;
-                        }
-                        else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
-                        {
-                            //mando el archivo
-                            EnviarArchivo(false);
-                            _enviarArchivo = true;
-                        }
-                        else if(input.Equals("stop", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _obSocket.StopServer();
-                        }
-                        else if(input.Equals("start", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _obSocket.StartServer();
+                            if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _obSocket.Desconectarme();
+                                break;
+                            }
+                            else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
+                            {
+                                //mando el archivo
+                                EnviarArchivo(false);
+                                _enviarArchivo = true;
+                            }
+                            else if (input.Equals("stop", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _obSocket.StopServer();
+                                //_obSocket = null;
+                            }
+                            else if (input.Equals("start", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _obSocket.StartServer();
+                            }
+                            else
+                            {
+                                //<<<<<<<<<<<<le envio a todos un texto cualquiera>>>>>>>>>>>>>>>>
+                                _obSocket.EnviarATodos(input + "\r\n");
+                            }
                         }
                         else
                         {
-                            //<<<<<<<<<<<<le envio a todos un texto cualquiera>>>>>>>>>>>>>>>>
-                            _obSocket.EnviarATodos(input + "\r\n");
+                            if (input.Equals("1", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _modoServer = true;
+                                Server();
+                                _obSocket.ModoServidor = _modoServer;
+                                //break;
+                            }
+                            if (input.Equals("2", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _modoServer = false;
+                                Cliente();
+                                _obSocket.ModoCliente = true;
+                                //break;
+                            }
+                            if (input.Equals("3", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _modoServer = true;
+                                Server(false);
+                                //break;
+                            }
+                            if (input.Equals("4", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _modoServer = false;
+                                ClienteUDP();
+                                //break;
+                            }
                         }
                     }
                     else
                     {
-                        if (input.Equals("1", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _modoServer = true;
-                            Server();
-                            _obSocket.ModoServidor = _modoServer;
-                            //break;
-                        }
-                        if (input.Equals("2", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _modoServer = false;
-                            Cliente();
-                            _obSocket.ModoCliente = true;
-                            //break;
-                        }
-                        if (input.Equals("3", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _modoServer = true;
-                            Server(false);
-                            //break;
-                        }
-                        if (input.Equals("4", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _modoServer = false;
-                            ClienteUDP();
-                            //break;
-                        }
+                        Console.WriteLine("no hay ni server ni cliente iniciado");
                     }
 
                 }
