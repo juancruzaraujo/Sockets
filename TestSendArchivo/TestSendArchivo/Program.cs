@@ -122,7 +122,7 @@ namespace TestSendArchivo
                             }
                             else if (input.Equals("start", StringComparison.OrdinalIgnoreCase))
                             {
-                                _obSocket.StartServer();
+                                Server();
                             }
                             else
                             {

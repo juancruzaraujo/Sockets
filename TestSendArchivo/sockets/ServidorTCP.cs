@@ -331,7 +331,6 @@ namespace Sockets
                     _tcpCliente.Close();
                 }
 
-                
                 ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN).SetDatos("");
                 GenerarEvento(ev);
                 

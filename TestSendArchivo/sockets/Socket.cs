@@ -38,6 +38,7 @@ namespace Sockets
         private int _cantConServidor;
         private int _numCliConServidor;
         private bool _serverEscuchando;
+        private bool _deteniendoServer;
 
         //constantes priavdas
         private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE       = "modo cliente";
@@ -418,7 +419,7 @@ namespace Sockets
                     string res = "";
                     _lstObjServidorTCP[i].DesconectarCliente(ref res);
                     ReacomodarListaClientes();
-                    //_cantConServidor--;
+                    
                     if (res != "")
                     {
                         Error(res);
@@ -436,6 +437,7 @@ namespace Sockets
             if (tcp)
             {
                 _serverEscuchando = false;
+                _deteniendoServer = true;
                 DesconectarTodosClientes();
                 //_lstObjServidorTCP.Clear(); //esto se ejecuta antes de que todas se desconecten
             }
@@ -522,7 +524,7 @@ namespace Sockets
                         _lstObjServidorTCP.RemoveAt(ev.GetIndiceLista);
                         ReacomodarListaClientes();
                         _cantConServidor--;
-                        if (!_serverEscuchando)
+                        if (!_serverEscuchando && !_deteniendoServer)
                         {
                             CrearServidor(ref mensaje);
                             StartServer();
