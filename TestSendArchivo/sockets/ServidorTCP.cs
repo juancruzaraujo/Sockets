@@ -151,8 +151,19 @@ namespace Sockets
         /// Detiene todas las conexiones
         /// </summary>
         /// <param name="Mensaje">Mensaje que retorna en caso de error</param>
-        internal void DesconectarCliente(ref string Mensaje)
+        internal void DesconectarCliente(bool deteniendoServer = false)
         {
+            bool forzarDesconexion;
+
+            if (deteniendoServer)
+            {
+                forzarDesconexion = true;
+            }
+            else
+            {
+                forzarDesconexion = Conectado;
+            }
+
             EsperandoConexion = false;
             Parametrosvento ev = new Parametrosvento();
             ev.SetEscuchando(EsperandoConexion).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
@@ -161,7 +172,7 @@ namespace Sockets
             {
                 if (_thrCliente != null)
                 {
-                    if (Conectado)
+                    if (forzarDesconexion)
                     {
                         _tcpListen.Stop();
                         if (_tcpCliente != null)
@@ -179,7 +190,6 @@ namespace Sockets
             {
                 if (modo_Debug == true)
                 {
-                    Mensaje = err.Message;
                     GenerarEventoError(err);
                 }
             }
@@ -259,7 +269,7 @@ namespace Sockets
                     GenerarEventoError(err, "TcpListen.Accept()");
                     _escuchar = false;
                     _tcpListen.Stop();
-                    _thrClienteConexion.Abort();
+                    //_thrClienteConexion.Abort();
                 }
 
             } while (_escuchar == true);//fin do

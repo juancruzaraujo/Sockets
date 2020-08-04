@@ -393,7 +393,7 @@ namespace Sockets
                     int indiceClienteDesconectar = GetIndiceListaClienteConectado(numConexion);
                     if (indiceClienteDesconectar >= 0)
                     {
-                        _lstObjServidorTCP[indiceClienteDesconectar].DesconectarCliente(ref res);
+                        _lstObjServidorTCP[indiceClienteDesconectar].DesconectarCliente();
                         ReacomodarListaClientes();
                         //_cantConServidor--;
 
@@ -417,7 +417,7 @@ namespace Sockets
                 for (int i = 0; i < _lstObjServidorTCP.Count; i++)
                 {
                     string res = "";
-                    _lstObjServidorTCP[i].DesconectarCliente(ref res);
+                    _lstObjServidorTCP[i].DesconectarCliente(_deteniendoServer);
                     ReacomodarListaClientes();
                     
                     if (res != "")
@@ -436,6 +436,7 @@ namespace Sockets
         {
             if (tcp)
             {
+
                 _serverEscuchando = false;
                 _deteniendoServer = true;
                 DesconectarTodosClientes();
