@@ -12,7 +12,6 @@ namespace TestSendArchivo
     class Program
     {
         static bool _modoServer;
-
         //static SockServer _obServer;
         //static SocksCliente _obCliente;
 
@@ -120,9 +119,13 @@ namespace TestSendArchivo
                                 _obSocket.StopServer();
                                 //_obSocket = null;
                             }
-                            else if (input.Equals("start", StringComparison.OrdinalIgnoreCase))
+                            else if (input.Equals("starttcp", StringComparison.OrdinalIgnoreCase))
                             {
                                 Server();
+                            }
+                            else if(input.Equals("startudp", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Server(false);
                             }
                             else
                             {

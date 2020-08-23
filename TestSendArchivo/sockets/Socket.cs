@@ -414,6 +414,9 @@ namespace Sockets
         {
             if (_tcp)
             {
+
+                Console.WriteLine(_cantConServidor);
+
                 for (int i = 0; i < _lstObjServidorTCP.Count; i++)
                 {
                     string res = "";
@@ -425,6 +428,10 @@ namespace Sockets
                         Error(res);
                     }
                 }
+
+                /*Parametrosvento ev = new Parametrosvento();
+                ev.SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
+                EventSocket(ev);*/
             }
             else
             {
@@ -434,13 +441,11 @@ namespace Sockets
 
         public void StopServer()
         {
+            _serverEscuchando = false;
+            _deteniendoServer = true;
             if (tcp)
             {
-
-                _serverEscuchando = false;
-                _deteniendoServer = true;
                 DesconectarTodosClientes();
-                //_lstObjServidorTCP.Clear(); //esto se ejecuta antes de que todas se desconecten
             }
             else
             {
@@ -496,17 +501,6 @@ namespace Sockets
                         }
                         else
                         {
-                            /*
-                            if (_cantConServidor >= _maxServCon)
-                            {
-                                _serverEscuchando = false;
-                                Parametrosvento evMaxCon = new Parametrosvento();
-                                evMaxCon.SetEvento(Parametrosvento.TipoEvento.LIMITE_CONEXIONES);
-                                //aca esta el quilombo 
-                                EventSocket(evMaxCon); 
-                                
-                            }
-                            */
                             if (_cantConServidor >= _maxServCon)
                             {
                                 mostrarEvMaxConexiones = true;
@@ -525,6 +519,9 @@ namespace Sockets
                         _lstObjServidorTCP.RemoveAt(ev.GetIndiceLista);
                         ReacomodarListaClientes();
                         _cantConServidor--;
+
+                        Console.WriteLine(_cantConServidor);
+
                         if (!_serverEscuchando && !_deteniendoServer)
                         {
                             CrearServidor(ref mensaje);
@@ -548,7 +545,13 @@ namespace Sockets
                 evMaxCon.SetEvento(Parametrosvento.TipoEvento.LIMITE_CONEXIONES);
                 //aca esta el quilombo 
                 EventSocket(evMaxCon);
+            }
 
+            if (_deteniendoServer && _cantConServidor==0)
+            {
+                Parametrosvento evServerDetenido = new Parametrosvento();
+                evServerDetenido.SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
+                EventSocket(evServerDetenido);
             }
         }
 
