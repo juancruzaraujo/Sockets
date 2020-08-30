@@ -207,9 +207,13 @@ namespace TestSendArchivo
                     break;
 
                 case Parametrosvento.TipoEvento.CONEXION_FIN:
-                    Console.WriteLine("<<conexión fin>> " + corchete(ev.GetNumConexion.ToString() + " >>"));
+                    Console.WriteLine("<<conexión fin>> " + corchete(ev.GetNumConexion.ToString()) + " >>");
                     break;
 
+                case Parametrosvento.TipoEvento.SERVER_INICIADO:
+                    Console.WriteLine("<<server iniciado>>");
+                    break;
+                
                 default:
                     //Console.WriteLine(corchete("Evento " + ev.GetEvento) + " " +ev.GetDatos);
                     break;

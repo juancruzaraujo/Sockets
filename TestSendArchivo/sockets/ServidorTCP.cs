@@ -266,9 +266,10 @@ namespace Sockets
                 }
                 catch (Exception err)
                 {
-                    GenerarEventoError(err, "TcpListen.Accept()");
                     _escuchar = false;
                     _tcpListen.Stop();
+                    GenerarEventoError(err, "TcpListen.Accept()");
+                    
                     //_thrClienteConexion.Abort();
                 }
 
@@ -344,7 +345,6 @@ namespace Sockets
                 ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN).SetDatos("");
                 GenerarEvento(ev);
                 
-
             }
             catch (Exception err)
             {

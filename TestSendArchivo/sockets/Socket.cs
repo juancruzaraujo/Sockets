@@ -7,11 +7,7 @@ namespace Sockets
 {
     public class Sockets
     {
-        //variables y objectos publicos
-        //public Cliente cliente;
-        //public Servidor servidor;
-
-
+        
         //variables y objetos privados
         private ClienteTCP _objCliente;
         private List<ServidorTCP> _lstObjServidorTCP;
@@ -39,6 +35,7 @@ namespace Sockets
         private int _numCliConServidor;
         private bool _serverEscuchando;
         private bool _deteniendoServer;
+        private bool _serverIniciado;
 
         //constantes priavdas
         private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE       = "modo cliente";
@@ -181,7 +178,7 @@ namespace Sockets
             _codePage = codePage;
             _tcp = tcp;
             _maxServCon = maxCon;
-            _cantConServidor = 1;
+            _cantConServidor = 0;
             _numCliConServidor = 1;
             this.ModoServidor = true;
 
@@ -197,8 +194,7 @@ namespace Sockets
             }
             else
             {
-                //_lstObjServidorUDP = new List<ServidorUDP>();
-                //objServidorUDP = new ServidorUDP(_puertoEscuchaServer);
+                
             }
 
             CrearServidor(ref res);
@@ -233,7 +229,6 @@ namespace Sockets
             }
             else
             {
-                //ServidorUDP objServidorUDP = new ServidorUDP(_puertoEscuchaServer);
                 _objServidorUDP = new ServidorUDP(_puertoEscuchaServer);
                 _objServidorUDP.MaxClientesUDP = _maxServCon;
                 if (mensaje != "")
@@ -242,10 +237,6 @@ namespace Sockets
                     return;
                 }
                 _objServidorUDP.evento_servidor += new ServidorUDP.Delegado_Servidor_Event(Evsocket);
-                //_lstObjServidorUDP.Add(objServidorUDP);
-
-                //_lstObjServidorUDP[indiceLista].IndiceConexion = _numCliConServidor;
-                //_lstObjServidorUDP[indiceLista].IndiceLista = indiceLista;
 
             }
             
@@ -269,13 +260,16 @@ namespace Sockets
             }
             else
             {
-                //_lstObjServidorUDP[_lstObjServidorUDP.Count() -1].Iniciar();
                 _objServidorUDP.Iniciar();
             }
 
-            Parametrosvento ev = new Parametrosvento();
-            ev.SetEvento(Parametrosvento.TipoEvento.SERVER_INICIADO);
-            Evsocket(ev);
+            if (!_serverIniciado)
+            {
+                _serverIniciado = true;
+                Parametrosvento ev = new Parametrosvento();
+                ev.SetEvento(Parametrosvento.TipoEvento.SERVER_INICIADO);
+                Evsocket(ev);
+            }
 
         }
 
@@ -415,7 +409,7 @@ namespace Sockets
             if (_tcp)
             {
 
-                Console.WriteLine(_cantConServidor);
+                //Console.WriteLine(_cantConServidor);
 
                 for (int i = 0; i < _lstObjServidorTCP.Count; i++)
                 {
@@ -429,7 +423,8 @@ namespace Sockets
                     }
                 }
 
-                /*Parametrosvento ev = new Parametrosvento();
+                /*
+                Parametrosvento ev = new Parametrosvento();
                 ev.SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
                 EventSocket(ev);*/
             }
@@ -446,6 +441,7 @@ namespace Sockets
             if (tcp)
             {
                 DesconectarTodosClientes();
+                //_lstObjServidorTCP.Clear();
             }
             else
             {
@@ -497,11 +493,11 @@ namespace Sockets
                         
                         if (!_tcp)
                         {
-                            
+                            //
                         }
                         else
                         {
-                            if (_cantConServidor >= _maxServCon)
+                            if (_cantConServidor >= _maxServCon -1) //muy cabeza, pero funciona
                             {
                                 mostrarEvMaxConexiones = true;
                             }
@@ -515,12 +511,10 @@ namespace Sockets
                         }
                         break;
 
-                    case Parametrosvento.TipoEvento.CONEXION_FIN:
+                    case Parametrosvento.TipoEvento.CONEXION_FIN: //UDP no dispara este evento
                         _lstObjServidorTCP.RemoveAt(ev.GetIndiceLista);
                         ReacomodarListaClientes();
                         _cantConServidor--;
-
-                        Console.WriteLine(_cantConServidor);
 
                         if (!_serverEscuchando && !_deteniendoServer)
                         {
@@ -543,15 +537,19 @@ namespace Sockets
                 _serverEscuchando = false;
                 Parametrosvento evMaxCon = new Parametrosvento();
                 evMaxCon.SetEvento(Parametrosvento.TipoEvento.LIMITE_CONEXIONES);
-                //aca esta el quilombo 
                 EventSocket(evMaxCon);
             }
 
-            if (_deteniendoServer && _cantConServidor==0)
+            if (_deteniendoServer)
             {
-                Parametrosvento evServerDetenido = new Parametrosvento();
-                evServerDetenido.SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
-                EventSocket(evServerDetenido);
+                if (_cantConServidor == 0 && _deteniendoServer && _lstObjServidorTCP.Count() == 1)
+                {
+                    _deteniendoServer = false;
+                    _serverIniciado = false;
+                    Parametrosvento evServerDetenido = new Parametrosvento();
+                    evServerDetenido.SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
+                    EventSocket(evServerDetenido);
+                }
             }
         }
 

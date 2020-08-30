@@ -24,11 +24,6 @@ namespace Sockets
         private Thread _thrCliente;
         private UdpClient _udpClient;
 
-
-        //internal int puerto;
-        //internal bool EsperandoConexion;
-        //private int _indiceCon; //va a contener el indice de conexion
-        //private int _indiceLista; //va a conetener el indice de la lista de sockets
         private int _puerto;
         private int _maxClientesUDP;
         private int _cantidadConexiones = 0;
@@ -80,8 +75,6 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                //EsperandoConexion = false;
-
                 GenerarEventoError(err);
             }
 
@@ -110,7 +103,6 @@ namespace Sockets
                 GenerarEventoError(err);
             }
 
-
         }
 
         internal void EnviarATodos(string datos)
@@ -124,13 +116,10 @@ namespace Sockets
         private void EscucharUDP()
         {
             int indiceMsg=0;
-            //UdpClient auxCli;
-            //int cantidadConexiones = 0;
             bool generarEventoDatosIn=false;
 
             try
             {
-                
                 bool clienteExistente = false;
 
                 _udpClient = new UdpClient();
@@ -235,8 +224,6 @@ namespace Sockets
                                 .SetNumConexion(_lstClientesUDP[indiceMsg].numConexion);
                             GenerarEvento(ev);
 
-                            //if (_lstClientesUDP[0].clienteEndPoint.)
-
                         } //fin if (generarEventoDatosIn)
                     } //fin if (_remoteEP.Port == _puerto) 
                 }
@@ -277,17 +264,6 @@ namespace Sockets
             _lstClientesUDP.Clear();
             _cantidadConexiones = 0;
             _maximoConexiones = false;
-
-            /*for (int i=_lstClientesUDP.Count();i>0;i--)
-            {
-                //Desconectar(_lstClientesUDP[i].numConexion);
-                _lstClientesUDP.RemoveAt(i);
-                _cantidadConexiones--;
-                if (_maximoConexiones)
-                {
-                    _maximoConexiones = false;
-                }
-            }*/
         }
 
         internal void DetenerServer()
