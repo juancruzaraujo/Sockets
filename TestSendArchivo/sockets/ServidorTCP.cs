@@ -130,8 +130,6 @@ namespace Sockets
                 _thrCliente.IsBackground = true;
                 _thrCliente.Start();
 
-                
-                
             }
             catch (Exception err)
             {
@@ -165,13 +163,13 @@ namespace Sockets
             }
 
             
-            //if (!forzarDesconexion) //SI ESTÀ ESTO, NO DETIENE EL SERVER ni reinicia
+            /*if (!forzarDesconexion) //SI ESTÀ ESTO, NO DETIENE EL SERVER ni reinicia
             {
                 EsperandoConexion = false;
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetEscuchando(EsperandoConexion).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
                 GenerarEvento(ev);
-            }
+            }*/
 
             try
             {
@@ -183,6 +181,12 @@ namespace Sockets
                         if (_tcpCliente != null)
                         {
                             _tcpCliente.Close();
+                        }
+                        else
+                        {
+                            Parametrosvento ev = new Parametrosvento();
+                            ev.SetEscuchando(EsperandoConexion).SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
+                            GenerarEvento(ev);
                         }
                         _thrCliente.Abort();
                         _bucleCliComunucacion = false;

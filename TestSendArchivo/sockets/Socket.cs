@@ -499,13 +499,13 @@ namespace Sockets
                         }
                         else
                         {
-                            if (_cantConServidor >= _maxServCon -1) //muy cabeza, pero funciona
+                            if (_cantConServidor >= (_maxServCon -1)) //muy cabeza, pero funciona
                             {
-                                mostrarEvMaxConexiones = true;
+                                mostrarEvMaxConexiones = true; //genero el evento de limite de conexiones
                             }
                             _cantConServidor++;
                             _numCliConServidor++;
-                            if (GetNumConexion() <= _maxServCon)
+                            if (GetNumConexion() < _maxServCon)
                             {
                                 CrearServidor(ref mensaje);
                                 StartServer();
@@ -525,6 +525,12 @@ namespace Sockets
                         }
 
                         break;
+
+                    case Parametrosvento.TipoEvento.SERVER_DETENIDO:
+                        _deteniendoServer = false;
+                        _serverIniciado = false;
+                        _lstObjServidorTCP.Clear();
+                        break;
                 }
                 
             }
@@ -539,23 +545,6 @@ namespace Sockets
                 Parametrosvento evMaxCon = new Parametrosvento();
                 evMaxCon.SetEvento(Parametrosvento.TipoEvento.LIMITE_CONEXIONES);
                 EventSocket(evMaxCon);
-            }
-
-            if (_deteniendoServer)
-            {
-                if (_cantConServidor == 0 && _deteniendoServer && _lstObjServidorTCP.Count() == 1)
-                {
-                    _deteniendoServer = false;
-                    _serverIniciado = false;
-
-                    _lstObjServidorTCP[0].Escuchar = false;
-                    _lstObjServidorTCP[0].DesconectarCliente(true);
-                    _lstObjServidorTCP.Clear();
-
-                    Parametrosvento evServerDetenido = new Parametrosvento();
-                    evServerDetenido.SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
-                    EventSocket(evServerDetenido);
-                }
             }
         }
 
