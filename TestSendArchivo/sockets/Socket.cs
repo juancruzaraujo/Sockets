@@ -411,9 +411,11 @@ namespace Sockets
 
                 //Console.WriteLine(_cantConServidor);
 
-                for (int i = 0; i < _lstObjServidorTCP.Count; i++)
+                //for (int i = 0; i < _lstObjServidorTCP.Count; i++)
+                for (int i = _lstObjServidorTCP.Count() -1; i >= 0; i--)
                 {
                     string res = "";
+
                     _lstObjServidorTCP[i].DesconectarCliente(_deteniendoServer);
                     ReacomodarListaClientes();
                     
@@ -522,7 +524,6 @@ namespace Sockets
                             StartServer();
                         }
 
-
                         break;
                 }
                 
@@ -546,6 +547,11 @@ namespace Sockets
                 {
                     _deteniendoServer = false;
                     _serverIniciado = false;
+
+                    _lstObjServidorTCP[0].Escuchar = false;
+                    _lstObjServidorTCP[0].DesconectarCliente(true);
+                    _lstObjServidorTCP.Clear();
+
                     Parametrosvento evServerDetenido = new Parametrosvento();
                     evServerDetenido.SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
                     EventSocket(evServerDetenido);

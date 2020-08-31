@@ -164,10 +164,15 @@ namespace Sockets
                 forzarDesconexion = Conectado;
             }
 
-            EsperandoConexion = false;
-            Parametrosvento ev = new Parametrosvento();
-            ev.SetEscuchando(EsperandoConexion).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
-            GenerarEvento(ev);
+            
+            //if (!forzarDesconexion) //SI ESTÀ ESTO, NO DETIENE EL SERVER ni reinicia
+            {
+                EsperandoConexion = false;
+                Parametrosvento ev = new Parametrosvento();
+                ev.SetEscuchando(EsperandoConexion).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
+                GenerarEvento(ev);
+            }
+
             try
             {
                 if (_thrCliente != null)
