@@ -7,22 +7,20 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Sockets;
 
-
 namespace TestSendArchivo
 {
     class Program
     {
         static bool _modoServer;
-
         //static SockServer _obServer;
         //static SocksCliente _obCliente;
 
         static FileStream _ArchStream;
         static BinaryWriter _ArchWriter;
 
-        static Socket _obSocket;
+        static Sockets.Sockets _obSocket;
 
-        static int _tam;
+        //static int _tam;
 
         static bool _enviarArchivo = false;
         static bool _recibirArchivo = false;
@@ -41,13 +39,14 @@ namespace TestSendArchivo
         
         const int C_TAM_CLUSTER = 1400;
 
+        const int C_MAX_CONEXIONES_SERVER = 2;
 
         //[DllImport("User32.dll")]
         //public static extern int MessageBox(int h, string m, string c, int type);
 
         const int STD_OUTPUT_HANDLE = -11;
         const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
-
+        /*
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern IntPtr GetStdHandle(int nStdHandle);
 
@@ -56,7 +55,7 @@ namespace TestSendArchivo
 
         [DllImport("kernel32.dll")]
         static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
-
+        */
         static void Main(string[] args)
         {
             /* //con esto no se escriben los caracteres, como los passwords de linux
@@ -74,18 +73,19 @@ namespace TestSendArchivo
 
             //MessageBox(0, "hola mundo", "mensajin", 2); muestra un mensaje y se para todo hasta que se toque un boton
 
+            /*
             //para poder mostrar colores usando los comandos de vt100 que si tiene telnet
             var handle = GetStdHandle(STD_OUTPUT_HANDLE);
             uint mode;
             GetConsoleMode(handle, out mode);
             mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
             SetConsoleMode(handle, mode);
-
+            */
 
             Console.WriteLine("\x1b[93m TEST SERVER.\r\n");
 
-            _obSocket = new Socket();
-            _obSocket.Event_Socket += new Socket.Delegado_Socket_Event(EvSockets); 
+            _obSocket = new Sockets.Sockets();
+            _obSocket.Event_Socket += new Sockets.Sockets.Delegado_Socket_Event(EvSockets); 
 
             if (args.Length > 0)
             {
@@ -99,51 +99,73 @@ namespace TestSendArchivo
                 while (true)
                 {
                     var input = Console.ReadLine();
-                    if ((_obSocket.ModoCliente) || (_obSocket.ModoServidor))
+                    if (_obSocket != null)
                     {
-                        if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
+                        if ((_obSocket.ModoCliente) || (_obSocket.ModoServidor))
                         {
-                            break;
-                        }
-                        else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
-                        {
-                            //mando el archivo
-                            EnviarArchivo(false);
-                            _enviarArchivo = true;
+                            if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _obSocket.Desconectarme();
+                                break;
+                            }
+                            else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
+                            {
+                                //mando el archivo
+                                EnviarArchivo(false);
+                                _enviarArchivo = true;
+                            }
+                            else if (input.Equals("stop", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _obSocket.StopServer();
+                                //_obSocket = null;
+                            }
+                            else if (input.Equals("starttcp", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Server();
+                            }
+                            else if(input.Equals("startudp", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Server(false);
+                            }
+                            else
+                            {
+                                //<<<<<<<<<<<<le envio a todos un texto cualquiera>>>>>>>>>>>>>>>>
+                                _obSocket.EnviarATodos(input + "\r\n");
+                            }
                         }
                         else
                         {
-                            _obSocket.Enviar(input + "\r\n");
+                            if (input.Equals("1", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _modoServer = true;
+                                Server();
+                                _obSocket.ModoServidor = _modoServer;
+                                //break;
+                            }
+                            if (input.Equals("2", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _modoServer = false;
+                                Cliente();
+                                _obSocket.ModoCliente = true;
+                                //break;
+                            }
+                            if (input.Equals("3", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _modoServer = true;
+                                Server(false);
+                                //break;
+                            }
+                            if (input.Equals("4", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _modoServer = false;
+                                ClienteUDP();
+                                //break;
+                            }
                         }
                     }
                     else
                     {
-                        if (input.Equals("1", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _modoServer = true;
-                            Server();
-                            _obSocket.ModoServidor = _modoServer;
-                            //break;
-                        }
-                        if (input.Equals("2", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _modoServer = false;
-                            Cliente();
-                            _obSocket.ModoCliente = true;
-                            //break;
-                        }
-                        if (input.Equals("3", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _modoServer = true;
-                            Server(false);
-                            //break;
-                        }
-                        if (input.Equals("4", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _modoServer = false;
-                            ClienteUDP();
-                            //break;
-                        }
+                        Console.WriteLine("no hay ni server ni cliente iniciado");
                     }
 
                 }
@@ -155,22 +177,45 @@ namespace TestSendArchivo
 
         static void EvSockets(Parametrosvento ev)
         {
+            
             switch (ev.GetEvento)
             {
-
-                //case Socket.C_SERVER_EVENTO_ACEPTAR_CONEXION:
-                case Parametrosvento.TipoEvento.ACEPTAR_CONEXION:
-                    Console.WriteLine("conectado desde " + ev.GetIpOrigen);
+                case Parametrosvento.TipoEvento.NUEVA_CONEXION:
+                    Console.WriteLine (corchete(ev.GetNumConexion.ToString()) +  " conectado desde " + ev.GetIpOrigen);
+                    _obSocket.Enviar("<SOS> " + ev.GetNumConexion.ToString(), ev.GetIndiceLista);
+                    //_obSocket.Enviar("<SOS> " + ev.GetNumConexion.ToString(), 0);
                     break;
 
                 case Parametrosvento.TipoEvento.DATOS_IN:
                     //DatosIn(indice, datos, true, ipOrigen);
-                    DatosIn(ev.GetIndice, ev.GetDatos, true, ev.GetIpOrigen);
+                    DatosIn(ev.GetIndiceLista,ev.GetNumConexion, ev.GetDatos, true, ev.GetIpOrigen);
                     break;
 
                 case Parametrosvento.TipoEvento.ERROR:
-                    Console.WriteLine("error cliente");
-                    Console.WriteLine(ev.GetDatos);
+                    //Console.WriteLine("error cliente");
+                    Console.WriteLine(corchete(ev.GetNumConexion.ToString()) + " cod error " + ev.GetCodError + 
+                        " en linea " +ev.GetLineNumberError.ToString()  + 
+                        " descripcion " + ev.GetDatos);
+                    break;
+
+                case Parametrosvento.TipoEvento.LIMITE_CONEXIONES:
+                    Console.WriteLine("<<LIMITE CONEXIONES>>");
+                    break;
+
+                case Parametrosvento.TipoEvento.SERVER_DETENIDO:
+                    Console.WriteLine("<<server detenido>>");
+                    break;
+
+                case Parametrosvento.TipoEvento.CONEXION_FIN:
+                    Console.WriteLine("<<conexión fin>> " + corchete(ev.GetNumConexion.ToString()) + " >>");
+                    break;
+
+                case Parametrosvento.TipoEvento.SERVER_INICIADO:
+                    Console.WriteLine("<<server iniciado>>");
+                    break;
+                
+                default:
+                    //Console.WriteLine(corchete("Evento " + ev.GetEvento) + " " +ev.GetDatos);
                     break;
             }
         }
@@ -182,7 +227,7 @@ namespace TestSendArchivo
             if (tcp)
             {
                 Console.WriteLine("modo server");
-                Console.Title = "MODO SERVER"; 
+                Console.Title = "MODO SERVER TCP"; 
             }
             else
             {
@@ -191,7 +236,7 @@ namespace TestSendArchivo
             }
                       
             _obSocket.ModoServidor = true;
-            _obSocket.SetServer(1492,65001, tcp,3);
+            _obSocket.SetServer(1492,65001, tcp, C_MAX_CONEXIONES_SERVER);
             _obSocket.StartServer();
 
             if (Mensaje != "")
@@ -201,11 +246,11 @@ namespace TestSendArchivo
             }
         }
 
-        static void DatosIn(int indice,string datos,bool server,string ipOrigen)
+        static void DatosIn(int indice,int nConexion,string datos,bool server,string ipOrigen)
         {
 
-            if (_obSocket.tcp)
-            {
+            //if (_obSocket.tcp)
+            //{
                 if ((datos.Contains(C_ENVACRH + "\r\n")) || (datos.Contains(C_FINARCH + "\r\n")))
                 {
                     if (!_recibirArchivo)
@@ -221,33 +266,56 @@ namespace TestSendArchivo
                 }
                 else
                 {
+                    
+                    
                     if (!_recibirArchivo)
                     {
-                        Console.WriteLine("[" + ipOrigen + "] " + datos);
-                        if (_obSocket.ModoServidor)
+                        Console.WriteLine(corchete(nConexion.ToString()) + " " + datos);
+                        
+                        if (datos.Contains("kill\r\n"))
                         {
-                            EnviarRespuesta("TCP");
+                            _obSocket.DesconectarCliente(nConexion);
                         }
-                    }
+
+                        if (datos.Contains("killall\r\n"))
+                        {
+                            _obSocket.DesconectarTodosClientes();
+                        }
+
+                        if (datos.Contains("detener\r\n"))
+                        {
+                            _obSocket.StopServer();
+                            Console.WriteLine("SERVER DETENIDO");
+                            _obSocket.StartServer();
+                        }
+
+                        if (datos.Contains("iniciar\r\n"))
+                        {
+                            _obSocket.StartServer();
+                        }
+
+
+
+                }
                     else
                     {
                         ArmarArchivo(datos);
                     }
                 }
-            }
-            else
-            {
-                Console.WriteLine("[" + ipOrigen + "] " + datos);
-                if (_obSocket.ModoServidor)
-                {
-                    EnviarRespuesta("UDP");
-                }
-            }
+            //}
+            //else
+            //{
+                //Console.WriteLine("[" + ipOrigen + "] " + datos);
+                //if (_obSocket.ModoServidor)
+                //{
+                    //EnviarRespuesta("UDP",indice);
+                //}
+            //}
         }
 
-        static void EnviarRespuesta(string msg)
+        static void EnviarRespuesta(string msg,int indice)
         {
-            _obSocket.Enviar("server " + msg + " envia ok");
+            _obSocket.Enviar("server " + msg + " envia ok",indice);
         }
 
         static void Cliente()
@@ -383,6 +451,11 @@ namespace TestSendArchivo
             {
                 Console.WriteLine(Error.Message);
             }
+        }
+
+        static string corchete(string mensaje)
+        {
+            return "[" + mensaje + "]";
         }
 
 

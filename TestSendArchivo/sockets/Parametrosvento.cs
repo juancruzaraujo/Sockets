@@ -7,7 +7,8 @@ namespace Sockets
 {
     public class Parametrosvento
     {
-        private int _indice;
+        private int _numConexion;
+        private int _indiceLista;
         private TipoEvento _evento;
         private bool _escuchando;
         private long _size;
@@ -15,25 +16,44 @@ namespace Sockets
         private long _posicion;
         private string _ipOrigen;
         private string _ipDestino;
+        private int _codigoError;
+        private int _lineNumberError;
 
+        /// <summary>
+        /// Numero de evento que se dispara
+        /// </summary>
         public enum TipoEvento
         {
             ERROR = 0,
             ENVIO_COMPLETO = 1,
             DATOS_IN = 2,
+            /// <summary>
+            /// la comunucación con el cliente ya esta establecida
+            /// </summary>
             NUEVA_CONEXION = 3,
             CONEXION_FIN = 4,
+            /// <summary>
+            /// acepta conexión y se obtiene el ip del cliente, pero todavía no establece la comunucación
+            /// </summary>
             ACEPTAR_CONEXION = 5,
             ESPERA_CONEXION = 6,
             POSICION_ENVIO = 7,
             CONEXION_OK = 8,
-            TIME_OUT = 9
-
+            TIME_OUT = 9,
+            SERVER_INICIADO = 10,
+            LIMITE_CONEXIONES = 11,
+            SERVER_DETENIDO = 12
         };
 
-        internal Parametrosvento SetIndice(int indice)
+        internal Parametrosvento SetNumConexion(int numConexion)
         {
-            _indice = indice;
+            _numConexion = numConexion;
+            return this;
+        }
+
+        internal Parametrosvento SetIndiceLista(int indiceLista)
+        {
+            _indiceLista = indiceLista;
             return this;
         }
 
@@ -79,11 +99,34 @@ namespace Sockets
             return this;
         }
 
-        public int GetIndice
+        internal Parametrosvento SetCodError(int codError)
+        {
+            _codigoError = codError;
+            return this;
+        }
+
+        internal Parametrosvento SetLineNumberError(int lineNumber)
+        {
+            _lineNumberError = lineNumber;
+            return this;
+        }
+
+        /// <summary>
+        /// retorna el numero de conexión actual del cliente conectado
+        /// </summary>
+        public int GetNumConexion
         {
             get
             {
-                return _indice;
+                return _numConexion;
+            }
+        }
+
+        public int GetIndiceLista
+        {
+            get
+            {
+                return _indiceLista;
             }
         }
 
@@ -140,6 +183,22 @@ namespace Sockets
             get
             {
                 return _ipDestino;
+            }
+        }
+
+        public int GetCodError
+        {
+            get
+            {
+                return _codigoError;
+            }
+        }
+
+        public int GetLineNumberError
+        {
+            get
+            {
+                return _lineNumberError;
             }
         }
 
