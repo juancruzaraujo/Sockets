@@ -529,7 +529,10 @@ namespace Sockets
                     case Parametrosvento.TipoEvento.SERVER_DETENIDO:
                         _deteniendoServer = false;
                         _serverIniciado = false;
-                        _lstObjServidorTCP.Clear();
+                        if (tcp)
+                        {
+                            _lstObjServidorTCP.Clear();
+                        }
                         break;
                 }
                 
