@@ -1,0 +1,6 @@
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\test1\bin\Release\test1.exe.config
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\test1\bin\Release\test1.exe
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\test1\bin\Release\test1.pdb
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\test1\obj\Release\test1.csproj.CoreCompileInputs.cache
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\test1\obj\Release\test1.exe
+F:\Fuentes\C# 2015\TestSendArchivo\TestSendArchivo\test1\obj\Release\test1.pdb
