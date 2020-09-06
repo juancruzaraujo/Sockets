@@ -39,7 +39,7 @@ namespace TestSendArchivo
         
         const int C_TAM_CLUSTER = 1400;
 
-        const int C_MAX_CONEXIONES_SERVER = 2;
+        const int C_MAX_CONEXIONES_SERVER = 0; //en udp, si pasas esto en 0 acepta n conexiones
 
         //[DllImport("User32.dll")]
         //public static extern int MessageBox(int h, string m, string c, int type);
