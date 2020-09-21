@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Sockets
 {
@@ -9,9 +10,8 @@ namespace Sockets
     {
         
         //variables y objetos privados
-        private ClienteTCP _objCliente;
+        private Cliente _objCliente;
         private List<ServidorTCP> _lstObjServidorTCP;
-        //private List<ServidorUDP> _lstObjServidorUDP;
         private ServidorUDP _objServidorUDP;
 
         private string _mensaje;
@@ -40,8 +40,14 @@ namespace Sockets
         //constantes priavdas
         private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE       = "modo cliente";
         private const string C_MENSAJE_ERROR_MODO_SOY_SERVER        = "modo server";
-        
-        
+
+        class SendArrayParamsContainer
+        {
+            internal byte[] memArray;
+            internal int clusterSize;
+            internal int indexConection;
+        }
+
         public delegate void Delegado_Socket_Event(Parametrosvento parametros);
         public event Delegado_Socket_Event Event_Socket;
         public void EventSocket(Parametrosvento parametros)
@@ -138,7 +144,7 @@ namespace Sockets
             _numConexion = numConexion;
             _host = host;
 
-            _objCliente = new ClienteTCP(tcp);
+            _objCliente = new Cliente(tcp);
             _objCliente.SetGetTimeOut = timeOut;
             _objCliente.CodePage(_codePage, ref res);
             if (res != "")
@@ -146,7 +152,7 @@ namespace Sockets
                 Error(res);
                 return;
             }
-            _objCliente.evento_cliente += new ClienteTCP.Delegado_Cliente_Event(Evsocket);
+            _objCliente.evento_cliente += new Cliente.Delegado_Cliente_Event(Evsocket);
             _tcp = tcp;
             _modoCliente = true;
 
@@ -436,7 +442,7 @@ namespace Sockets
             }
         }
 
-        public void StopServer()
+        public void KillServer()
         {
             _serverEscuchando = false;
             _deteniendoServer = true;
@@ -566,7 +572,7 @@ namespace Sockets
                 {
                     if (_lstObjServidorTCP[indice].Conectado)
                     {
-                        _lstObjServidorTCP[indice].Enviar(mensaje, ref res); //saczar ref res
+                        _lstObjServidorTCP[indice].Enviar(mensaje); //saczar ref res
                     }
                 }
                 else
@@ -611,12 +617,12 @@ namespace Sockets
             }
             catch(Exception err)
             {
-                GenerarEventoError(err);
+                GenerateErrorEvent(err);
             }
 
         }
 
-        public void EnviarArrayATodos(byte[] memArray,int tamCluster)
+        public void EnviarArrayATodos(byte[] memArray,int clusterSize)
         {
             try
             {
@@ -624,7 +630,7 @@ namespace Sockets
                 {
                     for (int i = 0; i < _lstObjServidorTCP.Count(); i++)
                     {
-                        EnviarArray(memArray, tamCluster, i);
+                        SendArray(memArray, clusterSize, i);
                     }
                 }
                 else
@@ -634,11 +640,11 @@ namespace Sockets
             }
             catch(Exception err)
             {
-                GenerarEventoError(err);
+                GenerateErrorEvent(err);
             }
         }
 
-        public void EnviarArray(byte[] memArray, int tamCluster,int indice)
+        /*public void SendArray(byte[] memArray, int clusterSize,int indexConection)
         {
             string res = "";
 
@@ -646,22 +652,129 @@ namespace Sockets
             {
                 if (_tcp)
                 {
-                    _lstObjServidorTCP[indice].Enviar_ByteArray(memArray, tamCluster, ref res);
+                    _lstObjServidorTCP[indexConection].Enviar_ByteArray(memArray, clusterSize);
                 }
                 else
                 {
-                    //UDP
+                    _objServidorUDP.Enviar_ByteArray(memArray, clusterSize, indexConection);
                 }
             }
 
             if (_modoCliente)
             {
-                _objCliente.Enviar_ByteArray(memArray, tamCluster, ref res);
+                _objCliente.Enviar_ByteArray(memArray, clusterSize, ref res);
             }
 
             if (res != "")
             {
                 Error(res);
+            }
+
+        }*/
+
+        public void SendArray(byte[] memArray, int clusterSize, int indexConection)
+        {
+            try
+            {
+                
+                SendArrayParamsContainer sendArrayParams = new SendArrayParamsContainer();
+                sendArrayParams.memArray = memArray;
+                sendArrayParams.clusterSize = clusterSize;
+                sendArrayParams.indexConection = indexConection;
+
+                Thread sendArrayThread = new Thread(new ParameterizedThreadStart(SendArrayThread));
+                sendArrayThread.Name = "sendArrayThread_" + indexConection.ToString();
+                sendArrayThread.Start(sendArrayParams);
+                
+            }
+            catch (Exception err)
+            {
+                GenerateErrorEvent(err);
+            }
+        }
+
+        private void SendArrayThread(object sendArrayParams)
+        {
+            string datos = "";
+            int nPosActual = 0;
+            int nTam;
+            int nResultado = 0;
+            int nPosLectura = 0;
+            int nCondicion;
+
+            SendArrayParamsContainer aux = (SendArrayParamsContainer)sendArrayParams;
+            SendArrayParamsContainer sendParams = new SendArrayParamsContainer();
+            sendParams.clusterSize = aux.clusterSize;
+            sendParams.indexConection = aux.indexConection;
+            sendParams.memArray = aux.memArray;
+
+            nTam = sendParams.memArray.Length; //memArray.Length;
+
+            if (nTam <= sendParams.clusterSize) //TamCluster)
+            {
+                //TamCluster = nTam; //sí es mas chico lo que mando que el cluster
+                sendParams.clusterSize = nTam;
+            }
+
+            try
+            {
+
+                //TcpClient TcpClienteDatos = _tcpCliente;
+                //NetworkStream clientStream = TcpClienteDatos.GetStream();
+
+                while (nPosActual < nTam - 1) //quizas aca me falte un byte (-1)
+                {
+                    nCondicion = nPosActual + sendParams.clusterSize;
+                    for (int I = nPosActual; I <= nCondicion - 1; I++)
+                    {
+                        //meto todo al string para manadar
+                        datos = datos + Convert.ToChar(sendParams.memArray[I]);
+                        nPosLectura++;
+                    }
+
+                    //me re acomodo en el array
+                    nResultado = nTam - nPosLectura;
+                    if (nResultado <= sendParams.clusterSize)
+                    {
+                        sendParams.clusterSize = nResultado; //ya estoy en el final y achico el cluster
+                    }
+                    else
+                    {
+                        //por ahora no hago nada
+                    }
+
+                    nPosActual = nPosLectura;
+                    Parametrosvento ev = new Parametrosvento();
+                    ev.SetPosicion(nPosActual).SetEvento(Parametrosvento.TipoEvento.POSICION_ENVIO);
+                    EventSocket(ev);
+                    //ver que no me quede uno atras
+
+                    //envio los datos
+                    //byte[] buffer = _encoder.GetBytes(Datos);
+
+                    //clientStream.Write(buffer, 0, buffer.Length);
+                    //clientStream.Flush(); //envio lo datos
+
+                    Enviar(datos,sendParams.indexConection);
+
+                    ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(nPosActual);
+                    EventSocket(ev);
+                    
+                    string res = "";
+
+                    Thread.Sleep(5);
+
+                    datos = ""; //limpio la cadena
+                }//fin while
+
+                //CREAR EVENTO DE SEND_ARRAY_COMPLET
+                Parametrosvento evSendArrayComplete = new Parametrosvento();
+                evSendArrayComplete.SetEvento(Parametrosvento.TipoEvento.SEND_ARRAY_COMPLETE);
+                EventSocket(evSendArrayComplete);
+            }
+            catch (Exception err)
+            {
+                GenerateErrorEvent(err);
             }
 
         }
@@ -698,7 +811,7 @@ namespace Sockets
             }
             catch(Exception err)
             {
-                GenerarEventoError(err);
+                GenerateErrorEvent(err);
             }
         }
 
@@ -728,12 +841,12 @@ namespace Sockets
             }
             catch(Exception err)
             {
-                GenerarEventoError(err);
+                GenerateErrorEvent(err);
             }
             return -1;
         }
 
-        private void GenerarEventoError(Exception err, string mensajeOpcional = "")
+        private void GenerateErrorEvent(Exception err, string mensajeOpcional = "")
         {
             Utils utils = new Utils();
             Parametrosvento ev = new Parametrosvento();

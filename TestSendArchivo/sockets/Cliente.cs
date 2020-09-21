@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace Sockets
 {
-    internal class ClienteTCP
+    internal class Cliente
     {
 
         #if DEBUG
@@ -73,17 +73,10 @@ namespace Sockets
             this.evento_cliente(servidorParametrosEvento);
         }
 
-        internal ClienteTCP(bool tcp=true)
+        internal Cliente(bool tcp=true)
         {
             _tcp = tcp;
-            /*if (modo_Debug == false)
-            {
-                Val_TimeOut = 30000;
-            }
-            else
-            {
-                Val_TimeOut = 5000;
-            }*/
+            
         }
 
         internal void Conectar(int indice,string host, int puerto, ref string err)
@@ -132,7 +125,6 @@ namespace Sockets
 
                     conectado = true;
 
-                    //Eve_Conexion_OK(indiceCon);
                     Parametrosvento ev = new Parametrosvento();
                     ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_OK);
                     GenerarEvento(ev);
@@ -162,7 +154,6 @@ namespace Sockets
         {
             try
             {
-
                 _clienteSockUDP = new UdpClient();
                 _epUDP = new IPEndPoint(IPAddress.Parse(host), puerto);
                 _clienteSockUDP.Connect(_epUDP);
@@ -193,7 +184,7 @@ namespace Sockets
                 TcpClient tcpCliente = _clienteSockTCP;
                 NetworkStream clientStream = tcpCliente.GetStream();
 
-                byte[] message = new byte[4096];
+                byte[] message = new byte[65535];
                 int bytesRead;
                 string strDatos;
 
@@ -204,7 +195,7 @@ namespace Sockets
                     try
                     {
                         //se bloquea hasta que llega un mensaje
-                        bytesRead = clientStream.Read(message, 0, 4096);
+                        bytesRead = clientStream.Read(message, 0, 65535);
 
                     }
                     catch (Exception error)
@@ -231,7 +222,7 @@ namespace Sockets
                 }
                 //el cliente cerro la conexion
                 Conexion_Fin();
-                tcpCliente.Close(); //Sí se cierra el server.
+                tcpCliente.Close(); //Sí, se cierra el server.
 
                 _thrCliente.Abort();
             }
@@ -403,81 +394,96 @@ namespace Sockets
             }
         }
 
-        internal void Enviar_ByteArray(byte[] memArray, int TamCluster, ref string error)
-        {
-            string Datos = "";
-            int nPosActual = 0;
-            int nTam;
-            int nResultado = 0;
-            int nPosLectura = 0;
-            int nCondicion;
+        
+        //internal void Enviar_ByteArray(byte[] memArray, int TamCluster, ref string error)
+        //{
+        //    string datos = "";
+        //    int nPosActual = 0;
+        //    int nTam;
+        //    int nResultado = 0;
+        //    int nPosLectura = 0;
+        //    int nCondicion;
 
-            nTam = memArray.Length;
+        //    nTam = memArray.Length;
 
-            if (nTam <= TamCluster)
-            {
-                TamCluster = nTam; //sí es mas chico lo que mando que el cluster
-            }
+        //    if (nTam <= TamCluster)
+        //    {
+        //        TamCluster = nTam; //sí es mas chico lo que mando que el cluster
+        //    }
 
-            try
-            {
+        //    try
+        //    {
 
-                TcpClient TcpClienteDatos = _clienteSockTCP;
-                NetworkStream clientStream = TcpClienteDatos.GetStream();
+        //        TcpClient TcpClienteDatos = _clienteSockTCP;
+        //        NetworkStream clientStream = TcpClienteDatos.GetStream();
 
-                while (nPosActual < nTam - 1) //quizas aca me falte un byte (-1)
-                {
-                    nCondicion = nPosActual + TamCluster;
-                    for (int I = nPosActual; I <= nCondicion - 1; I++)
-                    {
-                        //meto todo al string para manadar
-                        Datos = Datos + Convert.ToChar(memArray[I]);
-                        nPosLectura++;
-                    }
+        //        while (nPosActual < nTam - 1) //quizas aca me falte un byte (-1)
+        //        {
+        //            nCondicion = nPosActual + TamCluster;
+        //            for (int I = nPosActual; I <= nCondicion - 1; I++)
+        //            {
+        //                //meto todo al string para manadar
+        //                datos = datos + Convert.ToChar(memArray[I]);
+        //                nPosLectura++;
+        //            }
 
-                    //me re acomodo en el array
-                    nResultado = nTam - nPosLectura;
-                    if (nResultado <= TamCluster)
-                    {
-                        TamCluster = nResultado; //ya estoy en el final y achico el cluster
-                    }
-                    else
-                    {
-                        //por ahora no hago nada
-                    }
+        //            //me re acomodo en el array
+        //            nResultado = nTam - nPosLectura;
+        //            if (nResultado <= TamCluster)
+        //            {
+        //                TamCluster = nResultado; //ya estoy en el final y achico el cluster
+        //            }
+        //            else
+        //            {
+        //                //por ahora no hago nada
+        //            }
 
-                    nPosActual = nPosLectura; //ver que no me quede uno atras
-                    Parametrosvento evPos = new Parametrosvento(); //levanto la posición en la que quede donde estoy enviando
-                    evPos.SetEvento(Parametrosvento.TipoEvento.POSICION_ENVIO).SetPosicion(nPosActual);
-                    GenerarEvento(evPos);
+        //            nPosActual = nPosLectura; //ver que no me quede uno atras
+        //            Parametrosvento evPos = new Parametrosvento(); //levanto la posición en la que quede donde estoy enviando
+        //            evPos.SetEvento(Parametrosvento.TipoEvento.POSICION_ENVIO).SetPosicion(nPosActual);
+        //            GenerarEvento(evPos);
 
-                    //envio los datos
-                    byte[] buffer = _encoder.GetBytes(Datos);
+        //            //envio los datos
+        //            //byte[] buffer = _encoder.GetBytes(Datos);
 
-                    clientStream.Write(buffer, 0, buffer.Length);
-                    clientStream.Flush(); //envio lo datos
+        //            /*
+        //             * para ver si funciona con lo que ya tengo
+        //            clientStream.Write(buffer, 0, buffer.Length);
+        //            clientStream.Flush(); //envio lo datos
+        //            */
 
-                    Parametrosvento ev = new Parametrosvento();
-                    ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(buffer.Length);
-                    GenerarEvento(ev);
+        //            string resp = "";
+        //            if (_tcp)
+        //            {
+        //                EnviarTCP(datos, ref resp);
+        //            }
+        //            else
+        //            {
+        //                EnviarUDP(datos, ref resp);
+        //            }
+
+        //            Parametrosvento ev = new Parametrosvento();
+        //            //ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(buffer.Length);
+        //            ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(datos.Length);
+        //            GenerarEvento(ev);
                     
-                    //esperamos 5milisegunbdos para continuar
-                    //si, asi se evita el solapamiento de paquetes.
-                    Thread.Sleep(5); 
+        //            //esperamos 5milisegunbdos para continuar
+        //            //si, asi se evita el solapamiento de paquetes.
+        //            Thread.Sleep(5); 
 
-                    Datos = ""; //limpio la cadena
-                }//fin while
+        //            datos = ""; //limpio la cadena
+        //        }//fin while
 
-            }
-            catch (Exception err)
-            {
-                error = err.ToString();
-                //Eve_Error(indiceCon,Err.Message);
-                Error(err.Message);
-            }
+        //    }
+        //    catch (Exception err)
+        //    {
+        //        error = err.ToString();
+        //        //Eve_Error(indiceCon,Err.Message);
+        //        Error(err.Message);
+        //    }
 
-        }
-
+        //}
+        
         private void GenerarEvento(Parametrosvento ob)
         {
             ob.SetNumConexion(indiceCon);

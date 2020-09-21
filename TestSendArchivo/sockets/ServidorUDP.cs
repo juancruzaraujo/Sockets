@@ -87,7 +87,7 @@ namespace Sockets
             try
             {
                 _udpClient.Send(sendBytes, sendBytes.Length, _lstClientesUDP[indice].clienteEndPoint);
-                
+                buf = sendBytes.Length;
 
                 Parametrosvento ev = new Parametrosvento();
                 ev.SetSize(buf)
@@ -274,6 +274,80 @@ namespace Sockets
                 }
 
             }
+        }
+
+        internal void Enviar_ByteArray(byte[] memArray, int TamCluster, int indice)
+        {
+            string datos = "";
+            int nPosActual = 0;
+            int nTam;
+            int nResultado = 0;
+            int nPosLectura = 0;
+            int nCondicion;
+
+            nTam = memArray.Length;
+
+            if (nTam <= TamCluster)
+            {
+                TamCluster = nTam; //sí es mas chico lo que mando que el cluster
+            }
+
+            try
+            {
+
+                //TcpClient TcpClienteDatos = _tcpCliente;
+                //NetworkStream clientStream = TcpClienteDatos.GetStream();
+
+                while (nPosActual < nTam - 1) //quizas aca me falte un byte (-1)
+                {
+                    nCondicion = nPosActual + TamCluster;
+                    for (int I = nPosActual; I <= nCondicion - 1; I++)
+                    {
+                        //meto todo al string para manadar
+                        datos = datos + Convert.ToChar(memArray[I]);
+                        nPosLectura++;
+                    }
+
+                    //me re acomodo en el array
+                    nResultado = nTam - nPosLectura;
+                    if (nResultado <= TamCluster)
+                    {
+                        TamCluster = nResultado; //ya estoy en el final y achico el cluster
+                    }
+                    else
+                    {
+                        //por ahora no hago nada
+                    }
+
+                    nPosActual = nPosLectura;
+                    Parametrosvento ev = new Parametrosvento();
+                    ev.SetPosicion(nPosActual).SetEvento(Parametrosvento.TipoEvento.POSICION_ENVIO);
+                    GenerarEvento(ev);
+                    //ver que no me quede uno atras
+
+                    //envio los datos
+                    //byte[] buffer = _encoder.GetBytes(Datos);
+
+                    //clientStream.Write(buffer, 0, buffer.Length);
+                    //clientStream.Flush(); //envio lo datos
+
+                    ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(datos.Length);
+                    GenerarEvento(ev);
+
+                    
+                    Enviar(datos,indice);
+
+                    Thread.Sleep(5);
+
+                    datos = ""; //limpio la cadena
+                }//fin while
+
+            }
+            catch (Exception err)
+            {
+                GenerarEventoError(err);
+            }
+
         }
 
         internal void Desconectar(int numConexion)

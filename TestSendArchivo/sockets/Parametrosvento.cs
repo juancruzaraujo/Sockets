@@ -42,7 +42,8 @@ namespace Sockets
             TIME_OUT = 9,
             SERVER_INICIADO = 10,
             LIMITE_CONEXIONES = 11,
-            SERVER_DETENIDO = 12
+            SERVER_DETENIDO = 12,
+            SEND_ARRAY_COMPLETE = 13
         };
 
         internal Parametrosvento SetNumConexion(int numConexion)

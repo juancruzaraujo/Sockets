@@ -304,7 +304,7 @@ namespace Sockets
                 ev.SetIpOrigen(_tcpCliente.Client.RemoteEndPoint.ToString()).SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION);
                 GenerarEvento(ev);
 
-                byte[] message = new byte[4096];
+                byte[] message = new byte[65535];
 
                 int bytesRead;
 
@@ -314,7 +314,7 @@ namespace Sockets
 
                     try
                     {
-                        bytesRead = clientStream.Read(message, 0, 4096);
+                        bytesRead = clientStream.Read(message, 0, 65535);
                     }
                     catch 
                     {
@@ -368,7 +368,7 @@ namespace Sockets
         /// <param name="Datos">el mensaje a enviar</param>
         /// <param name="Resultado">Mensaje que retorna en caso de error</param>
         //internal void Enviar(int Indice,string Datos, ref string Resultado)
-        internal void Enviar(string datos, ref string resultado)
+        internal void Enviar(string datos)
         {
             int buf=0;
             try
@@ -392,9 +392,10 @@ namespace Sockets
             }
         }
 
-        internal void Enviar_ByteArray(byte[] memArray, int TamCluster, ref string Error)
+        /*
+        internal void Enviar_ByteArray(byte[] memArray, int TamCluster)
         {
-            string Datos = "";
+            string datos = "";
             int nPosActual = 0;
             int nTam;
             int nResultado = 0;
@@ -411,8 +412,8 @@ namespace Sockets
             try
             {
 
-                TcpClient TcpClienteDatos = _tcpCliente;
-                NetworkStream clientStream = TcpClienteDatos.GetStream();
+                //TcpClient TcpClienteDatos = _tcpCliente;
+                //NetworkStream clientStream = TcpClienteDatos.GetStream();
 
                 while (nPosActual < nTam - 1) //quizas aca me falte un byte (-1)
                 {
@@ -420,7 +421,7 @@ namespace Sockets
                     for (int I = nPosActual; I <= nCondicion - 1; I++)
                     {
                         //meto todo al string para manadar
-                        Datos = Datos + Convert.ToChar(memArray[I]);
+                        datos = datos + Convert.ToChar(memArray[I]);
                         nPosLectura++;
                     }
 
@@ -442,16 +443,20 @@ namespace Sockets
                     //ver que no me quede uno atras
 
                     //envio los datos
-                    byte[] buffer = _encoder.GetBytes(Datos);
+                    //byte[] buffer = _encoder.GetBytes(Datos);
 
-                    clientStream.Write(buffer, 0, buffer.Length);
-                    clientStream.Flush(); //envio lo datos
-                    ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(buffer.Length);
+                    //clientStream.Write(buffer, 0, buffer.Length);
+                    //clientStream.Flush(); //envio lo datos
+                    Enviar(datos);
+
+                    ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(datos.Length);
                     GenerarEvento(ev);
+
+                    //string res = "";
 
                     Thread.Sleep(5);
 
-                    Datos = ""; //limpio la cadena
+                    datos = ""; //limpio la cadena
                 }//fin while
 
             }
@@ -461,7 +466,7 @@ namespace Sockets
             }
 
         }
-
+        */
         /// <summary>
         /// Code page para iniciar la comunicacion
         /// </summary>

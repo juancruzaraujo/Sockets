@@ -39,7 +39,7 @@ namespace TestSendArchivo
         
         const int C_TAM_CLUSTER = 1400;
 
-        const int C_MAX_CONEXIONES_SERVER = 0; //en udp, si pasas esto en 0 acepta n conexiones
+        const int C_MAX_CONEXIONES_SERVER = 2; //en udp, si pasas esto en 0 acepta n conexiones
 
         //[DllImport("User32.dll")]
         //public static extern int MessageBox(int h, string m, string c, int type);
@@ -111,12 +111,12 @@ namespace TestSendArchivo
                             else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
                             {
                                 //mando el archivo
-                                EnviarArchivo(false);
+                                EnviarArchivo(0);
                                 _enviarArchivo = true;
                             }
                             else if (input.Equals("stop", StringComparison.OrdinalIgnoreCase))
                             {
-                                _obSocket.StopServer();
+                                _obSocket.KillServer();
                                 //_obSocket = null;
                             }
                             else if (input.Equals("starttcp", StringComparison.OrdinalIgnoreCase))
@@ -213,6 +213,11 @@ namespace TestSendArchivo
                 case Parametrosvento.TipoEvento.SERVER_INICIADO:
                     Console.WriteLine("<<server iniciado>>");
                     break;
+
+                case Parametrosvento.TipoEvento.SEND_ARRAY_COMPLETE:
+                    _obSocket.Enviar(C_FINARCH + "\r\n",ev.GetIndiceLista);
+                    Console.WriteLine("envio ok");
+                    break;
                 
                 default:
                     //Console.WriteLine(corchete("Evento " + ev.GetEvento) + " " +ev.GetDatos);
@@ -284,7 +289,7 @@ namespace TestSendArchivo
 
                         if (datos.Contains("detener\r\n"))
                         {
-                            _obSocket.StopServer();
+                            _obSocket.KillServer();
                             Console.WriteLine("SERVER DETENIDO");
                             _obSocket.StartServer();
                         }
@@ -417,39 +422,41 @@ namespace TestSendArchivo
             }
         }
 
-        static void EnviarArchivo(bool modoServer)
+        static void EnviarArchivo(int conectionIndex)
         {
-            byte[] memArrayArchivo;
-            FileStream Archivo;
-            string Err = "";
+            byte[] memArrayFile;
+            FileStream file;
+            //string Err = "";
 
             //string vbcrlf = Convert.ToChar(10).ToString() + Convert.ToChar(13).ToString();
 
             try
             {
-                Archivo = new FileStream(C_ARCHIVO_ENVIAR, FileMode.Open);
-                memArrayArchivo = new byte[Archivo.Length];
+                file = new FileStream(C_ARCHIVO_ENVIAR, FileMode.Open);
+                memArrayFile = new byte[file.Length];
 
-                Archivo.Read(memArrayArchivo, 0, (int)Archivo.Length);
-                Archivo.Close();
-                Console.WriteLine(memArrayArchivo.Length);
+                file.Read(memArrayFile, 0, (int)file.Length);
+                file.Close();
+                Console.WriteLine(memArrayFile.Length);
 
                 _obSocket.Enviar(C_ENVACRH + "\r\n");
-                _obSocket.EnviarArray(memArrayArchivo, C_TAM_CLUSTER,0);
-
-                if (Err != "")
-                {
-                    Console.WriteLine("ERROR " + Err);
-                }
-                else
-                {
-                    _obSocket.Enviar(C_FINARCH + "\r\n");
-                    Console.WriteLine("envio ok");
-                }
+                _obSocket.SendArray(memArrayFile, C_TAM_CLUSTER, conectionIndex);
+                
+                
+                //if (Err != "")
+                //{
+                    //Console.WriteLine("ERROR " + Err);
+                //}
+                //else
+                //{
+                    //_obSocket.Enviar(C_FINARCH + "\r\n");
+                    //Console.WriteLine("envio ok");
+                //}
+                
             }
-            catch (Exception Error)
+            catch (Exception error)
             {
-                Console.WriteLine(Error.Message);
+                Console.WriteLine(error.Message);
             }
         }
 
