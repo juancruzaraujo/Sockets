@@ -5,107 +5,108 @@ using System.Text;
 
 namespace Sockets
 {
-    public class Parametrosvento
+    public class EventParameters
     {
-        private int _numConexion;
-        private int _indiceLista;
-        private TipoEvento _evento;
-        private bool _escuchando;
+        private int _conectionNumber;
+        private int _listIndex;
+        private EventType _eventType;
+        private bool _listen;
         private long _size;
-        private string _datos;
-        private long _posicion;
+        private string _data;
+        private long _position;
         private string _ipOrigen;
         private string _ipDestino;
-        private int _codigoError;
+        private int _errorCode;
         private int _lineNumberError;
 
         /// <summary>
         /// Numero de evento que se dispara
         /// </summary>
-        public enum TipoEvento
+        public enum EventType
         {
             ERROR = 0,
-            ENVIO_COMPLETO = 1,
-            DATOS_IN = 2,
+            SEND_COMPLETE = 1,
+            DATA_IN = 2,
             /// <summary>
             /// la comunucación con el cliente ya esta establecida
             /// </summary>
-            NUEVA_CONEXION = 3,
-            CONEXION_FIN = 4,
+            NEW_CONNECTION = 3,
+            END_CONNECTION = 4,
             /// <summary>
             /// acepta conexión y se obtiene el ip del cliente, pero todavía no establece la comunucación
             /// </summary>
-            ACEPTAR_CONEXION = 5,
-            ESPERA_CONEXION = 6,
-            POSICION_ENVIO = 7,
-            CONEXION_OK = 8,
+            ACCEPT_CONNECTION = 5,
+            WAIT_CONNECTION = 6,
+            SEND_POSITION = 7,
+            CONNECTION_OK = 8,
             TIME_OUT = 9,
-            SERVER_INICIADO = 10,
-            LIMITE_CONEXIONES = 11,
-            SERVER_DETENIDO = 12
+            SERVER_STAR = 10,
+            CONNECTION_LIMIT = 11,
+            SERVER_STOP = 12,
+            SEND_ARRAY_COMPLETE = 13
         };
 
-        internal Parametrosvento SetNumConexion(int numConexion)
+        internal EventParameters SetConnectionNumber(int conectionNumber)
         {
-            _numConexion = numConexion;
+            _conectionNumber = conectionNumber;
             return this;
         }
 
-        internal Parametrosvento SetIndiceLista(int indiceLista)
+        internal EventParameters SetListIndex(int listIndex)
         {
-            _indiceLista = indiceLista;
+            _listIndex = listIndex;
             return this;
         }
 
-        internal Parametrosvento SetEvento(TipoEvento evento)
+        internal EventParameters SetEvent(EventType eventType)
         {
-            _evento = evento;
+            _eventType = eventType;
             return this;
         }
 
-        internal Parametrosvento SetEscuchando(bool escuchando)
+        internal EventParameters SetListening(bool listen)
         {
-            _escuchando = escuchando;
+            _listen = listen;
             return this;
         }
 
-        internal Parametrosvento SetSize(long size)
+        internal EventParameters SetSize(long size)
         {
             _size = size;
             return this;
         }
 
-        internal Parametrosvento SetDatos(string datos)
+        internal EventParameters SetData(string data)
         {
-            _datos = datos;
+            _data = data;
             return this;
         }
 
-        internal Parametrosvento SetPosicion(long posicion)
+        internal EventParameters SetPosition(long position)
         {
-            _posicion = posicion;
+            _position = position;
             return this;
         }
 
-        internal Parametrosvento SetIpOrigen(string ipOrigen)
+        internal EventParameters SetIpOrigen(string ipOrigen)
         {
             _ipOrigen = ipOrigen;
             return this;
         }
 
-        internal Parametrosvento SetIpDestino(string ipDestino)
+        internal EventParameters SetIpDestino(string ipDestino)
         {
             _ipDestino = ipDestino;
             return this;
         }
 
-        internal Parametrosvento SetCodError(int codError)
+        internal EventParameters SetErrorCode(int errorCode)
         {
-            _codigoError = codError;
+            _errorCode = errorCode;
             return this;
         }
 
-        internal Parametrosvento SetLineNumberError(int lineNumber)
+        internal EventParameters SetLineNumberError(int lineNumber)
         {
             _lineNumberError = lineNumber;
             return this;
@@ -114,35 +115,35 @@ namespace Sockets
         /// <summary>
         /// retorna el numero de conexión actual del cliente conectado
         /// </summary>
-        public int GetNumConexion
+        public int GetConnectionNumber
         {
             get
             {
-                return _numConexion;
+                return _conectionNumber;
             }
         }
 
-        public int GetIndiceLista
+        public int GetListIndex
         {
             get
             {
-                return _indiceLista;
+                return _listIndex;
             }
         }
 
-        public TipoEvento GetEvento
+        public EventType GetEventType
         {
             get
             {
-                return _evento;
+                return _eventType;
             }
         }
 
-        public bool GetEscuchando
+        public bool GetListening
         {
             get
             {
-                return _escuchando;
+                return _listen;
             }
         }
 
@@ -154,19 +155,19 @@ namespace Sockets
             }
         }
 
-        public string GetDatos
+        public string GetData
         {
             get
             {
-                return _datos;
+                return _data;
             }
         }
 
-        public long GetPosicion
+        public long GetPosition
         {
             get
             {
-                return _posicion;
+                return _position;
             }
         }
 
@@ -186,11 +187,11 @@ namespace Sockets
             }
         }
 
-        public int GetCodError
+        public int GetErrorCode
         {
             get
             {
-                return _codigoError;
+                return _errorCode;
             }
         }
 
@@ -202,11 +203,5 @@ namespace Sockets
             }
         }
 
-        public Parametrosvento LimpiarValores()
-        {
-            //ver si funciona y no rompe todo
-            Parametrosvento aux = new Parametrosvento();
-            return aux;
-        }
     }
 }
