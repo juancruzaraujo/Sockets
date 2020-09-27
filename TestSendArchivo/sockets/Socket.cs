@@ -10,36 +10,38 @@ namespace Sockets
     {
         
         //variables y objetos privados
-        private Cliente _objCliente;
-        private List<ServidorTCP> _lstObjServidorTCP;
-        private ServidorUDP _objServidorUDP;
+        private Client _objClient;
+        private List<ServidorTCP> _lstObjServerTCP;
+        private ServidorUDP _objServerUDP;
 
-        private string _mensaje;
+        private string _message;
 
-        private bool _modoServidor;
-        private bool _modoCliente;
+        private bool _serverMode;
+        private bool _clientMode;
 
 
-        private int _puertoEscuchaServer;
+        private int _serverPortListening;
         private int _codePage;
-        private int _numConexion;
-        private bool _escuchando;
-        private int _puertoCliente;
+        private int _connectionNumber;
+        private bool _listening;
+        private int _clientPort;
         private long _size;
-        private string _ipCliente;
-        private string _datos;
+        private string _ipClient;
+        private string _data;
         private string _host;
         private bool _tcp;
-        private int _maxServCon;
-        private int _cantConServidor;
-        private int _numCliConServidor;
-        private bool _serverEscuchando;
-        private bool _deteniendoServer;
-        private bool _serverIniciado;
+        private int _maxServerConnectionNumber;
+        private int _numberServerConnections;
+        private int _numCliConServer;
+        private bool _serverListening;
+        private bool _stopingServer;
+        private bool _serverStarted;
 
         //constantes priavdas
         private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE       = "modo cliente";
         private const string C_MENSAJE_ERROR_MODO_SOY_SERVER        = "modo server";
+
+        public const int C_DEFALT_CODEPAGE = 65001;
 
         class SendArrayParamsContainer
         {
@@ -48,11 +50,11 @@ namespace Sockets
             internal int indexConection;
         }
 
-        public delegate void Delegado_Socket_Event(Parametrosvento parametros);
-        public event Delegado_Socket_Event Event_Socket;
-        public void EventSocket(Parametrosvento parametros)
+        public delegate void Delegate_Socket_Event(EventParameters eventParameters);
+        public event Delegate_Socket_Event Event_Socket;
+        public void EventSocket(EventParameters parameters)
         {
-            this.Event_Socket(parametros);
+            this.Event_Socket(parameters);
         }
 
         
@@ -60,7 +62,7 @@ namespace Sockets
         {
             get
             {
-                return _maxServCon;
+                return _maxServerConnectionNumber;
             }
         }
 
@@ -72,12 +74,12 @@ namespace Sockets
             }
         }
 
-        public string ipClienteConectado
+        public string IpConnectedClient
         {
             get
             {
                 string res = "";
-                if (_modoServidor)
+                if (_serverMode)
                 {
                     //res = _objServidor.ip_Conexion;
                 }
@@ -85,22 +87,22 @@ namespace Sockets
             }
         }
 
-        public int MaxServerConexiones
+        public int MaxNumberServerConnections
         {
             set
             {
-                _maxServCon = value;
-                if (_modoServidor)
+                _maxServerConnectionNumber = value;
+                if (_serverMode)
                 {
                     if (!_tcp)
                     {
-                        _objServidorUDP.MaxClientesUDP = _maxServCon;
+                        _objServerUDP.MaxClientUDP = _maxServerConnectionNumber;
                     }
                 }
             }
             get
             {
-                return _maxServCon;
+                return _maxServerConnectionNumber;
             }
         }
 
@@ -109,22 +111,22 @@ namespace Sockets
                         
         }
 
-        void Error(string mensajeError)
+        void Error(string errorMessage)
         {
-            Parametrosvento ev = new Parametrosvento();
+            EventParameters ev = new EventParameters();
 
-            ev.SetDatos(mensajeError)
-                .SetEvento(Parametrosvento.TipoEvento.ERROR)
-                .SetNumConexion(_numConexion).SetEscuchando(_escuchando)
+            ev.SetData(errorMessage)
+                .SetEvent(EventParameters.EventType.ERROR)
+                .SetConnectionNumber(_connectionNumber).SetListening(_listening)
                 .SetSize(_size)
-                .SetIpOrigen(_ipCliente);
+                .SetIpOrigen(_ipClient);
 
             EventSocket(ev);
         }
 
         public void SetCliente()
         {
-            SetCliente(_puertoCliente, _numConexion, _host);
+            SetCliente(_clientPort, _connectionNumber, _host);
         }
 
 
@@ -136,67 +138,67 @@ namespace Sockets
         /// <param name="indice"></param>
         /// <param name="host"></param>
         /// <param name="timeOut"></param>
-        public void SetCliente(int puerto, int numConexion, string host,int timeOut = 30,bool tcp = true, int codePage = 65001)
+        public void SetCliente(int puerto, int connectionNumber, string host,int timeOut = 30,bool tcp = true, int codePage = C_DEFALT_CODEPAGE)
         {
             string res = "";
-            _puertoCliente = puerto;
+            _clientPort = puerto;
             _codePage = codePage;
-            _numConexion = numConexion;
+            _connectionNumber = connectionNumber;
             _host = host;
 
-            _objCliente = new Cliente(tcp);
-            _objCliente.SetGetTimeOut = timeOut;
-            _objCliente.CodePage(_codePage, ref res);
+            _objClient = new Client(tcp);
+            _objClient.SetGetTimeOut = timeOut;
+            _objClient.CodePage(_codePage, ref res);
             if (res != "")
             {
                 Error(res);
                 return;
             }
-            _objCliente.evento_cliente += new Cliente.Delegado_Cliente_Event(Evsocket);
+            _objClient.clientEvent += new Client.Delegated_Client_Event(Evsocket);
             _tcp = tcp;
-            _modoCliente = true;
+            _clientMode = true;
 
         }
 
-        public void Conectar()
+        public void Connect()
         {
-            Conectar(_host, _puertoCliente);
+            Connect(_host, _clientPort);
         }
-        public void Conectar(string host, int puerto)
+        public void Connect(string host, int puerto)
         {
             string res ="";
 
             _host = host;
-            _puertoCliente = puerto;
+            _clientPort = puerto;
 
-            _objCliente.Conectar(_numConexion, _host, _puertoCliente, ref res);
+            _objClient.Connect(_connectionNumber, _host, _clientPort, ref res);
             if (res != "")
             {
                 Error(res);
             }
         }
 
-        public void SetServer(int puerto, int codePage = 65001, bool tcp = true, int maxCon = 0)
+        public void SetServer(int puerto, int codePage = C_DEFALT_CODEPAGE, bool tcp = true, int maxCon = 0)
         {
             string res = "";
-            _escuchando = false;
-            _puertoEscuchaServer = puerto;
+            _listening = false;
+            _serverPortListening = puerto;
             _codePage = codePage;
             _tcp = tcp;
-            _maxServCon = maxCon;
-            _cantConServidor = 0;
-            _numCliConServidor = 1;
-            this.ModoServidor = true;
+            _maxServerConnectionNumber = maxCon;
+            _numberServerConnections = 0;
+            _numCliConServer = 1;
+            this.ServerMode = true;
 
 
-            if (!ModoServidor) //ya esta activado de antes el modo cliente
+            if (!ServerMode) //ya esta activado de antes el modo cliente
             {
-                Error(ModoServidor.ToString());
+                Error(ServerMode.ToString());
                 return;
             }
             if (_tcp)
             {
-                _lstObjServidorTCP = new List<ServidorTCP>();
+                _lstObjServerTCP = new List<ServidorTCP>();
             }
             else
             {
@@ -207,42 +209,43 @@ namespace Sockets
 
             if (res != "")
             {
-                _mensaje = res;
+                _message = res;
                 Error(res);
                 return;
             }
-            _escuchando = true;
-            _modoServidor = true;
+            _listening = true;
+            _serverMode = true;
         }
 
-        private void CrearServidor(ref string mensaje)
+        private void CrearServidor(ref string message)
         {
-            int indiceLista = GetUltimoEspacioLibre();
+            int indexList = GetLastSpaceFree();
 
             if (_tcp)
             {
-                ServidorTCP objServidor = new ServidorTCP(_puertoEscuchaServer, _codePage, ref mensaje);
-                if (mensaje != "")
+                ServidorTCP objServidor = new ServidorTCP(_serverPortListening, _codePage, ref message);
+                if (message != "")
                 {
-                    Error(mensaje);
+                    Error(message);
                     return;
                 }
-                objServidor.evento_servidor += new ServidorTCP.Delegado_Servidor_Event(Evsocket);
-                _lstObjServidorTCP.Add(objServidor);
+                objServidor.evento_servidor += new ServidorTCP.Delegate_Server_Event(Evsocket);
+                _lstObjServerTCP.Add(objServidor);
                 
-                _lstObjServidorTCP[indiceLista].IndiceConexion = _numCliConServidor;
-                _lstObjServidorTCP[indiceLista].IndiceLista = indiceLista;
+                _lstObjServerTCP[indexList].IndexConnection = _numCliConServer;
+                _lstObjServerTCP[indexList].ListIndex = indexList;
             }
             else
             {
-                _objServidorUDP = new ServidorUDP(_puertoEscuchaServer);
-                _objServidorUDP.MaxClientesUDP = _maxServCon;
-                if (mensaje != "")
+                _objServerUDP = new ServidorUDP(_serverPortListening);
+                _objServerUDP.MaxClientUDP = _maxServerConnectionNumber;
+                _objServerUDP.CodePage(_codePage);
+                if (message != "")
                 {
-                    Error(mensaje);
+                    Error(message);
                     return;
                 }
-                _objServidorUDP.evento_servidor += new ServidorUDP.Delegado_Servidor_Event(Evsocket);
+                _objServerUDP.evento_servidor += new ServidorUDP.Delegate_Server_Event(Evsocket);
 
             }
             
@@ -254,7 +257,7 @@ namespace Sockets
             string res="";
             if (_tcp)
             {
-                _lstObjServidorTCP[_lstObjServidorTCP.Count() -1].Iniciar(ref res);
+                _lstObjServerTCP[_lstObjServerTCP.Count() -1].Start(ref res);
 
                 if (res != "")
                 {
@@ -262,46 +265,46 @@ namespace Sockets
                     return;
                 }
                 
-                _serverEscuchando = true;
+                _serverListening = true;
             }
             else
             {
-                _objServidorUDP.Iniciar();
+                _objServerUDP.Start();
             }
 
-            if (!_serverIniciado)
+            if (!_serverStarted)
             {
-                _serverIniciado = true;
-                Parametrosvento ev = new Parametrosvento();
-                ev.SetEvento(Parametrosvento.TipoEvento.SERVER_INICIADO);
+                _serverStarted = true;
+                EventParameters ev = new EventParameters();
+                ev.SetEvent(EventParameters.EventType.SERVER_STAR);
                 Evsocket(ev);
             }
 
         }
 
         #region propiedades
-        public bool ModoServidor
+        public bool ServerMode
         {
             get
             {
-                return _modoServidor;
+                return _serverMode;
             }
             set
             {
-                _modoServidor = value;
+                _serverMode = value;
                  
             }
         }
 
-        public bool ModoCliente
+        public bool ClientMode
         {
             get
             {
-                return _modoCliente;
+                return _clientMode;
             }
             set
             {
-                _modoCliente = value;
+                _clientMode = value;
             }
         }
 
@@ -309,11 +312,11 @@ namespace Sockets
         {
             get
             {
-                return _puertoEscuchaServer;
+                return _serverPortListening;
             }
             set
             {
-                _puertoEscuchaServer = value;
+                _serverPortListening = value;
             }
         }
 
@@ -329,36 +332,36 @@ namespace Sockets
             }
         }
 
-        public int NumConexion
+        public int ConnectionNumber
         {
             get
             {
-                return _numConexion;
+                return _connectionNumber;
             }
             set
             {
-                _numConexion = value;
+                _connectionNumber = value;
             }
         }
 
-        public string Mensaje
+        public string Message
         {
             get
             {
-                return _mensaje;
+                return _message;
             }
         }
 
-        public int GetNumConexion()
+        public int GetConnectionNumber()
         {
-            return _cantConServidor;
+            return _numberServerConnections;
         }
 
         public int GetUltimoNumeroClienteConectado
         {
             get
             {
-                return _numCliConServidor;
+                return _numCliConServer;
             }
         }
 
@@ -375,37 +378,33 @@ namespace Sockets
             }
         }
 
-        public void Desconectarme()
+        public void Disconnect()
         {
-            if (ModoCliente)
+            if (ClientMode)
             {
-                _objCliente.Cerrar_Conexion();
+                _objClient.CloseConnection();
             }
         }
 
-        public void DesconectarCliente(int numConexion)
+        public void DisconnectClient(int connectionNumber)
         {
-            string res = "";
-            if (ModoServidor)
+            if (ServerMode)
             {
                 if (_tcp)
                 {
-                    int indiceClienteDesconectar = GetIndiceListaClienteConectado(numConexion);
-                    if (indiceClienteDesconectar >= 0)
+                    int clientIndexDisconnect = GetListIndexConnectedClient(connectionNumber);
+                    if (clientIndexDisconnect >= 0)
                     {
-                        _lstObjServidorTCP[indiceClienteDesconectar].DesconectarCliente();
-                        ReacomodarListaClientes();
-                        //_cantConServidor--;
+                        _lstObjServerTCP[clientIndexDisconnect].DisconnectClient();
+                        OrderClientList();
+                        //_numberServerConnections--;
 
                     }
-                    if (res != "")
-                    {
-                        Error(res);
-                    }
+                    
                 }
                 else
                 {
-                    _objServidorUDP.Desconectar(numConexion);
+                    _objServerUDP.Disconnect(connectionNumber);
                 }
             }
         }
@@ -415,55 +414,46 @@ namespace Sockets
             if (_tcp)
             {
 
-                //Console.WriteLine(_cantConServidor);
-
-                //for (int i = 0; i < _lstObjServidorTCP.Count; i++)
-                for (int i = _lstObjServidorTCP.Count() -1; i >= 0; i--)
+                for (int i = _lstObjServerTCP.Count() -1; i >= 0; i--)
                 {
-                    string res = "";
-
-                    _lstObjServidorTCP[i].DesconectarCliente(_deteniendoServer);
-                    ReacomodarListaClientes();
                     
-                    if (res != "")
-                    {
-                        Error(res);
-                    }
+                    _lstObjServerTCP[i].DisconnectClient(_stopingServer);
+                    OrderClientList();
+                    
                 }
 
-                /*
-                Parametrosvento ev = new Parametrosvento();
-                ev.SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
-                EventSocket(ev);*/
             }
             else
             {
-                _objServidorUDP.DesconectarTodos();
+                _objServerUDP.DisconnectAll();
             }
         }
 
         public void KillServer()
         {
-            _serverEscuchando = false;
-            _deteniendoServer = true;
-            if (tcp)
+            if (_serverMode)
             {
-                DesconectarTodosClientes();
-                //_lstObjServidorTCP.Clear();
-            }
-            else
-            {
-                _objServidorUDP.DetenerServer();
+                _serverListening = false;
+                _stopingServer = true;
+                if (tcp)
+                {
+                    DesconectarTodosClientes();
+                    //_lstObjServerTCP.Clear();
+                }
+                else
+                {
+                    _objServerUDP.StopServer();
+                }
             }
         }
 
-        public bool ClienteConectado
+        public bool ClientConnected
         {
             get
             {
-                if (_objCliente != null)
+                if (_objClient != null)
                 {
-                    return _objCliente.conectado;
+                    return _objClient.conected;
                 }
                 return false;
             }
@@ -471,33 +461,33 @@ namespace Sockets
         #endregion
 
         //todos los eventos del cliente y el servidor caen acá
-        private void Evsocket(Parametrosvento ev)
+        private void Evsocket(EventParameters ev)
         {
             //REVISAR ESTO
-            string mensaje = "";
-            bool mostrarEvMaxConexiones = false;
+            string message = "";
+            bool showEvMaxConnections = false;
 
-            if ((_ipCliente !=""))
+            if ((_ipClient !=""))
             {
-                if (_ipCliente != ev.GetIpOrigen)
+                if (_ipClient != ev.GetIpOrigen)
                 {
-                    _ipCliente = ev.GetIpOrigen;
+                    _ipClient = ev.GetIpOrigen;
                 }
             }
 
-            if (_modoServidor)
+            if (_serverMode)
             {
-                switch(ev.GetEvento)
+                switch(ev.GetEventType)
                 {
-                    case Parametrosvento.TipoEvento.ERROR:
+                    case EventParameters.EventType.ERROR:
                         if (!_tcp)
                         {
                             //string aux = "";
-                            //_objServidor.Iniciar(ref aux); //volvemos a iniciar el servidor udp
+                            //_objServidor.Start(ref aux); //volvemos a iniciar el servidor udp
                         }
                         break;
 
-                    case Parametrosvento.TipoEvento.NUEVA_CONEXION:
+                    case EventParameters.EventType.NEW_CONNECTION:
                         
                         if (!_tcp)
                         {
@@ -505,39 +495,39 @@ namespace Sockets
                         }
                         else
                         {
-                            if (_cantConServidor >= (_maxServCon -1)) //muy cabeza, pero funciona
+                            if (_numberServerConnections >= (_maxServerConnectionNumber -1)) //muy cabeza, pero funciona
                             {
-                                mostrarEvMaxConexiones = true; //genero el evento de limite de conexiones
+                                showEvMaxConnections = true; //genero el evento de limite de conexiones
                             }
-                            _cantConServidor++;
-                            _numCliConServidor++;
-                            if (GetNumConexion() < _maxServCon)
+                            _numberServerConnections++;
+                            _numCliConServer++;
+                            if (GetConnectionNumber() < _maxServerConnectionNumber)
                             {
-                                CrearServidor(ref mensaje);
+                                CrearServidor(ref message);
                                 StartServer();
                             }
                         }
                         break;
 
-                    case Parametrosvento.TipoEvento.CONEXION_FIN: //UDP no dispara este evento
-                        _lstObjServidorTCP.RemoveAt(ev.GetIndiceLista);
-                        ReacomodarListaClientes();
-                        _cantConServidor--;
+                    case EventParameters.EventType.END_CONNECTION: //UDP no dispara este evento
+                        _lstObjServerTCP.RemoveAt(ev.GetListIndex);
+                        OrderClientList();
+                        _numberServerConnections--;
 
-                        if (!_serverEscuchando && !_deteniendoServer)
+                        if (!_serverListening && !_stopingServer)
                         {
-                            CrearServidor(ref mensaje);
+                            CrearServidor(ref message);
                             StartServer();
                         }
 
                         break;
 
-                    case Parametrosvento.TipoEvento.SERVER_DETENIDO:
-                        _deteniendoServer = false;
-                        _serverIniciado = false;
+                    case EventParameters.EventType.SERVER_STOP:
+                        _stopingServer = false;
+                        _serverStarted = false;
                         if (tcp)
                         {
-                            _lstObjServidorTCP.Clear();
+                            _lstObjServerTCP.Clear();
                         }
                         break;
                 }
@@ -547,43 +537,43 @@ namespace Sockets
             EventSocket(ev); //envío el evento a quien lo este consumiendo(?)
 
             //pongo esto acá ya que tengo que ser lo último que muestro
-            if (mostrarEvMaxConexiones)
+            if (showEvMaxConnections)
             {
-                mostrarEvMaxConexiones = false;
-                _serverEscuchando = false;
-                Parametrosvento evMaxCon = new Parametrosvento();
-                evMaxCon.SetEvento(Parametrosvento.TipoEvento.LIMITE_CONEXIONES);
+                showEvMaxConnections = false;
+                _serverListening = false;
+                EventParameters evMaxCon = new EventParameters();
+                evMaxCon.SetEvent(EventParameters.EventType.CONNECTION_LIMIT);
                 EventSocket(evMaxCon);
             }
         }
 
         /// <summary>
-        /// envía un mensaje al cliente o al servidor. si hay un error se dispara un evento de error
+        /// envía un message al cliente o al servidor. si hay un error se dispara un evento de error
         /// </summary>
-        /// <param name="mensaje">mensaje a enviar</param>
-        public void Enviar(string mensaje,int indice=0)
+        /// <param name="message">message a enviar</param>
+        public void Send(string message,int indice=0)
         {
 
             string res = "";
 
-            if (_modoServidor)
+            if (_serverMode)
             {
                 if (_tcp)
                 {
-                    if (_lstObjServidorTCP[indice].Conectado)
+                    if (_lstObjServerTCP[indice].Connected)
                     {
-                        _lstObjServidorTCP[indice].Enviar(mensaje); //saczar ref res
+                        _lstObjServerTCP[indice].Send(message); //saczar ref res
                     }
                 }
                 else
                 {
-                    _objServidorUDP.Enviar(mensaje,indice);
+                    _objServerUDP.Send(message,indice);
                 }
             }
 
-            if (_modoCliente)
+            if (_clientMode)
             {
-                _objCliente.Enviar(mensaje, ref res);
+                _objClient.Send(message, ref res);
             }
 
             if (res != "")
@@ -592,27 +582,27 @@ namespace Sockets
             }
         }
 
-        public void EnviarATodos(string mensaje)
+        public void SendAll(string message)
         {
             try
             {
-                if (_modoServidor)
+                if (_serverMode)
                 {
                     if (_tcp)
                     {
-                        for (int i = 0; i < _lstObjServidorTCP.Count(); i++)
+                        for (int i = 0; i < _lstObjServerTCP.Count(); i++)
                         {
-                            Enviar(mensaje, i);
+                            Send(message, i);
                         }
                     }
                     else
                     {
-                        _objServidorUDP.EnviarATodos(mensaje);
+                        _objServerUDP.SendAll(message);
                     }
                 }
                 else
                 {
-                    Enviar(mensaje);
+                    Send(message);
                 }
             }
             catch(Exception err)
@@ -621,56 +611,6 @@ namespace Sockets
             }
 
         }
-
-        public void EnviarArrayATodos(byte[] memArray,int clusterSize)
-        {
-            try
-            {
-                if (_tcp)
-                {
-                    for (int i = 0; i < _lstObjServidorTCP.Count(); i++)
-                    {
-                        SendArray(memArray, clusterSize, i);
-                    }
-                }
-                else
-                {
-                    //UDP
-                }
-            }
-            catch(Exception err)
-            {
-                GenerateErrorEvent(err);
-            }
-        }
-
-        /*public void SendArray(byte[] memArray, int clusterSize,int indexConection)
-        {
-            string res = "";
-
-            if (_modoServidor)
-            {
-                if (_tcp)
-                {
-                    _lstObjServidorTCP[indexConection].Enviar_ByteArray(memArray, clusterSize);
-                }
-                else
-                {
-                    _objServidorUDP.Enviar_ByteArray(memArray, clusterSize, indexConection);
-                }
-            }
-
-            if (_modoCliente)
-            {
-                _objCliente.Enviar_ByteArray(memArray, clusterSize, ref res);
-            }
-
-            if (res != "")
-            {
-                Error(res);
-            }
-
-        }*/
 
         public void SendArray(byte[] memArray, int clusterSize, int indexConection)
         {
@@ -695,12 +635,13 @@ namespace Sockets
 
         private void SendArrayThread(object sendArrayParams)
         {
-            string datos = "";
-            int nPosActual = 0;
-            int nTam;
-            int nResultado = 0;
-            int nPosLectura = 0;
-            int nCondicion;
+            string data = "";
+            int actualPositionNumber = 0;
+            int nSize;
+            int resultNumber = 0;
+            //int nPosLectura = 0;
+            int readingPositionNumber = 0;
+            int conditionNumber;
 
             SendArrayParamsContainer aux = (SendArrayParamsContainer)sendArrayParams;
             SendArrayParamsContainer sendParams = new SendArrayParamsContainer();
@@ -708,68 +649,56 @@ namespace Sockets
             sendParams.indexConection = aux.indexConection;
             sendParams.memArray = aux.memArray;
 
-            nTam = sendParams.memArray.Length; //memArray.Length;
+            nSize = sendParams.memArray.Length; //memArray.Length;
 
-            if (nTam <= sendParams.clusterSize) //TamCluster)
+            if (nSize <= sendParams.clusterSize) //TamCluster)
             {
                 //TamCluster = nTam; //sí es mas chico lo que mando que el cluster
-                sendParams.clusterSize = nTam;
+                sendParams.clusterSize = nSize;
             }
 
             try
             {
 
-                //TcpClient TcpClienteDatos = _tcpCliente;
-                //NetworkStream clientStream = TcpClienteDatos.GetStream();
-
-                while (nPosActual < nTam - 1) //quizas aca me falte un byte (-1)
+                while (actualPositionNumber < nSize - 1) //quizas aca me falte un byte (-1)
                 {
-                    nCondicion = nPosActual + sendParams.clusterSize;
-                    for (int I = nPosActual; I <= nCondicion - 1; I++)
+                    conditionNumber = actualPositionNumber + sendParams.clusterSize;
+                    for (int I = actualPositionNumber; I <= conditionNumber - 1; I++)
                     {
                         //meto todo al string para manadar
-                        datos = datos + Convert.ToChar(sendParams.memArray[I]);
-                        nPosLectura++;
+                        data = data + Convert.ToChar(sendParams.memArray[I]);
+                        readingPositionNumber++;
                     }
 
                     //me re acomodo en el array
-                    nResultado = nTam - nPosLectura;
-                    if (nResultado <= sendParams.clusterSize)
+                    resultNumber = nSize - readingPositionNumber;
+                    if (resultNumber <= sendParams.clusterSize)
                     {
-                        sendParams.clusterSize = nResultado; //ya estoy en el final y achico el cluster
+                        sendParams.clusterSize = resultNumber; //ya estoy en el final y achico el cluster
                     }
-                    else
+                    /*else
                     {
                         //por ahora no hago nada
-                    }
+                    }*/
 
-                    nPosActual = nPosLectura;
-                    Parametrosvento ev = new Parametrosvento();
-                    ev.SetPosicion(nPosActual).SetEvento(Parametrosvento.TipoEvento.POSICION_ENVIO);
-                    EventSocket(ev);
-                    //ver que no me quede uno atras
-
-                    //envio los datos
-                    //byte[] buffer = _encoder.GetBytes(Datos);
-
-                    //clientStream.Write(buffer, 0, buffer.Length);
-                    //clientStream.Flush(); //envio lo datos
-
-                    Enviar(datos,sendParams.indexConection);
-
-                    ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(nPosActual);
+                    actualPositionNumber = readingPositionNumber;
+                    EventParameters ev = new EventParameters();
+                    ev.SetPosition(actualPositionNumber).SetEvent(EventParameters.EventType.SEND_POSITION);
                     EventSocket(ev);
                     
-                    string res = "";
+                    //ACÁ ENVIO LOS DATOS
+                    Send(data, sendParams.indexConection);
 
+                    ev.SetEvent(EventParameters.EventType.SEND_COMPLETE).SetPosition(actualPositionNumber);
+                    EventSocket(ev);
+                    
                     Thread.Sleep(5);
 
-                    datos = ""; //limpio la cadena
+                    data = ""; //limpio la cadena
                 }//fin while
 
-                //CREAR EVENTO DE SEND_ARRAY_COMPLET
-                Parametrosvento evSendArrayComplete = new Parametrosvento();
-                evSendArrayComplete.SetEvento(Parametrosvento.TipoEvento.SEND_ARRAY_COMPLETE);
+                EventParameters evSendArrayComplete = new EventParameters();
+                evSendArrayComplete.SetEvent(EventParameters.EventType.SEND_ARRAY_COMPLETE);
                 EventSocket(evSendArrayComplete);
             }
             catch (Exception err)
@@ -779,29 +708,26 @@ namespace Sockets
 
         }
 
-        private int GetUltimoEspacioLibre()
+        private int GetLastSpaceFree()
         {
             int res =0;
             if (_tcp)
             {
-                res = _lstObjServidorTCP.Count();
+                res = _lstObjServerTCP.Count();
             }
-            else
-            {
-                //res = _lstObjServidorUDP.Count();
-            }
+            
             return res;
         }
 
-        private void ReacomodarListaClientes()
+        private void OrderClientList()
         {
             try
             {
                 if (_tcp)
                 {
-                    for (int i = 0; i < _lstObjServidorTCP.Count(); i++)
+                    for (int i = 0; i < _lstObjServerTCP.Count(); i++)
                     {
-                        _lstObjServidorTCP[i].IndiceLista = i;
+                        _lstObjServerTCP[i].ListIndex = i;
                     }
                 }
                 else
@@ -820,15 +746,15 @@ namespace Sockets
         /// </summary>
         /// <param name="indiceCliente">le paso el numero de indice de cliente</param>
         /// <returns></returns>
-        private int GetIndiceListaClienteConectado(int numConexion)
+        private int GetListIndexConnectedClient(int connectionNumber)
         {
             try
             {
                 if (_tcp)
                 {
-                    for (int i = 0; i < _lstObjServidorTCP.Count(); i++)
+                    for (int i = 0; i < _lstObjServerTCP.Count(); i++)
                     {
-                        if (_lstObjServidorTCP[i].IndiceConexion == numConexion)
+                        if (_lstObjServerTCP[i].IndexConnection == connectionNumber)
                         {
                             return i;
                         }
@@ -849,14 +775,14 @@ namespace Sockets
         private void GenerateErrorEvent(Exception err, string mensajeOpcional = "")
         {
             Utils utils = new Utils();
-            Parametrosvento ev = new Parametrosvento();
+            EventParameters ev = new EventParameters();
             if (mensajeOpcional != "")
             {
                 mensajeOpcional = " " + mensajeOpcional;
             }
-            ev.SetDatos(err.Message + mensajeOpcional).
-                SetEvento(Parametrosvento.TipoEvento.ERROR).
-                SetCodError(utils.GetCodigoError(err));
+            ev.SetData(err.Message + mensajeOpcional).
+                SetEvent(EventParameters.EventType.ERROR).
+                SetErrorCode(utils.GetErrorCode(err));
             Evsocket(ev);
         }
 

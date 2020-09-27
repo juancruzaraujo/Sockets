@@ -13,183 +13,175 @@ namespace Sockets
     internal class ServidorTCP
     {
         #if DEBUG
-            private /*static*/ bool modo_Debug = true;
+            private /*static*/ bool debug_Mode = true;
         #else
-            private /*static*/ bool modo_Debug = false;
+            private /*static*/ bool debug_Mode = false;
         #endif
 
-        private Thread _thrCliente;
+        private Thread thrClient;
         private Thread _thrClienteConexion;
 
         private TcpListener _tcpListen;
-        private TcpClient _tcpCliente;
+        private TcpClient _tcpClient;
         private Encoding _encoder;
 
-        private int _indiceCon; //va a contener el indice de conexion
-        private int _indiceLista; //va a conetener el indice de la lista de sockets
-        private bool _bucleCliComunucacion;
-        private bool _escuchar;
+        private int _indexConnection; //va a contener el indice de conexion
+        private int _listIndex; //va a conetener el indice de la lista de sockets
+        private bool _loopCommunicationClient;
+        private bool _listening;
 
-        private bool _conectado;
-        internal bool EsperandoConexion;
-        internal string ip_Conexion;
-        internal int puerto;
+        private bool _connected;
+        internal bool waitConnection;
+        internal string ipConnection;
+        internal int port;
 
-        internal delegate void Delegado_Servidor_Event(Parametrosvento servidorParametrosEvento);
-        internal event Delegado_Servidor_Event evento_servidor;
-        private void Evento_Servidor(Parametrosvento servidorParametrosEvento)
+        internal delegate void Delegate_Server_Event(EventParameters serverParametersEvent);
+        internal event Delegate_Server_Event evento_servidor;
+        private void Event_Server(EventParameters serverParametersEvent)
         {
-            this.evento_servidor(servidorParametrosEvento);
+            this.evento_servidor(serverParametersEvent);
         }
         
-        internal bool Escuchar
+        internal bool Listen
         {
             get
             {
-                return _escuchar;
+                return _listening;
             }
             set
             {
-                _escuchar = false;
+                _listening = false;
             }
         }
 
-        internal int IndiceConexion
+        internal int IndexConnection
         {
             get
             {
-                return _indiceCon;
+                return _indexConnection;
             }
             set
             {
-                _indiceCon = value;
+                _indexConnection = value;
             }
         }
 
-        internal int IndiceLista
+        internal int ListIndex
         {
             get
             {
-                return _indiceLista;
+                return _listIndex;
             }
             set
             {
-                _indiceLista = value;
+                _listIndex = value;
             }
         }
 
-        internal bool Conectado
+        internal bool Connected
         {
             get
             {
-                return _conectado;
+                return _connected;
             }
         }
 
         /// <summary>
         /// setea el socket para la escucha
         /// </summary>
-        /// <param name="PuertoEscucha">puerto de escucha</param>
+        /// <param name="portListening">port de escucha</param>
         /// <param name="Cod">codopage</param>
-        /// <param name="Mensaje">mensaje que retorna en caso de error</param>
+        /// <param name="Message">message que retorna en caso de error</param>
         /// <param name="tcp">define si la conexión es tpc o udp, vaor default true, si es falso, la conexion es udp</param>
-        internal ServidorTCP(int PuertoEscucha, int Cod, ref string mensaje)
+        internal ServidorTCP(int portListening, int Cod, ref string message)
         {
-            _indiceCon = -1;
+            _indexConnection = -1;
             try
             {
-                CodePage(Cod, ref mensaje);
-                if (mensaje != "")
+                CodePage(Cod, ref message);
+                if (message != "")
                 {
-                    mensaje = mensaje + " No se pudo iniciar ConServer";
+                    message = message + " No se pudo iniciar ConServer";
                     return;
                 }
 
-                puerto = PuertoEscucha;
+                port = portListening;
             }
             catch (Exception err)
             {
-                mensaje = err.Message;
-                GenerarEventoError(err);
+                message = err.Message;
+                GenerateEventError(err);
             }
         }
 
         /// <summary>
         /// Inicia el sokect en escucha
         /// </summary>
-        /// <param name="Mensaje">Mensaje que retorna en caso de error</param>
-        internal void Iniciar(ref string Mensaje)
+        /// <param name="Message">Message que retorna en caso de error</param>
+        internal void Start(ref string Message)
         {
             try
             {
-                ThreadStart cliente;
-                cliente = new ThreadStart(EscucharTCP);
+                ThreadStart client;
+                client = new ThreadStart(Listen_TCP);
                 
-                _thrCliente = new Thread(cliente);
-                _thrCliente.Name = "ThTCP";
-                _thrCliente.IsBackground = true;
-                _thrCliente.Start();
+                thrClient = new Thread(client);
+                thrClient.Name = "ThTCP";
+                thrClient.IsBackground = true;
+                thrClient.Start();
 
             }
             catch (Exception err)
             {
-                EsperandoConexion = false;
+                waitConnection = false;
 
-                Mensaje = err.Message;
-                GenerarEventoError(err);
+                Message = err.Message;
+                GenerateEventError(err);
             }
         }
 
         /*internal void Detener()
         {
-            _bucleCliComunucacion = false;
+            _loopCommunicationClient = false;
         }*/
 
         /// <summary>
         /// Detiene todas las conexiones
         /// </summary>
-        /// <param name="Mensaje">Mensaje que retorna en caso de error</param>
-        internal void DesconectarCliente(bool deteniendoServer = false)
+        /// <param name="Message">Message que retorna en caso de error</param>
+        internal void DisconnectClient(bool serverStoping = false)
         {
-            bool forzarDesconexion;
+            bool forceDisconnection;
 
-            if (deteniendoServer)
+            if (serverStoping)
             {
-                forzarDesconexion = true;
+                forceDisconnection = true;
             }
             else
             {
-                forzarDesconexion = Conectado;
+                forceDisconnection = Connected;
             }
 
-            
-            /*if (!forzarDesconexion) //SI ESTÀ ESTO, NO DETIENE EL SERVER ni reinicia
-            {
-                EsperandoConexion = false;
-                Parametrosvento ev = new Parametrosvento();
-                ev.SetEscuchando(EsperandoConexion).SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
-                GenerarEvento(ev);
-            }*/
 
             try
             {
-                if (_thrCliente != null)
+                if (thrClient != null)
                 {
-                    if (forzarDesconexion)
+                    if (forceDisconnection)
                     {
                         _tcpListen.Stop();
-                        if (_tcpCliente != null)
+                        if (_tcpClient != null)
                         {
-                            _tcpCliente.Close();
+                            _tcpClient.Close();
                         }
                         else
                         {
-                            Parametrosvento ev = new Parametrosvento();
-                            ev.SetEscuchando(EsperandoConexion).SetEvento(Parametrosvento.TipoEvento.SERVER_DETENIDO);
-                            GenerarEvento(ev);
+                            EventParameters ev = new EventParameters();
+                            ev.SetListening(waitConnection).SetEvent(EventParameters.EventType.SERVER_STOP);
+                            GenerateEvent(ev);
                         }
-                        _thrCliente.Abort();
-                        _bucleCliComunucacion = false;
+                        thrClient.Abort();
+                        _loopCommunicationClient = false;
                         //_thrClienteConexion.Abort();
                         Thread.EndCriticalRegion(); //esto cierra todo con o sin conexiones
                     }
@@ -197,40 +189,40 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                if (modo_Debug == true)
+                if (debug_Mode == true)
                 {
-                    GenerarEventoError(err);
+                    GenerateEventError(err);
                 }
             }
         }
 
-        private void EscucharTCP()
+        private void Listen_TCP()
         {
-            //bool _escuchar;
+            //bool _listening;
 
-            TcpClient Cliente = new TcpClient();
+            TcpClient clientTCP = new TcpClient();
 
-            _tcpListen = new TcpListener(IPAddress.Any, puerto);
+            _tcpListen = new TcpListener(IPAddress.Any, port);
             
             try
             {
-                EsperandoConexion = true;
-                Parametrosvento ev = new Parametrosvento();
-                ev.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION).SetEscuchando(true);
-                GenerarEvento(ev);
+                waitConnection = true;
+                EventParameters ev = new EventParameters();
+                ev.SetEvent(EventParameters.EventType.WAIT_CONNECTION).SetListening(true);
+                GenerateEvent(ev);
 
                 _tcpListen.Stop();
                 _tcpListen.Start();
-                _escuchar = true;
+                _listening = true;
             }
             catch (Exception err)
             {
                 //el error salta acá, porque ya abrí una nueva instancia que esta eschando acá.
-                EsperandoConexion = false;
-                Parametrosvento evErr = new Parametrosvento();
-                evErr.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
-                GenerarEvento(evErr); //ver porque puse dos eventos
-                GenerarEventoError(err);
+                waitConnection = false;
+                EventParameters evErr = new EventParameters();
+                evErr.SetEvent(EventParameters.EventType.WAIT_CONNECTION);
+                GenerateEvent(evErr); //ver porque puse dos eventos
+                GenerateEventError(err);
                 return;
             }
 
@@ -241,74 +233,74 @@ namespace Sockets
                     string sAux;
 
                     //Escuchando = true;
-                    Cliente = _tcpListen.AcceptTcpClient();
-                    sAux = ((System.Net.IPEndPoint)(Cliente.Client.RemoteEndPoint)).Address.ToString();
+                    clientTCP = _tcpListen.AcceptTcpClient();
+                    sAux = ((System.Net.IPEndPoint)(clientTCP.Client.RemoteEndPoint)).Address.ToString();
 
-                    EsperandoConexion = false;
-                    Parametrosvento ev = new Parametrosvento();
-                    ev.SetEvento(Parametrosvento.TipoEvento.ESPERA_CONEXION);
-                    GenerarEvento(ev);
+                    waitConnection = false;
+                    EventParameters ev = new EventParameters();
+                    ev.SetEvent(EventParameters.EventType.WAIT_CONNECTION);
+                    GenerateEvent(ev);
 
                     try
                     {
-                        _bucleCliComunucacion = true;
-                        _thrClienteConexion = new Thread(new ParameterizedThreadStart(Cliente_Comunicacion));
+                        _loopCommunicationClient = true;
+                        _thrClienteConexion = new Thread(new ParameterizedThreadStart(ClientCommunication));
                         _thrClienteConexion.Name = "ThrCliente";
                         _thrClienteConexion.IsBackground = true;
-                        _thrClienteConexion.Start(Cliente);
+                        _thrClienteConexion.Start(clientTCP);
 
-                        ev.SetEvento(Parametrosvento.TipoEvento.ACEPTAR_CONEXION).SetIpOrigen(sAux);
-                        GenerarEvento(ev);
+                        ev.SetEvent(EventParameters.EventType.ACCEPT_CONNECTION).SetIpOrigen(sAux);
+                        GenerateEvent(ev);
 
                         //ahora tendria que dejar de escuchar
-                        _escuchar = false;
+                        _listening = false;
                         _tcpListen.Stop();
                     }
                     catch (Exception err)
                     {
-                        _escuchar = false;
-                        //ev.SetDatos(err.Message + " threadConexion").SetEvento(Parametrosvento.TipoEvento.ERROR);
-                        //GenerarEvento(ev);
-                        GenerarEventoError(err, "threadConexion");
+                        _listening = false;
+                        //ev.SetData(err.Message + " threadConexion").SetEvent(Parametrosvento.TipoEvento.ERROR);
+                        //GenerateEvent(ev);
+                        GenerateEventError(err, "threadConexion");
 
                     }
                 }
                 catch (Exception err)
                 {
-                    _escuchar = false;
+                    _listening = false;
                     _tcpListen.Stop();
-                    GenerarEventoError(err, "TcpListen.Accept()");
+                    GenerateEventError(err, "TcpListen.Accept()");
                     
                     //_thrClienteConexion.Abort();
                 }
 
-            } while (_escuchar == true);//fin do
+            } while (_listening == true);//fin do
         }
 
-        private void Cliente_Comunicacion(object Cliente)
+        private void ClientCommunication(object Cliente)
         {
 
             bool EveYaDisparado = false;
 
             try
             {
-                _tcpCliente = (TcpClient)Cliente;
-                NetworkStream clientStream = _tcpCliente.GetStream();
-                string strDatos;
+                _tcpClient = (TcpClient)Cliente;
+                NetworkStream clientStream = _tcpClient.GetStream();
+                string strData;
 
-                _tcpCliente = (TcpClient)Cliente;
+                _tcpClient = (TcpClient)Cliente;
 
                 //levanto evento nueva conexion
-                _conectado = true;
-                Parametrosvento ev = new Parametrosvento();
-                ev.SetIpOrigen(_tcpCliente.Client.RemoteEndPoint.ToString()).SetEvento(Parametrosvento.TipoEvento.NUEVA_CONEXION);
-                GenerarEvento(ev);
+                _connected = true;
+                EventParameters ev = new EventParameters();
+                ev.SetIpOrigen(_tcpClient.Client.RemoteEndPoint.ToString()).SetEvent(EventParameters.EventType.NEW_CONNECTION);
+                GenerateEvent(ev);
 
                 byte[] message = new byte[65535];
 
                 int bytesRead;
 
-                while (_bucleCliComunucacion)
+                while (_loopCommunicationClient)
                 {
                     bytesRead = 0;
 
@@ -319,8 +311,8 @@ namespace Sockets
                     catch 
                     {
                         EveYaDisparado = true;
-                        _conectado = false;
-                        _tcpCliente.Close();
+                        _connected = false;
+                        _tcpClient.Close();
                         
                         break;
                     }
@@ -328,170 +320,95 @@ namespace Sockets
                     if (bytesRead == 0)
                     {
                         //el cliente se desconecto!
-                        _conectado = false;
-                        _tcpCliente.Close();
-                        ev.SetDatos("").SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN);
+                        _connected = false;
+                        _tcpClient.Close();
+                        ev.SetData("").SetEvent(EventParameters.EventType.END_CONNECTION);
                         //EveYaDisparado = true;
                         break;
                     }
-                    
-                    //llegó el mensaje
-                    strDatos = _encoder.GetString(message, 0, bytesRead);
-                    ev.SetDatos(strDatos)
-                        .SetIpOrigen(_tcpCliente.Client.RemoteEndPoint.ToString())
-                        .SetEvento(Parametrosvento.TipoEvento.DATOS_IN)
-                        .SetSize(strDatos.Length);
-                    GenerarEvento(ev);
+
+                    //llegó el message
+                    strData = _encoder.GetString(message, 0, bytesRead);
+                    ev.SetData(strData)
+                        .SetIpOrigen(_tcpClient.Client.RemoteEndPoint.ToString())
+                        .SetEvent(EventParameters.EventType.DATA_IN)
+                        .SetSize(strData.Length);
+                    GenerateEvent(ev);
                 }
 
                 if (!EveYaDisparado)
                 {
                     //el cliente cerro la conexion
-                    _conectado = false;
-                    _tcpCliente.Close();
+                    _connected = false;
+                    _tcpClient.Close();
                 }
 
-                ev.SetEvento(Parametrosvento.TipoEvento.CONEXION_FIN).SetDatos("");
-                GenerarEvento(ev);
+                ev.SetEvent(EventParameters.EventType.END_CONNECTION).SetData("");
+                GenerateEvent(ev);
                 
             }
             catch (Exception err)
             {
-                GenerarEventoError(err);
+                GenerateEventError(err);
             }
         }
 
         /// <summary>
-        /// Envia un mensaje al cliente conectado
+        /// Envia un message al cliente conectado
         /// </summary>
-        /// <param name="Indice">Indice de conexion al que se el envia el mensaje</param>
-        /// <param name="Datos">el mensaje a enviar</param>
-        /// <param name="Resultado">Mensaje que retorna en caso de error</param>
-        //internal void Enviar(int Indice,string Datos, ref string Resultado)
-        internal void Enviar(string datos)
+        /// <param name="Indice">Indice de conexion al que se el envia el message</param>
+        /// <param name="Datos">el message a enviar</param>
+        /// <param name="Resultado">Message que retorna en caso de error</param>
+        //internal void Send(int Indice,string Datos, ref string Resultado)
+        internal void Send(string data)
         {
             int buf=0;
             try
             {
-                TcpClient TcpClienteDatos = _tcpCliente;
+                TcpClient TcpClienteDatos = _tcpClient;
                 NetworkStream clienteStream = TcpClienteDatos.GetStream();
 
-                byte[] buffer = _encoder.GetBytes(datos);
+                byte[] buffer = _encoder.GetBytes(data);
                 buf = buffer.Length;
                 clienteStream.Write(buffer, 0, buf);
                 clienteStream.Flush(); //envio los datos
                 
-                Parametrosvento ev = new Parametrosvento();
-                ev.SetSize(buf).SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO);
-                GenerarEvento(ev);
+                EventParameters ev = new EventParameters();
+                ev.SetSize(buf).SetEvent(EventParameters.EventType.SEND_COMPLETE);
+                GenerateEvent(ev);
 
             }
             catch (Exception err)
             {
-                GenerarEventoError(err);
+                GenerateEventError(err);
             }
         }
 
-        /*
-        internal void Enviar_ByteArray(byte[] memArray, int TamCluster)
-        {
-            string datos = "";
-            int nPosActual = 0;
-            int nTam;
-            int nResultado = 0;
-            int nPosLectura = 0;
-            int nCondicion;
-
-            nTam = memArray.Length;
-
-            if (nTam <= TamCluster)
-            {
-                TamCluster = nTam; //sí es mas chico lo que mando que el cluster
-            }
-
-            try
-            {
-
-                //TcpClient TcpClienteDatos = _tcpCliente;
-                //NetworkStream clientStream = TcpClienteDatos.GetStream();
-
-                while (nPosActual < nTam - 1) //quizas aca me falte un byte (-1)
-                {
-                    nCondicion = nPosActual + TamCluster;
-                    for (int I = nPosActual; I <= nCondicion - 1; I++)
-                    {
-                        //meto todo al string para manadar
-                        datos = datos + Convert.ToChar(memArray[I]);
-                        nPosLectura++;
-                    }
-
-                    //me re acomodo en el array
-                    nResultado = nTam - nPosLectura;
-                    if (nResultado <= TamCluster)
-                    {
-                        TamCluster = nResultado; //ya estoy en el final y achico el cluster
-                    }
-                    else
-                    {
-                        //por ahora no hago nada
-                    }
-
-                    nPosActual = nPosLectura;
-                    Parametrosvento ev = new Parametrosvento();
-                    ev.SetPosicion(nPosActual).SetEvento(Parametrosvento.TipoEvento.POSICION_ENVIO);
-                    GenerarEvento(ev);
-                    //ver que no me quede uno atras
-
-                    //envio los datos
-                    //byte[] buffer = _encoder.GetBytes(Datos);
-
-                    //clientStream.Write(buffer, 0, buffer.Length);
-                    //clientStream.Flush(); //envio lo datos
-                    Enviar(datos);
-
-                    ev.SetEvento(Parametrosvento.TipoEvento.ENVIO_COMPLETO).SetPosicion(datos.Length);
-                    GenerarEvento(ev);
-
-                    //string res = "";
-
-                    Thread.Sleep(5);
-
-                    datos = ""; //limpio la cadena
-                }//fin while
-
-            }
-            catch (Exception err)
-            {
-                GenerarEventoError(err);
-            }
-
-        }
-        */
         /// <summary>
         /// Code page para iniciar la comunicacion
         /// </summary>
         /// <param name="Codigo">codigo de codepage</param>
-        /// <param name="Error">Mensaje que retorna en caso de error</param>
-        internal void CodePage(int Codigo, ref string error)
+        /// <param name="Error">Message que retorna en caso de error</param>
+        internal void CodePage(int CodePageCode, ref string error)
         {
             try
             {
-                _encoder = Encoding.GetEncoding(Codigo);
+                _encoder = Encoding.GetEncoding(CodePageCode);
             }
             catch (Exception err)
             {
                 error = err.Message;
-                GenerarEventoError(err);
+                GenerateEventError(err);
             }
         }
 
-        private void GenerarEvento(Parametrosvento ob)
+        private void GenerateEvent(EventParameters ob)
         {
-            ob.SetNumConexion(_indiceCon).SetIndiceLista(_indiceLista);
-            Evento_Servidor(ob);
+            ob.SetConnectionNumber(_indexConnection).SetListIndex(_listIndex);
+            Event_Server(ob);
         }
 
-        private void GenerarEventoError(Exception err,string mensajeOpcional="")
+        private void GenerateEventError(Exception err,string optionalMessage="")
         {
             if (err.HResult != -2146233040)
             {
@@ -500,17 +417,17 @@ namespace Sockets
                 //-2146233040
 
                 Utils utils = new Utils();
-                Parametrosvento ev = new Parametrosvento();
-                if (mensajeOpcional != "")
+                EventParameters ev = new EventParameters();
+                if (optionalMessage != "")
                 {
-                    mensajeOpcional = " " + mensajeOpcional;
+                    optionalMessage = " " + optionalMessage;
                 }
-                ev.SetEscuchando(EsperandoConexion).
-                    SetDatos(err.Message + mensajeOpcional).
-                    SetEvento(Parametrosvento.TipoEvento.ERROR).
-                    SetCodError(utils.GetCodigoError(err)).
-                    SetLineNumberError(utils.GetNumeroDeLineaError(err));
-                GenerarEvento(ev);
+                ev.SetListening(waitConnection).
+                    SetData(err.Message + optionalMessage).
+                    SetEvent(EventParameters.EventType.ERROR).
+                    SetErrorCode(utils.GetErrorCode(err));
+                    //SetLineNumberError(utils.GetNumeroDeLineaError(err));
+                GenerateEvent(ev);
             }
         }
 

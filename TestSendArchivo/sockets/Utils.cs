@@ -10,7 +10,7 @@ namespace Sockets
     internal class Utils
     {
       
-        internal int GetCodigoError(Exception err)
+        internal int GetErrorCode(Exception err)
         {
 
             var w32ex = err as Win32Exception;
@@ -30,12 +30,13 @@ namespace Sockets
            
             return cod;
         }
-
+        
+        /*
         internal int GetNumeroDeLineaError(Exception err)
         {
             var st = new StackTrace(err, true);
             var frame = st.GetFrame(0);
             return frame.GetFileLineNumber();
-        }
+        }*/
     }
 }
