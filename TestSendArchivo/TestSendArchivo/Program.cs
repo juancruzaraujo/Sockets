@@ -279,7 +279,7 @@ namespace TestSendArchivo
 
                         if (datos.Contains("killall\r\n"))
                         {
-                            _obSocket.DisconnectAllClients(); //hola
+                            _obSocket.DisconnectAllClients(); 
                         }
 
                         if (datos.Contains("detener\r\n"))
