@@ -19,7 +19,7 @@ namespace Sockets
             internal int connectionNumber;
             internal string dataIn;
         }
-        private List<InfoCliente> lstClientsUDP;
+        private List<InfoCliente> _lstClientsUDP;
 
         private Thread thrClient;
         private UdpClient _udpClient;
@@ -57,7 +57,7 @@ namespace Sockets
         internal ServidorUDP(int portListening)
         {
             _port = portListening;
-            lstClientsUDP = new List<InfoCliente>();
+            _lstClientsUDP = new List<InfoCliente>();
         }
 
         
@@ -99,6 +99,14 @@ namespace Sockets
 
         }
 
+
+        internal void Send(int connectionNumber,string data)
+        {
+            int index = GetListIndex(connectionNumber);
+            this.Send(data, index);
+            
+        }
+
         internal void Send(string data,int index)
         {
             int buf = 0;
@@ -106,13 +114,13 @@ namespace Sockets
             try
             {
                 buf = sendBytes.Length;
-                _udpClient.Send(sendBytes, buf, lstClientsUDP[index].clientEndPoint);
+                _udpClient.Send(sendBytes, buf, _lstClientsUDP[index].clientEndPoint);
                 
                 EventParameters ev = new EventParameters();
                 ev.SetSize(buf)
                 .SetEvent(EventParameters.EventType.SEND_COMPLETE)
                 .SetListIndex(index)
-                .SetConnectionNumber(lstClientsUDP[index].connectionNumber);
+                .SetConnectionNumber(_lstClientsUDP[index].connectionNumber);
                 GenerateEvent(ev);
 
             }
@@ -126,7 +134,7 @@ namespace Sockets
 
         internal void SendAll(string data)
         {
-            for (int i =0;i<lstClientsUDP.Count();i++)
+            for (int i =0;i< _lstClientsUDP.Count();i++)
             {
                 Send(data, i);
             }
@@ -168,16 +176,16 @@ namespace Sockets
                         if (auxClient.clientEndPoint.Port != _port) //me fijo no ser yo mismo
                         {
 
-                            for (int i = 0; i < lstClientsUDP.Count(); i++)
+                            for (int i = 0; i < _lstClientsUDP.Count(); i++)
                             {
-                                if (lstClientsUDP[i].clientEndPoint.Port == auxClient.clientEndPoint.Port)
+                                if (_lstClientsUDP[i].clientEndPoint.Port == auxClient.clientEndPoint.Port)
                                 {
                                     existingClient = true;
-                                    indexMsg = i;                                    
-                                    lstClientsUDP[i].dataIn = _encoder.GetString(datosEntrada);
+                                    indexMsg = i;
+                                    _lstClientsUDP[i].dataIn = _encoder.GetString(datosEntrada);
 
                                     generateDataInEvent = true;
-                                    i = lstClientsUDP.Count();
+                                    i = _lstClientsUDP.Count();
                                 }
                             }
                             if (!existingClient)
@@ -204,10 +212,10 @@ namespace Sockets
                                 //if ((_numberConnections < _maxNumberClientsUDP) && ) 
                                 if (evaluarMaximoClientesUDP)
                                 {
-                                    lstClientsUDP.Add(auxClient);
-                                    indexMsg = lstClientsUDP.Count() - 1;
-                                    lstClientsUDP[indexMsg].firtsMessage = true;
-                                    lstClientsUDP[indexMsg].dataIn = Encoding.ASCII.GetString(datosEntrada, 0, datosEntrada.Length);
+                                    _lstClientsUDP.Add(auxClient);
+                                    indexMsg = _lstClientsUDP.Count() - 1;
+                                    _lstClientsUDP[indexMsg].firtsMessage = true;
+                                    _lstClientsUDP[indexMsg].dataIn = Encoding.ASCII.GetString(datosEntrada, 0, datosEntrada.Length);
                                     generateDataInEvent = true;
                                 }
                                 else
@@ -228,19 +236,19 @@ namespace Sockets
                             if (generateDataInEvent) //lo que llego esta fuera del limite de conexiones
                             {
 
-                                _ipConnection = lstClientsUDP[indexMsg].clientEndPoint.Address.ToString();
+                                _ipConnection = _lstClientsUDP[indexMsg].clientEndPoint.Address.ToString();
 
-                                if (lstClientsUDP[indexMsg].firtsMessage)
+                                if (_lstClientsUDP[indexMsg].firtsMessage)
                                 {
-                                    lstClientsUDP[indexMsg].firtsMessage = false;
+                                    _lstClientsUDP[indexMsg].firtsMessage = false;
                                     _numberConnections++;
-                                    lstClientsUDP[indexMsg].connectionNumber = _numberConnections;
+                                    _lstClientsUDP[indexMsg].connectionNumber = _numberConnections;
 
                                     EventParameters acceptCon = new EventParameters();
                                     acceptCon.SetEvent(EventParameters.EventType.ACCEPT_CONNECTION)
                                         .SetIpOrigen(_ipConnection)
                                         .SetListIndex(indexMsg)
-                                        .SetConnectionNumber(lstClientsUDP[indexMsg].connectionNumber);
+                                        .SetConnectionNumber(_lstClientsUDP[indexMsg].connectionNumber);
 
                                     GenerateEvent(acceptCon);
 
@@ -251,7 +259,7 @@ namespace Sockets
                                     newCon.SetEvent(EventParameters.EventType.NEW_CONNECTION)
                                     .SetIpOrigen(_ipConnection)
                                     .SetListIndex(indexMsg)
-                                    .SetConnectionNumber(lstClientsUDP[indexMsg].connectionNumber);
+                                    .SetConnectionNumber(_lstClientsUDP[indexMsg].connectionNumber);
 
                                     GenerateEvent(newCon);
 
@@ -260,11 +268,11 @@ namespace Sockets
                                 }
 
                                 EventParameters ev = new EventParameters();
-                                ev.SetData(lstClientsUDP[indexMsg].dataIn)
+                                ev.SetData(_lstClientsUDP[indexMsg].dataIn)
                                     .SetIpOrigen(_ipConnection)
                                     .SetEvent(EventParameters.EventType.DATA_IN)
                                     .SetListIndex(indexMsg)
-                                    .SetConnectionNumber(lstClientsUDP[indexMsg].connectionNumber);
+                                    .SetConnectionNumber(_lstClientsUDP[indexMsg].connectionNumber);
                                 GenerateEvent(ev);
 
                             } //fin if (generarEventoDatosIn)
@@ -299,11 +307,11 @@ namespace Sockets
 
         internal void Disconnect(int connectionNumber)
         {
-            for (int i = 0;i<lstClientsUDP.Count();i++)
+            for (int i = 0;i< _lstClientsUDP.Count();i++)
             {
-                if (lstClientsUDP[i].connectionNumber == connectionNumber)
+                if (_lstClientsUDP[i].connectionNumber == connectionNumber)
                 {
-                    lstClientsUDP.RemoveAt(i);
+                    _lstClientsUDP.RemoveAt(i);
                     _numberConnections--;
                     if (_maximunConnections)
                     {
@@ -316,7 +324,7 @@ namespace Sockets
 
         internal void DisconnectAll()
         {
-            lstClientsUDP.Clear();
+            _lstClientsUDP.Clear();
             _numberConnections = 0;
             _maximunConnections = false;
         }
@@ -332,6 +340,19 @@ namespace Sockets
             ev.SetEvent(EventParameters.EventType.SERVER_STOP);
             GenerateEvent(ev);
 
+        }
+
+        private int GetListIndex(int connectionNumber)
+        {
+            for (int i=0; i < _lstClientsUDP.Count();i++)
+            {
+                if (connectionNumber == _lstClientsUDP[i].connectionNumber)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private void GenerateEvent(EventParameters ob)

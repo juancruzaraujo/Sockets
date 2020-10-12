@@ -8,6 +8,8 @@ namespace Sockets
     public class EventParameters
     {
         private int _conectionNumber;
+        private int _connectionNumberTCP;
+        private int _connectionNumberUDP;
         private int _listIndex;
         private EventType _eventType;
         private bool _listen;
@@ -49,6 +51,18 @@ namespace Sockets
         internal EventParameters SetConnectionNumber(int conectionNumber)
         {
             _conectionNumber = conectionNumber;
+            return this;
+        }
+
+        internal EventParameters setConnectionNumberTCP(int connectionNumberTCP)
+        {
+            _connectionNumberTCP = connectionNumberTCP;
+            return this;
+        }
+
+        internal EventParameters setConnectionNumberUDP(int connectionNumberUDP)
+        {
+            _connectionNumberUDP = connectionNumberUDP;
             return this;
         }
 
@@ -200,6 +214,22 @@ namespace Sockets
             get
             {
                 return _lineNumberError;
+            }
+        }
+
+        public int GetConnectionNumberTCP
+        {
+            get
+            {
+                return _connectionNumberTCP;
+            }
+        }
+
+        public int GetConnectionNumberUDP
+        {
+            get
+            {
+                return _connectionNumberUDP;
             }
         }
 

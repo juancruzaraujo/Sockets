@@ -32,7 +32,7 @@ namespace Sockets
 
         private bool _connected;
         internal bool waitConnection;
-        internal string ipConnection;
+        //internal string ipConnection;
         internal int port;
 
         internal delegate void Delegate_Server_Event(EventParameters serverParametersEvent);
@@ -149,9 +149,10 @@ namespace Sockets
         /// Detiene todas las conexiones
         /// </summary>
         /// <param name="Message">Message que retorna en caso de error</param>
-        internal void DisconnectClient(bool serverStoping = false)
+        internal void DisconnectClient(bool serverStoping = false,bool lastClientConnected=false)
         {
             bool forceDisconnection;
+            bool evServerStop = false;
 
             if (serverStoping)
             {
@@ -173,13 +174,30 @@ namespace Sockets
                         if (_tcpClient != null)
                         {
                             _tcpClient.Close();
+
+
+                            if ((serverStoping) && (lastClientConnected))
+                            {
+                                evServerStop = true;
+                            }
+
                         }
                         else
+                        {
+                            //EventParameters ev = new EventParameters();
+                            //ev.SetListening(waitConnection).SetEvent(EventParameters.EventType.SERVER_STOP);
+                            //GenerateEvent(ev);
+                            evServerStop = true;
+                        }
+
+
+                        if (evServerStop)
                         {
                             EventParameters ev = new EventParameters();
                             ev.SetListening(waitConnection).SetEvent(EventParameters.EventType.SERVER_STOP);
                             GenerateEvent(ev);
                         }
+
                         thrClient.Abort();
                         _loopCommunicationClient = false;
                         //_thrClienteConexion.Abort();

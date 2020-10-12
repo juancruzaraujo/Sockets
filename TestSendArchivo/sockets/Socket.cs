@@ -10,7 +10,8 @@ namespace Sockets
     {
 
         //variables y objetos privados
-        private Client _objClient;
+        //private Client _objClient;
+        private List<Client> _lstObjClient;
         private List<ServidorTCP> _lstObjServerTCP;
         private ServidorUDP _objServerUDP;
 
@@ -23,6 +24,8 @@ namespace Sockets
         private int _serverPortListening;
         private int _codePage;
         private int _connectionNumber;
+        private int _clientConnectionNumberTCP;
+        private int _clientConnectionNumberUDP;
         private bool _listening;
         private int _clientPort;
         private long _size;
@@ -47,7 +50,8 @@ namespace Sockets
         {
             internal byte[] memArray;
             internal int clusterSize;
-            internal int indexConection;
+            //internal int indexConection;
+            internal int connectionNumber;
         }
 
         public delegate void Delegate_Socket_Event(EventParameters eventParameters);
@@ -124,59 +128,48 @@ namespace Sockets
             EventSocket(ev);
         }
 
-        public void SetCliente()
+     
+        public void ConnectClient(int port,string host,int timeOut = 30,bool tcp = true,int codePage = C_DEFALT_CODEPAGE)
         {
-            SetCliente(_clientPort, _connectionNumber, _host);
-        }
 
+            int connNumber;
 
-        /// <summary>
-        /// setea el cliente 
-        /// </summary>
-        /// <param name="puerto"></param>
-        /// <param name="codePage"></param>
-        /// <param name="indice"></param>
-        /// <param name="host"></param>
-        /// <param name="timeOut"></param>
-        public void SetCliente(int puerto, int connectionNumber, string host, int timeOut = 30, bool tcp = true, int codePage = C_DEFALT_CODEPAGE)
-        {
-            string res = "";
-            _clientPort = puerto;
+            if (_lstObjClient == null)
+            {
+                _lstObjClient = new List<Client>();
+            }
+
+            _clientPort = port;
             _codePage = codePage;
-            _connectionNumber = connectionNumber;
+            //_connectionNumber = connectionNumber;
             _host = host;
 
-            _objClient = new Client(tcp);
-            _objClient.SetGetTimeOut = timeOut;
-            _objClient.CodePage(_codePage, ref res);
-            if (res != "")
-            {
-                Error(res);
-                return;
-            }
-            _objClient.clientEvent += new Client.Delegated_Client_Event(Evsocket);
-            _tcp = tcp;
+            Client objClient = new Client(tcp);
+
+            objClient = new Client(tcp);
+            objClient.SetGetTimeOut = timeOut;
+            objClient.CodePage(_codePage);
+
+            objClient.clientEvent += new Client.Delegated_Client_Event(Evsocket);
+            
             _clientMode = true;
 
-        }
+            _lstObjClient.Add(objClient);
 
-        public void Connect()
-        {
-            Connect(_host, _clientPort);
-        }
-        public void Connect(string host, int puerto)
-        {
-            string res = "";
-
-            _host = host;
-            _clientPort = puerto;
-
-            _objClient.Connect(_connectionNumber, _host, _clientPort, ref res);
-            if (res != "")
+            if (tcp)
             {
-                Error(res);
+                _clientConnectionNumberTCP++;
+                connNumber = _clientConnectionNumberTCP;
             }
+            else
+            {
+                _clientConnectionNumberUDP++;
+                connNumber = _clientConnectionNumberUDP;
+            }
+            _lstObjClient[_lstObjClient.Count()-1].Connect(connNumber,host, port);
         }
+
+        
 
         /// <summary>
         /// set the server parameters
@@ -387,11 +380,20 @@ namespace Sockets
             }
         }
 
-        public void Disconnect()
+        public void Disconnect(int connectionNumber)
         {
             if (ClientMode)
             {
-                _objClient.CloseConnection();
+                int index = GetClientListIndex(connectionNumber);
+                _lstObjClient[index].CloseConnection();
+            }
+        }
+
+        public void DisconnectAll()
+        {
+            for (int i =0;i<_lstObjClient.Count();i++)
+            {
+                _lstObjClient[i].CloseConnection();
             }
         }
 
@@ -399,19 +401,17 @@ namespace Sockets
         /// disconnect a client from the server
         /// </summary>
         /// <param name="connectionNumber">Cliente connection number</param>
-        public void DisconnectClient(int connectionNumber)
+        public void DisconnectConnectedClientToMe(int connectionNumber)
         {
             if (ServerMode)
             {
                 if (_tcp)
                 {
-                    int clientIndexDisconnect = GetListIndexConnectedClient(connectionNumber);
+                    int clientIndexDisconnect = GetListIndexConnectedClientToServer(connectionNumber);
                     if (clientIndexDisconnect >= 0)
                     {
                         _lstObjServerTCP[clientIndexDisconnect].DisconnectClient();
                         OrderClientList();
-                        //_numberServerConnections--;
-
                     }
 
                 }
@@ -422,7 +422,7 @@ namespace Sockets
             }
         }
 
-        public void DisconnectAllClients()
+        public void DisconnectAllConnectedClientsToMe()
         {
             if (_tcp)
             {
@@ -430,8 +430,13 @@ namespace Sockets
                 //for (int i = _lstObjServerTCP.Count() -1; i >= 0; i--)
                 for (int i = 0; i < _lstObjServerTCP.Count(); i++)
                 {
+                    bool lastClientConnected = false;
+                    if (i == _lstObjServerTCP.Count() -1)
+                    {
+                        lastClientConnected = true;
+                    }
 
-                    _lstObjServerTCP[i].DisconnectClient(_stopingServer);
+                    _lstObjServerTCP[i].DisconnectClient(_stopingServer,lastClientConnected);
 
                     OrderClientList();
 
@@ -452,7 +457,7 @@ namespace Sockets
                 _stopingServer = true;
                 if (tcp)
                 {
-                    DisconnectAllClients();
+                    DisconnectAllConnectedClientsToMe();
                     //_lstObjServerTCP.Clear();
                 }
                 else
@@ -462,16 +467,11 @@ namespace Sockets
             }
         }
 
-        public bool ClientConnected
+        public bool ClientConnected(int connectionNumber)
         {
-            get
-            {
-                if (_objClient != null)
-                {
-                    return _objClient.conected;
-                }
-                return false;
-            }
+
+            return _lstObjClient[GetClientListIndex(connectionNumber)].conected;
+            
         }
         #endregion
 
@@ -562,38 +562,51 @@ namespace Sockets
             }
         }
 
+
+        public void Send(int connectionNumber,string message)
+        {
+            if (_serverMode)
+            {
+                if (_tcp)
+                {
+                    _lstObjServerTCP[GetListIndexConnectedClientToServer(connectionNumber)].Send(message);
+                }
+                else
+                {
+                    _objServerUDP.Send(connectionNumber, message);
+                }
+            }
+            else
+            {
+                _lstObjClient[GetClientListIndex(connectionNumber)].Send(message);
+            }
+        }
+
         /// <summary>
         /// envía un message al cliente o al servidor. si hay un error se dispara un evento de error
         /// </summary>
         /// <param name="message">message a enviar</param>
-        public void Send(string message, int indice = 0)
+        public void Send(string message, int index = 0)
         {
-
-            string res = "";
 
             if (_serverMode)
             {
                 if (_tcp)
                 {
-                    if (_lstObjServerTCP[indice].Connected)
+                    if (_lstObjServerTCP[index].Connected)
                     {
-                        _lstObjServerTCP[indice].Send(message); //saczar ref res
+                        _lstObjServerTCP[index].Send(message); //saczar ref res
                     }
                 }
                 else
                 {
-                    _objServerUDP.Send(message, indice);
+                    _objServerUDP.Send(message, index);
                 }
             }
 
             if (_clientMode)
             {
-                _objClient.Send(message, ref res);
-            }
-
-            if (res != "")
-            {
-                Error(res);
+                _lstObjClient[index].Send(message);
             }
         }
 
@@ -621,7 +634,10 @@ namespace Sockets
                 }
                 else
                 {
-                    Send(message);
+                    for (int i =0;i<_lstObjClient.Count();i++)
+                    {
+                        Send(message, i);
+                    }
                 }
             }
             catch (Exception err)
@@ -632,7 +648,7 @@ namespace Sockets
         }
 
 
-        public void SendArray(byte[] memArray, int clusterSize, int indexConection)
+        public void SendArray(byte[] memArray, int clusterSize, int connectionNumber)
         {
             try
             {
@@ -640,10 +656,10 @@ namespace Sockets
                 SendArrayParamsContainer sendArrayParams = new SendArrayParamsContainer();
                 sendArrayParams.memArray = memArray;
                 sendArrayParams.clusterSize = clusterSize;
-                sendArrayParams.indexConection = indexConection;
+                sendArrayParams.connectionNumber = connectionNumber;
 
                 Thread sendArrayThread = new Thread(new ParameterizedThreadStart(SendArrayThread));
-                sendArrayThread.Name = "sendArrayThread_" + indexConection.ToString();
+                sendArrayThread.Name = "sendArrayThread_" + connectionNumber.ToString();
                 sendArrayThread.Start(sendArrayParams);
 
             }
@@ -651,6 +667,28 @@ namespace Sockets
             {
                 GenerateErrorEvent(err);
             }
+        }
+
+        public String GetClientHost(int ConnectionNumber)
+        {
+            return _lstObjClient[GetClientListIndex(ConnectionNumber)].GetHost;
+        }
+        public int GetClientPort(int ConnectionNumber)
+        {
+            return _lstObjClient[GetClientListIndex(ConnectionNumber)].GetPort;
+        }
+
+        public int GetClientListIndex(int connectionNumber)
+        {
+            for (int i =0; i<_lstObjClient.Count();i++)
+            {
+                if (connectionNumber == _lstObjClient[i].GetConnectionNumber)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private void SendArrayThread(object sendArrayParams)
@@ -666,7 +704,7 @@ namespace Sockets
             SendArrayParamsContainer aux = (SendArrayParamsContainer)sendArrayParams;
             SendArrayParamsContainer sendParams = new SendArrayParamsContainer();
             sendParams.clusterSize = aux.clusterSize;
-            sendParams.indexConection = aux.indexConection;
+            sendParams.connectionNumber = aux.connectionNumber;
             sendParams.memArray = aux.memArray;
 
             nSize = sendParams.memArray.Length; //memArray.Length;
@@ -707,7 +745,8 @@ namespace Sockets
                     EventSocket(ev);
 
                     //ACÁ ENVIO LOS DATOS
-                    Send(data, sendParams.indexConection);
+                    //Send(data, sendParams.indexConection);
+                    Send(sendParams.connectionNumber, data);
 
                     ev.SetEvent(EventParameters.EventType.SEND_COMPLETE).SetPosition(actualPositionNumber);
                     EventSocket(ev);
@@ -763,7 +802,7 @@ namespace Sockets
         /// </summary>
         /// <param name="indiceCliente">le paso el numero de indice de cliente</param>
         /// <returns></returns>
-        private int GetListIndexConnectedClient(int connectionNumber)
+        private int GetListIndexConnectedClientToServer(int connectionNumber)
         {
             try
             {
@@ -779,7 +818,7 @@ namespace Sockets
                 }
                 else
                 {
-                    //UDP
+                    //udp
                 }
             }
             catch (Exception err)
