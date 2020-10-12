@@ -22,10 +22,15 @@ namespace Sockets
 
         private TcpClient _clientSockTCP; //el socket en cuestion!
         private Thread _thrClient; //hilo con el flujo de datos
-        private Thread _thr_TimeOut; //hilo que setea cuando se inicia el timer de timeout de intento de conexion
+        //private Thread _thr_TimeOut; //hilo que setea cuando se inicia el timer de timeout de intento de conexion
         private bool _tcp;
         private UdpClient _clientSockUDP;
         private IPEndPoint _epUDP;
+        private int _connectionNumber;
+        private int _timeOutValue;
+        private Encoding _encoder;
+        private string _host;
+        private int _port;
 
         /// <summary>
         /// Verdadero estoy conectado, falso, no estoy conectado
@@ -35,12 +40,35 @@ namespace Sockets
         /// <summary>
         /// Devuelve o establece el indice de conexion, necesario si se crea una lista o un vector de este objeto
         /// </summary>
-        internal int indexCon;
+        //internal int indexCon;
+        internal int GetConnectionNumber
+        {
+           get
+            {
+                return _connectionNumber;
+            }
+        }
+        
+        internal string GetHost
+        {
+            get
+            {
+                return _host;
+            }
+        }
+
+        internal int GetPort
+        {
+            get
+            {
+                return _port;
+            }
+        }
+
 
         /// <summary>
         /// Setea o devuelve el time out para poder conectarse en segundos.
         /// </summary>
-        private int _timeOutValue;
         internal int SetGetTimeOut
         {
             get
@@ -58,7 +86,7 @@ namespace Sockets
         }
 
         //private int _tipoCod;
-        private Encoding _encoder;
+        
 
         internal delegate void Delegated_Client_Event(EventParameters serverParametersEvent);
         internal event Delegated_Client_Event clientEvent;
@@ -73,22 +101,25 @@ namespace Sockets
             
         }
 
-        internal void Connect(int indice,string host, int port, ref string err)
+        internal void Connect(int connectionNumber,string host, int port)
         {
+            _host = host;
+            _port = port;
+
             if (_tcp)
             {
-                Connect_TCP(indice, host, port, ref err);
+                Connect_TCP(connectionNumber, _host, _port);
             }
             else
             {
-                Connect_UDP(host, port, ref err);
+                Connect_UDP(host, _port);
             }
         }
 
-        private void Connect_TCP(int index, string host, int port, ref string err)
+        private void Connect_TCP(int connectionNumber, string host, int port)
         {
             int nPort = 0;
-            indexCon = index;
+            _connectionNumber = connectionNumber;
             
             try
             {
@@ -106,7 +137,7 @@ namespace Sockets
                         break; // salgo del for
 
                     }
-                    catch (Exception e)
+                    catch
                     {
                         Thread.Sleep(1000); //espero un segundo y vuelvo a intentar
                     }
@@ -140,11 +171,11 @@ namespace Sockets
             }
             catch (Exception error)
             {
-                ErrorConnect(error, ref err);
+                ErrorConnect(error);
             }
         }
 
-        private void Connect_UDP(string host, int port, ref string err)
+        private void Connect_UDP(string host, int port)
         {
             try
             {
@@ -159,16 +190,16 @@ namespace Sockets
             }
             catch(Exception error)
             {
-                ErrorConnect(error, ref err);
+                ErrorConnect(error);
             }
 
         }
 
-        private void ErrorConnect(Exception errorDescripcion,ref string err)
+        private void ErrorConnect(Exception errorDescripcion)
         {
             conected = false;
             Error(errorDescripcion.Message);
-            err = errorDescripcion.Message;
+            
         }
 
         private void DataFlow_TCP()
@@ -265,19 +296,19 @@ namespace Sockets
             GenerateEvent(evErr);
         }
 
-        internal void Send(string datos, ref string error)
+        internal void Send(string datos)
         {
             if (_tcp)
             {
-                Send_TCP(datos, ref error);
+                Send_TCP(datos);
             }
             else
             {
-                Send_UDP(datos, ref error);
+                Send_UDP(datos);
             }
         }
 
-        private void Send_TCP(string datos, ref string error)
+        private void Send_TCP(string datos)
         {
             try
             {
@@ -298,18 +329,17 @@ namespace Sockets
                 }
                 else
                 {
-                    error = "No esta conectado";
-                    Error(error);
+                    
+                    Error("not connected");
                 }
             }
             catch (Exception err)
             {
-                error = err.Message;
-                Error(error);
+                Error(err.Message);
             }
         }
 
-        private void Send_UDP(string datos, ref string error)
+        private void Send_UDP(string datos)
         {
             
             byte[] bytesEnviar = _encoder.GetBytes(datos); //el ejemplo
@@ -340,7 +370,7 @@ namespace Sockets
         /// </summary>
         /// <param name="Codigo">Código de pagina</param>
         /// <param name="Error">Sí hay un error se guarda en Error, de caso contrario queda vacio</param>
-        internal void CodePage(int Codigo, ref string error)
+        internal void CodePage(int Codigo)
         {
             try
             {
@@ -348,8 +378,7 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                error = err.Message;
-                Error(error);
+                Error(err.Message);
             }
         }
 
@@ -357,7 +386,7 @@ namespace Sockets
         
         private void GenerateEvent(EventParameters ob)
         {
-            ob.SetConnectionNumber(indexCon);
+            ob.SetConnectionNumber(_connectionNumber);
 
             Client_Event(ob);
         }

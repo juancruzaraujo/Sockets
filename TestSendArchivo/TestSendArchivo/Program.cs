@@ -105,13 +105,13 @@ namespace TestSendArchivo
                         {
                             if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
                             {
-                                _obSocket.Disconnect();
+                                _obSocket.DisconnectAll();
                                 break;
                             }
                             else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
                             {
                                 //mando el archivo
-                                EnviarArchivo(0);
+                                EnviarArchivo(1);
                                 _enviarArchivo = true;
                             }
                             else if (input.Equals("stop", StringComparison.OrdinalIgnoreCase))
@@ -125,6 +125,10 @@ namespace TestSendArchivo
                             else if(input.Equals("startudp", StringComparison.OrdinalIgnoreCase))
                             {
                                 Server(false);
+                            }
+                            else if(input.Equals("onemoretime", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Cliente();
                             }
                             else
                             {
@@ -213,7 +217,11 @@ namespace TestSendArchivo
                     _obSocket.Send(C_FINARCH + "\r\n",ev.GetListIndex);
                     Console.WriteLine("envio ok");
                     break;
-                
+
+                case EventParameters.EventType.TIME_OUT:
+                    Console.WriteLine("TIME OUT");
+                    break;
+
                 default:
                     //Console.WriteLine(corchete("Evento " + ev.GetEventType) + " " +ev.GetData);
                     break;
@@ -274,12 +282,12 @@ namespace TestSendArchivo
                         
                         if (datos.Contains("kill\r\n"))
                         {
-                            _obSocket.DisconnectClient(nConexion);
+                            _obSocket.DisconnectConnectedClientToMe(nConexion);
                         }
 
                         if (datos.Contains("killall\r\n"))
                         {
-                            _obSocket.DisconnectAllClients(); 
+                            _obSocket.DisconnectAllConnectedClientsToMe(); 
                         }
 
                         if (datos.Contains("detener\r\n"))
@@ -326,9 +334,9 @@ namespace TestSendArchivo
             Console.Title = "MODO CLIENTE";
 
             _obSocket.ClientMode = true;
-            _obSocket.SetCliente(1492, 0, "127.0.0.1",5);
-            
-            _obSocket.Connect();
+            //_obSocket.SetCliente(1492, "127.0.0.1",5);
+            //_obSocket.Connect();
+            _obSocket.ConnectClient(1492, "127.0.0.1", 5);
 
 
             if (message != "")
@@ -346,9 +354,10 @@ namespace TestSendArchivo
             Console.Title = "MODO CLIENTE UDP";
 
             _obSocket.ClientMode = true;
-            _obSocket.SetCliente(1492, 0, "127.0.0.1",5, false);
-            _obSocket.Connect();
-            
+            _obSocket.ConnectClient(1492, "127.0.0.1", 5,false);
+            //_obSocket.SetCliente(1492, 0, "127.0.0.1",5, false);
+            //_obSocket.Connect();
+
 
         }
 
