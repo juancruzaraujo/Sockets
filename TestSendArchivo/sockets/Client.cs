@@ -31,6 +31,7 @@ namespace Sockets
         private Encoding _encoder;
         private string _host;
         private int _port;
+        private bool _closingConnection = false;
 
         /// <summary>
         /// Verdadero estoy conectado, falso, no estoy conectado
@@ -105,10 +106,11 @@ namespace Sockets
         {
             _host = host;
             _port = port;
+            _connectionNumber = connectionNumber;
 
             if (_tcp)
             {
-                Connect_TCP(connectionNumber, _host, _port);
+                Connect_TCP(_host, _port);
             }
             else
             {
@@ -116,10 +118,10 @@ namespace Sockets
             }
         }
 
-        private void Connect_TCP(int connectionNumber, string host, int port)
+        private void Connect_TCP(string host, int port)
         {
             int nPort = 0;
-            _connectionNumber = connectionNumber;
+            ;
             
             try
             {
@@ -251,9 +253,9 @@ namespace Sockets
 
                 _thrClient.Abort();
             }
-            catch (Exception Err)
+            catch (Exception err)
             {
-                Error(Err.Message);
+                Error(err.Message);
                 ConnectionEnd();
             }
         } //fin DataFlow_TCP
@@ -284,9 +286,16 @@ namespace Sockets
 
         private void ConnectionEnd()
         {
-            EventParameters ev = new EventParameters();
-            ev.SetEvent(EventParameters.EventType.END_CONNECTION);
-            GenerateEvent(ev);
+
+            if (!_closingConnection)
+            {
+                _closingConnection = true;
+
+                EventParameters ev = new EventParameters();
+                ev.SetEvent(EventParameters.EventType.END_CONNECTION);
+                GenerateEvent(ev);
+            }
+
         }
 
         private void Error(string message)
@@ -355,7 +364,7 @@ namespace Sockets
         {
             if (conected == true)
             {
-                System.Diagnostics.Debug.WriteLine("Cierro Ok"); //para pruebas
+                //System.Diagnostics.Debug.WriteLine("Cierro Ok"); //para pruebas
                 _clientSockTCP.Close();
                 _thrClient.Abort();
 
@@ -386,7 +395,7 @@ namespace Sockets
         
         private void GenerateEvent(EventParameters ob)
         {
-            ob.SetConnectionNumber(_connectionNumber);
+            ob.SetConnectionNumber(_connectionNumber).SetTCP(_tcp);
 
             Client_Event(ob);
         }

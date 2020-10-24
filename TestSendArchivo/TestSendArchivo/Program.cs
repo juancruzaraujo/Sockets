@@ -106,7 +106,7 @@ namespace TestSendArchivo
                             if (input.Equals("fin", StringComparison.OrdinalIgnoreCase))
                             {
                                 _obSocket.DisconnectAll();
-                                break;
+                                //break;
                             }
                             else if (input.Equals("send", StringComparison.OrdinalIgnoreCase))
                             {

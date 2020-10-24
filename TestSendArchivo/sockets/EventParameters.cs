@@ -20,6 +20,7 @@ namespace Sockets
         private string _ipDestino;
         private int _errorCode;
         private int _lineNumberError;
+        private bool _tcp;
 
         /// <summary>
         /// Numero de evento que se dispara
@@ -123,6 +124,12 @@ namespace Sockets
         internal EventParameters SetLineNumberError(int lineNumber)
         {
             _lineNumberError = lineNumber;
+            return this;
+        }
+
+        internal EventParameters SetTCP(bool val)
+        {
+            _tcp = val;
             return this;
         }
 
@@ -230,6 +237,14 @@ namespace Sockets
             get
             {
                 return _connectionNumberUDP;
+            }
+        }
+
+        public bool GetTCP
+        {
+            get
+            {
+                return _tcp;
             }
         }
 

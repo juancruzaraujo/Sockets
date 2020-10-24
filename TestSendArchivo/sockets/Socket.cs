@@ -146,7 +146,7 @@ namespace Sockets
 
             Client objClient = new Client(tcp);
 
-            objClient = new Client(tcp);
+            //objClient = new Client(tcp);
             objClient.SetGetTimeOut = timeOut;
             objClient.CodePage(_codePage);
 
@@ -475,10 +475,10 @@ namespace Sockets
         }
         #endregion
 
-        //todos los eventos del cliente y el servidor caen acá
+        //TODOS LOS EVENTOS DEL SERVIDOR Y CLIENTES, PRIMERO PASAN POR ACÁ
         private void Evsocket(EventParameters ev)
         {
-            //REVISAR ESTO
+            
             string message = "";
             bool showEvMaxConnections = false;
 
@@ -490,20 +490,22 @@ namespace Sockets
                 }
             }
 
-            if (_serverMode)
+            
+            switch (ev.GetEventType)
             {
-                switch (ev.GetEventType)
-                {
-                    case EventParameters.EventType.ERROR:
-                        if (!_tcp)
-                        {
-                            //string aux = "";
-                            //_objServidor.Start(ref aux); //volvemos a iniciar el servidor udp
-                        }
-                        break;
+                /*case EventParameters.EventType.ERROR:
+                    if (!_tcp)
+                    {
+                        //string aux = "";
+                        //_objServidor.Start(ref aux); //volvemos a iniciar el servidor udp
+                    }
+                    break;
+                */
 
-                    case EventParameters.EventType.NEW_CONNECTION:
+                case EventParameters.EventType.NEW_CONNECTION:
 
+                    if (_serverMode)
+                    {
                         if (!_tcp)
                         {
                             //
@@ -522,9 +524,14 @@ namespace Sockets
                                 StartServer();
                             }
                         }
-                        break;
+                    }
+                        
+                    break;
 
-                    case EventParameters.EventType.END_CONNECTION: //UDP no dispara este evento
+                case EventParameters.EventType.END_CONNECTION: //UDP no dispara este evento
+                        
+                    if (_serverMode)
+                    {
                         _lstObjServerTCP.RemoveAt(ev.GetListIndex);
                         OrderClientList();
                         _numberServerConnections--;
@@ -534,19 +541,33 @@ namespace Sockets
                             CrearServidor(ref message);
                             StartServer();
                         }
-
-                        break;
-
-                    case EventParameters.EventType.SERVER_STOP:
-                        _stopingServer = false;
-                        _serverStarted = false;
-                        if (tcp)
+                    }
+                    else
+                    {
+                        int cliIndex; //= GetClientListIndex(ev.GetConnectionNumber);
+                        //if (ev.GetTCP)
                         {
-                            _lstObjServerTCP.Clear();
+                            cliIndex = GetClientListIndex(ev.GetConnectionNumber);
+                            _lstObjClient.RemoveAt(cliIndex);
                         }
-                        break;
-                }
+                        //else
+                        //{
 
+                        //}
+
+                    }
+                        
+
+                    break;
+
+                case EventParameters.EventType.SERVER_STOP:
+                    _stopingServer = false;
+                    _serverStarted = false;
+                    if (tcp)
+                    {
+                        _lstObjServerTCP.Clear();
+                    }
+                    break;
             }
 
             EventSocket(ev); //envío el evento a quien lo este consumiendo(?)
@@ -561,6 +582,7 @@ namespace Sockets
                 EventSocket(evMaxCon);
             }
         }
+
 
 
         public void Send(int connectionNumber,string message)
