@@ -126,9 +126,13 @@ namespace TestSendArchivo
                             {
                                 Server(false);
                             }
-                            else if(input.Equals("onemoretime", StringComparison.OrdinalIgnoreCase))
+                            else if(input.Equals("newtcp", StringComparison.OrdinalIgnoreCase))
                             {
                                 Cliente();
+                            }
+                            else if(input.Equals("newudp", StringComparison.OrdinalIgnoreCase))
+                            {
+                                ClienteUDP();
                             }
                             else
                             {
