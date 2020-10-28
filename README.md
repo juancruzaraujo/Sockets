@@ -62,6 +62,13 @@ class Program
 # simple client example
 
 ```csharp
+
+    void main()
+    {
+        _obSocket = new Sockets.Sockets();
+        _obSocket.Event_Socket += new Sockets.Sockets.Delegate_Socket_Event(EvSockets); 
+    }
+
     static void Cliente()
         {
             string message = "";
@@ -72,7 +79,7 @@ class Program
             _obSocket.ClientMode = true;
  
             _obSocket.ConnectClient(1492, "127.0.0.1", 5);
-
+            int connectionNumber = _obSocket.GetConnectionNumber();
 
             if (message != "")
             {
@@ -90,10 +97,16 @@ class Program
 
             _obSocket.ClientMode = true;
             _obSocket.ConnectClient(1492, "127.0.0.1", 5,false);
+            int connectionNumber = _obSocket.GetConnectionNumber();
 
         }
         
-        
+        void send(int connectionNumber, string message)
+        {
+            _obSocket.Send(connectionNumber, message); //send a message using the connection number
+            
+        }
+    
 ```
 
 
