@@ -1,7 +1,12 @@
 # DLL Sockets
 
 to create a server or a client, first of all you have to add sockets.dll in the project references.
+messages from the client, both in server and client mode, arrive by events
 
+para crear un servidor o cliente, primero hay que agregar en referencias la dll de sockets
+los mensajes que llegan generan un evento
+
+see EventParameters.EventType
 
 # simple server example
 
@@ -52,4 +57,43 @@ class Program
         }
 
     }
-    ```
+```
+    
+# simple client example
+
+```csharp
+    static void Cliente()
+        {
+            string message = "";
+
+            Console.WriteLine("modo cliente");
+            Console.Title = "MODO CLIENTE";
+
+            _obSocket.ClientMode = true;
+ 
+            _obSocket.ConnectClient(1492, "127.0.0.1", 5);
+
+
+            if (message != "")
+            {
+                Console.WriteLine(message);
+            }
+
+        }
+
+        static void ClienteUDP()
+        {
+            //string Message = "";
+
+            Console.WriteLine("modo cliente UDP");
+            Console.Title = "MODO CLIENTE UDP";
+
+            _obSocket.ClientMode = true;
+            _obSocket.ConnectClient(1492, "127.0.0.1", 5,false);
+
+        }
+        
+        
+```
+
+
