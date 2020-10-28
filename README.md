@@ -106,6 +106,24 @@ class Program
             _obSocket.Send(connectionNumber, message); //send a message using the connection number
             
         }
+        
+        static void EvSockets(EventParameters ev)
+        {
+            
+            switch (ev.GetEventType)
+            {
+                case EventParameters.EventType.NEW_CONNECTION:
+                    Console.WriteLine (corchete(ev.GetConnectionNumber.ToString()) +  " conectado desde " + ev.GetIpOrigen);
+                    _obSocket.Send("<SOS> " + ev.GetConnectionNumber.ToString(), ev.GetListIndex);
+                    //_obSocket.Send("<SOS> " + ev.GetConnectionNumber.ToString(), 0);
+                    break;
+
+                case EventParameters.EventType.DATA_IN:
+                    //DatosIn(indice, datos, true, ipOrigen);
+                    Console.writeLine(ev.GetData);
+                    break;
+             }
+          }
     
 ```
 
