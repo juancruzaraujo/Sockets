@@ -43,7 +43,7 @@ namespace Sockets
             SEND_POSITION = 7,
             CONNECTION_OK = 8,
             TIME_OUT = 9,
-            SERVER_STAR = 10,
+            SERVER_START = 10,
             CONNECTION_LIMIT = 11,
             SERVER_STOP = 12,
             SEND_ARRAY_COMPLETE = 13

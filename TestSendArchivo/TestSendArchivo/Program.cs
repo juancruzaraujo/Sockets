@@ -213,7 +213,7 @@ namespace TestSendArchivo
                     Console.WriteLine("<<conexión fin>> " + corchete(ev.GetConnectionNumber.ToString()) + " >>");
                     break;
 
-                case EventParameters.EventType.SERVER_STAR:
+                case EventParameters.EventType.SERVER_START:
                     Console.WriteLine("<<server iniciado>>");
                     break;
 
@@ -223,7 +223,7 @@ namespace TestSendArchivo
                     break;
 
                 case EventParameters.EventType.TIME_OUT:
-                    Console.WriteLine("TIME OUT");
+                    Console.WriteLine("TIME OUT " +  ev.GetIpDestino);
                     break;
 
                 default:
