@@ -153,7 +153,7 @@ namespace Sockets
                     conected = true;
 
                     EventParameters ev = new EventParameters();
-                    ev.SetEvent(EventParameters.EventType.CONNECTION_OK);
+                    ev.SetEvent(EventParameters.EventType.CONNECTION_OK).SetIpDestino(_host);
                     GenerateEvent(ev);
 
                     ThreadStart thrclienteTCP = new ThreadStart(DataFlow_TCP);
@@ -165,7 +165,7 @@ namespace Sockets
                 {
                     //Eve_TimeOut(indiceCon);
                     EventParameters evTime = new EventParameters();
-                    evTime.SetEvent(EventParameters.EventType.TIME_OUT);
+                    evTime.SetEvent(EventParameters.EventType.TIME_OUT).SetIpDestino(_host);
                     GenerateEvent(evTime);
                     return;
                 }
