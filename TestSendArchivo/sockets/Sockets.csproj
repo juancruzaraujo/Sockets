@@ -46,10 +46,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
-    <Compile Include="ServidorTCP.cs" />
+    <Compile Include="ServerTCP.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EventParameters.cs" />
-    <Compile Include="ServidorUDP.cs" />
+    <Compile Include="ServerUDP.cs" />
     <Compile Include="Socket.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>

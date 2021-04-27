@@ -10,7 +10,7 @@ using System.ComponentModel;
 
 namespace Sockets
 {
-    internal class ServidorTCP
+    internal class ServerTCP
     {
         #if DEBUG
             private /*static*/ bool debug_Mode = true;
@@ -31,6 +31,8 @@ namespace Sockets
         private bool _listening;
 
         private bool _connected;
+        private int _receiveTimeout;
+
         internal bool waitConnection;
         //internal string ipConnection;
         internal int port;
@@ -86,6 +88,17 @@ namespace Sockets
             }
         }
 
+        internal int ReceiveTimeout
+        {
+            set
+            {
+                if (value != 0)
+                {
+                    _receiveTimeout = value * 1000;
+                }
+            }
+        }
+
         /// <summary>
         /// setea el socket para la escucha
         /// </summary>
@@ -93,7 +106,7 @@ namespace Sockets
         /// <param name="Cod">codopage</param>
         /// <param name="Message">message que retorna en caso de error</param>
         /// <param name="tcp">define si la conexión es tpc o udp, vaor default true, si es falso, la conexion es udp</param>
-        internal ServidorTCP(int portListening, int Cod, ref string message)
+        internal ServerTCP(int portListening, int Cod, ref string message)
         {
             _indexConnection = -1;
             try
@@ -184,9 +197,6 @@ namespace Sockets
                         }
                         else
                         {
-                            //EventParameters ev = new EventParameters();
-                            //ev.SetListening(waitConnection).SetEvent(EventParameters.EventType.SERVER_STOP);
-                            //GenerateEvent(ev);
                             evServerStop = true;
                         }
 
@@ -267,7 +277,7 @@ namespace Sockets
                         _thrClienteConexion.IsBackground = true;
                         _thrClienteConexion.Start(clientTCP);
 
-                        ev.SetEvent(EventParameters.EventType.ACCEPT_CONNECTION).SetIpOrigen(sAux);
+                        ev.SetEvent(EventParameters.EventType.ACCEPT_CONNECTION).SetClientIp(sAux);
                         GenerateEvent(ev);
 
                         //ahora tendria que dejar de escuchar
@@ -311,8 +321,14 @@ namespace Sockets
                 //levanto evento nueva conexion
                 _connected = true;
                 EventParameters ev = new EventParameters();
-                ev.SetIpOrigen(_tcpClient.Client.RemoteEndPoint.ToString()).SetEvent(EventParameters.EventType.NEW_CONNECTION);
+                ev.SetClientIp(_tcpClient.Client.RemoteEndPoint.ToString()).SetEvent(EventParameters.EventType.NEW_CONNECTION);
                 GenerateEvent(ev);
+
+                if (_receiveTimeout != 0)
+                {
+                    _tcpClient.ReceiveTimeout = _receiveTimeout;
+                }
+                
 
                 byte[] message = new byte[65535];
 
@@ -326,8 +342,15 @@ namespace Sockets
                     {
                         bytesRead = clientStream.Read(message, 0, 65535);
                     }
-                    catch 
+                    catch(Exception error)
                     {
+                        if (error.HResult == -2146232800)
+                        {
+                            EventParameters evRecieveTimeOut = new EventParameters();
+                            evRecieveTimeOut.SetEvent(EventParameters.EventType.RECIEVE_TIMEOUT).SetClientIp(_tcpClient.Client.RemoteEndPoint.ToString());
+                            GenerateEvent(evRecieveTimeOut);
+                        }
+
                         EveYaDisparado = true;
                         _connected = false;
                         _tcpClient.Close();
@@ -348,7 +371,7 @@ namespace Sockets
                     //llegó el message
                     strData = _encoder.GetString(message, 0, bytesRead);
                     ev.SetData(strData)
-                        .SetIpOrigen(_tcpClient.Client.RemoteEndPoint.ToString())
+                        .SetClientIp(_tcpClient.Client.RemoteEndPoint.ToString())
                         .SetEvent(EventParameters.EventType.DATA_IN)
                         .SetSize(strData.Length);
                     GenerateEvent(ev);

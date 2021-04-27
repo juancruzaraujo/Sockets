@@ -12,8 +12,8 @@ namespace Sockets
         //variables y objetos privados
         //private Client _objClient;
         private List<Client> _lstObjClient;
-        private List<ServidorTCP> _lstObjServerTCP;
-        private ServidorUDP _objServerUDP;
+        private List<ServerTCP> _lstObjServerTCP;
+        private ServerUDP _objServerUDP;
 
         private string _message;
 
@@ -39,6 +39,7 @@ namespace Sockets
         private bool _serverListening;
         private bool _stopingServer;
         private bool _serverStarted;
+        private int _serverReceiveTimeout;
 
         //constantes priavdas
         private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE = "modo cliente";
@@ -78,6 +79,7 @@ namespace Sockets
             }
         }
 
+        /*
         public string IpConnectedClient
         {
             get
@@ -89,7 +91,7 @@ namespace Sockets
                 }
                 return res;
             }
-        }
+        }*/
 
         public int MaxNumberServerConnections
         {
@@ -123,13 +125,13 @@ namespace Sockets
                 .SetEvent(EventParameters.EventType.ERROR)
                 .SetConnectionNumber(_connectionNumber).SetListening(_listening)
                 .SetSize(_size)
-                .SetIpOrigen(_ipClient);
+                .SetClientIp(_ipClient);
 
             EventSocket(ev);
         }
 
      
-        public void ConnectClient(int port,string host,int timeOut = 30,bool tcp = true,int codePage = C_DEFALT_CODEPAGE)
+        public void ConnectClient(int port,string host,int timeOut = 30,bool tcp = true,int codePage = C_DEFALT_CODEPAGE,int receiveTimeout = 0)
         {
 
             int connNumber;
@@ -148,7 +150,9 @@ namespace Sockets
 
             //objClient = new Client(tcp);
             objClient.SetGetTimeOut = timeOut;
+            objClient.ReceiveTimeout = receiveTimeout;
             objClient.CodePage(_codePage);
+            
 
             objClient.clientEvent += new Client.Delegated_Client_Event(Evsocket);
             
@@ -169,7 +173,7 @@ namespace Sockets
             _lstObjClient[_lstObjClient.Count()-1].Connect(connNumber,host, port);
         }
 
-        
+
 
         /// <summary>
         /// set the server parameters
@@ -178,7 +182,8 @@ namespace Sockets
         /// <param name="codePage">codepage communication</param>
         /// <param name="tcp">protocol, tpc = true is default value</param>
         /// <param name="maxCon">maximum number of connections, in udp mode 0 is for unlimited connections</param>
-        public void SetServer(int port, int codePage = C_DEFALT_CODEPAGE, bool tcp = true, int maxCon = 0)
+        /// <param name="receiveTimeout">(only tcp mode) maximum waiting time in seconds for an incoming message, if it is 0 the waiting time is unlimited</param>
+        public void SetServer(int port, int codePage = C_DEFALT_CODEPAGE, bool tcp = true, int maxCon = 0,int receiveTimeout=0)
         {
             string res = "";
             _listening = false;
@@ -188,6 +193,7 @@ namespace Sockets
             _maxServerConnectionNumber = maxCon;
             _numberServerConnections = 0;
             _numCliConServer = 1;
+            _serverReceiveTimeout = receiveTimeout;
             this.ServerMode = true;
 
 
@@ -198,14 +204,10 @@ namespace Sockets
             }
             if (_tcp)
             {
-                _lstObjServerTCP = new List<ServidorTCP>();
-            }
-            else
-            {
-
+                _lstObjServerTCP = new List<ServerTCP>();
             }
 
-            CrearServidor(ref res);
+            CreateServer(ref res);
 
             if (res != "")
             {
@@ -217,27 +219,28 @@ namespace Sockets
             _serverMode = true;
         }
 
-        private void CrearServidor(ref string message)
+        private void CreateServer(ref string message)
         {
             int indexList = GetLastSpaceFree();
 
             if (_tcp)
             {
-                ServidorTCP objServidor = new ServidorTCP(_serverPortListening, _codePage, ref message);
+                ServerTCP objServidor = new ServerTCP(_serverPortListening, _codePage, ref message);
                 if (message != "")
                 {
                     Error(message);
                     return;
                 }
-                objServidor.evento_servidor += new ServidorTCP.Delegate_Server_Event(Evsocket);
+                objServidor.evento_servidor += new ServerTCP.Delegate_Server_Event(Evsocket);
                 _lstObjServerTCP.Add(objServidor);
 
                 _lstObjServerTCP[indexList].IndexConnection = _numCliConServer;
                 _lstObjServerTCP[indexList].ListIndex = indexList;
+                _lstObjServerTCP[indexList].ReceiveTimeout = _serverReceiveTimeout;
             }
             else
             {
-                _objServerUDP = new ServidorUDP(_serverPortListening);
+                _objServerUDP = new ServerUDP(_serverPortListening);
                 _objServerUDP.MaxClientUDP = _maxServerConnectionNumber;
                 _objServerUDP.CodePage(_codePage);
                 if (message != "")
@@ -245,7 +248,7 @@ namespace Sockets
                     Error(message);
                     return;
                 }
-                _objServerUDP.evento_servidor += new ServidorUDP.Delegate_Server_Event(Evsocket);
+                _objServerUDP.evento_servidor += new ServerUDP.Delegate_Server_Event(Evsocket);
 
             }
 
@@ -380,6 +383,24 @@ namespace Sockets
             }
         }
 
+        /// <summary>
+        /// reciebe timeout in secons. If the value is 0 there is no timeout
+        /// </summary>
+        public int ReceiveTimeout
+        {
+            set
+            {
+                if (ServerMode)
+                {
+
+                }
+                else
+                {
+
+                }
+            }
+        }
+
         public void Disconnect(int connectionNumber)
         {
             if (ClientMode)
@@ -484,9 +505,9 @@ namespace Sockets
 
             if ((_ipClient != ""))
             {
-                if (_ipClient != ev.GetIpOrigen)
+                if (_ipClient != ev.GetClientIp)
                 {
-                    _ipClient = ev.GetIpOrigen;
+                    _ipClient = ev.GetClientIp;
                 }
             }
 
@@ -520,7 +541,7 @@ namespace Sockets
                             _numCliConServer++;
                             if (GetConnectionNumber() < _maxServerConnectionNumber)
                             {
-                                CrearServidor(ref message);
+                                CreateServer(ref message);
                                 StartServer();
                             }
                         }
@@ -538,7 +559,7 @@ namespace Sockets
 
                         if (!_serverListening && !_stopingServer)
                         {
-                            CrearServidor(ref message);
+                            CreateServer(ref message);
                             StartServer();
                         }
                     }

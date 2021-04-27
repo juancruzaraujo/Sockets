@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Sockets
 {
-    internal class ServidorUDP
+    internal class ServerUDP
     {
 
         class InfoCliente
@@ -54,7 +54,7 @@ namespace Sockets
             this.evento_servidor(serverParametersEvent);
         }
 
-        internal ServidorUDP(int portListening)
+        internal ServerUDP(int portListening)
         {
             _port = portListening;
             _lstClientsUDP = new List<InfoCliente>();
@@ -246,7 +246,7 @@ namespace Sockets
 
                                     EventParameters acceptCon = new EventParameters();
                                     acceptCon.SetEvent(EventParameters.EventType.ACCEPT_CONNECTION)
-                                        .SetIpOrigen(_ipConnection)
+                                        .SetClientIp(_ipConnection)
                                         .SetListIndex(indexMsg)
                                         .SetConnectionNumber(_lstClientsUDP[indexMsg].connectionNumber);
 
@@ -257,7 +257,7 @@ namespace Sockets
 
                                     EventParameters newCon = new EventParameters();
                                     newCon.SetEvent(EventParameters.EventType.NEW_CONNECTION)
-                                    .SetIpOrigen(_ipConnection)
+                                    .SetClientIp(_ipConnection)
                                     .SetListIndex(indexMsg)
                                     .SetConnectionNumber(_lstClientsUDP[indexMsg].connectionNumber);
 
@@ -269,7 +269,7 @@ namespace Sockets
 
                                 EventParameters ev = new EventParameters();
                                 ev.SetData(_lstClientsUDP[indexMsg].dataIn)
-                                    .SetIpOrigen(_ipConnection)
+                                    .SetClientIp(_ipConnection)
                                     .SetEvent(EventParameters.EventType.DATA_IN)
                                     .SetListIndex(indexMsg)
                                     .SetConnectionNumber(_lstClientsUDP[indexMsg].connectionNumber);
