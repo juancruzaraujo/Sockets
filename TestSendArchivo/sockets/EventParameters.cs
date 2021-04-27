@@ -16,8 +16,8 @@ namespace Sockets
         private long _size;
         private string _data;
         private long _position;
-        private string _ipOrigen;
-        private string _ipDestino;
+        private string _clientIp;
+        private string _serverIp;
         private int _errorCode;
         private int _lineNumberError;
         private bool _tcp;
@@ -46,7 +46,9 @@ namespace Sockets
             SERVER_START = 10,
             CONNECTION_LIMIT = 11,
             SERVER_STOP = 12,
-            SEND_ARRAY_COMPLETE = 13
+            SEND_ARRAY_COMPLETE = 13,
+            RECIEVE_TIMEOUT = 14
+            //_receiveTimeout
         };
 
         internal EventParameters SetConnectionNumber(int conectionNumber)
@@ -103,15 +105,15 @@ namespace Sockets
             return this;
         }
 
-        internal EventParameters SetIpOrigen(string ipOrigen)
+        internal EventParameters SetClientIp(string clientIp)
         {
-            _ipOrigen = ipOrigen;
+            _clientIp = clientIp;
             return this;
         }
 
-        internal EventParameters SetIpDestino(string ipDestino)
+        internal EventParameters SetServerIp(string serverIp)
         {
-            _ipDestino = ipDestino;
+            _serverIp = serverIp;
             return this;
         }
 
@@ -192,19 +194,19 @@ namespace Sockets
             }
         }
 
-        public string GetIpOrigen
+        public string GetClientIp
         {
             get
             {
-                return _ipOrigen;
+                return _clientIp;
             }
         }
 
-        public string GetIpDestino
+        public string GetServerIp
         {
             get
             {
-                return _ipDestino;
+                return _serverIp;
             }
         }
 

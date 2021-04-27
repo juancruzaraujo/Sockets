@@ -184,14 +184,14 @@ namespace TestSendArchivo
             switch (ev.GetEventType)
             {
                 case EventParameters.EventType.NEW_CONNECTION:
-                    Console.WriteLine (corchete(ev.GetConnectionNumber.ToString()) +  " conectado desde " + ev.GetIpOrigen);
+                    Console.WriteLine (corchete(ev.GetConnectionNumber.ToString()) +  " conectado desde " + ev.GetClientIp);
                     _obSocket.Send("<SOS> " + ev.GetConnectionNumber.ToString(), ev.GetListIndex);
                     //_obSocket.Send("<SOS> " + ev.GetConnectionNumber.ToString(), 0);
                     break;
 
                 case EventParameters.EventType.DATA_IN:
                     //DatosIn(indice, datos, true, ipOrigen);
-                    DatosIn(ev.GetListIndex,ev.GetConnectionNumber, ev.GetData, true, ev.GetIpOrigen);
+                    DatosIn(ev.GetListIndex,ev.GetConnectionNumber, ev.GetData, true, ev.GetClientIp);
                     break;
 
                 case EventParameters.EventType.ERROR:
@@ -199,6 +199,9 @@ namespace TestSendArchivo
                     Console.WriteLine(corchete(ev.GetConnectionNumber.ToString()) + " cod error " + ev.GetErrorCode + 
                         " en linea " +ev.GetLineNumberError.ToString()  + 
                         " descripcion " + ev.GetData);
+                    DateTime now = DateTime.Now;
+                    Console.WriteLine(now.ToString("F"));
+
                     break;
 
                 case EventParameters.EventType.CONNECTION_LIMIT:
@@ -210,7 +213,7 @@ namespace TestSendArchivo
                     break;
 
                 case EventParameters.EventType.END_CONNECTION:
-                    Console.WriteLine("<<conexión fin>> " + corchete(ev.GetConnectionNumber.ToString()) + " >>");
+                    Console.WriteLine("<<conexión fin>> " + corchete(ev.GetConnectionNumber.ToString()) + ev.GetServerIp + " " + ev.GetClientIp + " >>");
                     break;
 
                 case EventParameters.EventType.SERVER_START:
@@ -223,7 +226,11 @@ namespace TestSendArchivo
                     break;
 
                 case EventParameters.EventType.TIME_OUT:
-                    Console.WriteLine("TIME OUT " +  ev.GetIpDestino);
+                    Console.WriteLine("TIME OUT " +  ev.GetServerIp +  " " + ev.GetClientIp);
+                    break;
+
+                case EventParameters.EventType.RECIEVE_TIMEOUT:
+                    Console.WriteLine("recieve time out" + ev.GetServerIp  + " " + ev.GetClientIp);
                     break;
 
                 default:
@@ -248,7 +255,7 @@ namespace TestSendArchivo
             }
                       
             _obSocket.ServerMode = true;
-            _obSocket.SetServer(1492,Sockets.Sockets.C_DEFALT_CODEPAGE,tcp, C_MAX_CONEXIONES_SERVER);
+            _obSocket.SetServer(1492,Sockets.Sockets.C_DEFALT_CODEPAGE,tcp, C_MAX_CONEXIONES_SERVER,3);
             _obSocket.StartServer();
 
             if (Message != "")
@@ -340,7 +347,9 @@ namespace TestSendArchivo
             _obSocket.ClientMode = true;
             //_obSocket.SetCliente(1492, "127.0.0.1",5);
             //_obSocket.Connect();
-            _obSocket.ConnectClient(1492, "127.0.0.1", 5);
+            _obSocket.ReceiveTimeout = 10;
+            _obSocket.ConnectClient(1492, "127.0.0.1", 5,true,Sockets.Sockets.C_DEFALT_CODEPAGE,5);
+            
 
 
             if (message != "")

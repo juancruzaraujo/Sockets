@@ -32,6 +32,7 @@ namespace Sockets
         private string _host;
         private int _port;
         private bool _closingConnection = false;
+        private int _receiveTimeout;
 
         /// <summary>
         /// Verdadero estoy conectado, falso, no estoy conectado
@@ -66,6 +67,19 @@ namespace Sockets
             }
         }
 
+        /// <summary>
+        /// reciebe timeout in secons. If the value is 0 there is no timeout
+        /// </summary>
+        internal int ReceiveTimeout
+        {
+            set
+            {
+                if (value !=0)
+                {
+                    _receiveTimeout = value * 1000;
+                }
+            }
+        }
 
         /// <summary>
         /// Setea o devuelve el time out para poder conectarse en segundos.
@@ -121,8 +135,8 @@ namespace Sockets
         private void Connect_TCP(string host, int port)
         {
             int nPort = 0;
-            ;
-            
+
+
             try
             {
                 conected = false;
@@ -131,17 +145,57 @@ namespace Sockets
 
                 nPort = port;
 
+                //https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.receivetimeout?view=net-5.0
+                if (_receiveTimeout != 0)
+                {
+                    _clientSockTCP.ReceiveTimeout = _receiveTimeout;
+                }
+
+                /*
                 for (int i = 0; i < _timeOutValue; ++i)
                 {
                     try
                     {
+                        Console.WriteLine("time out value " + _timeOutValue);
+                        DateTime now = DateTime.Now;
+                        Console.WriteLine(now.ToString("F"));
                         _clientSockTCP.Connect(host, nPort);
                         break; // salgo del for
 
                     }
+                    catch(Exception err)
+                    {
+                        DateTime now2 = DateTime.Now;
+                        Console.WriteLine(now2.ToString("F"));
+                        Thread.Sleep(10); //espero un segundo y vuelvo a intentar
+                    }
+
+                }*/
+
+                bool keep = true;
+                DateTime startTime = DateTime.Now;
+                while (keep)
+                {
+                    try
+                    {
+                        _clientSockTCP.Connect(host, nPort);
+                    }
                     catch
                     {
-                        Thread.Sleep(1000); //espero un segundo y vuelvo a intentar
+
+                    }
+                    if (_clientSockTCP.Connected)
+                    {
+                        keep = false;
+                    }
+                    DateTime endProcess = DateTime.Now;
+                    TimeSpan elapsedTime = endProcess - startTime;
+                    double segundosTotales = elapsedTime.TotalSeconds;
+                    int seconds = elapsedTime.Seconds;
+
+                    if (seconds > _timeOutValue)
+                    {
+                        keep = false;
                     }
 
                 }
@@ -153,7 +207,7 @@ namespace Sockets
                     conected = true;
 
                     EventParameters ev = new EventParameters();
-                    ev.SetEvent(EventParameters.EventType.CONNECTION_OK).SetIpDestino(_host);
+                    ev.SetEvent(EventParameters.EventType.CONNECTION_OK).SetServerIp(_host);
                     GenerateEvent(ev);
 
                     ThreadStart thrclienteTCP = new ThreadStart(DataFlow_TCP);
@@ -165,7 +219,7 @@ namespace Sockets
                 {
                     //Eve_TimeOut(indiceCon);
                     EventParameters evTime = new EventParameters();
-                    evTime.SetEvent(EventParameters.EventType.TIME_OUT).SetIpDestino(_host);
+                    evTime.SetEvent(EventParameters.EventType.TIME_OUT).SetServerIp(_host);
                     GenerateEvent(evTime);
                     return;
                 }
@@ -200,8 +254,10 @@ namespace Sockets
         private void ErrorConnect(Exception errorDescripcion)
         {
             conected = false;
-            Error(errorDescripcion.Message);
-            
+            //Error(errorDescripcion.Message);
+            GenerateEventError(errorDescripcion);
+
+
         }
 
         private void DataFlow_TCP()
@@ -227,7 +283,16 @@ namespace Sockets
                     }
                     catch (Exception error)
                     {
-                        Error(error.Message);
+                        if (error.HResult != -2146232800)
+                        {
+                            GenerateEventError(error);
+                        }
+                        else
+                        {
+                            EventParameters evRecieveTimeOut = new EventParameters();
+                            evRecieveTimeOut.SetEvent(EventParameters.EventType.RECIEVE_TIMEOUT).SetServerIp(_host);
+                            GenerateEvent(evRecieveTimeOut);
+                        }
 
                         ConnectionEnd();
                         break;
@@ -255,7 +320,8 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                Error(err.Message);
+                //Error(err.Message);
+                GenerateEventError(err);
                 ConnectionEnd();
             }
         } //fin DataFlow_TCP
@@ -273,14 +339,15 @@ namespace Sockets
                     ev.SetEvent(EventParameters.EventType.DATA_IN)
                         //.SetData((Encoding.ASCII.GetString(datosInUDP, 0, datosInUDP.Length)))
                         .SetData(_encoder.GetString(dataInUDP))
-                        .SetIpOrigen(_epUDP.ToString());
+                        .SetServerIp(_epUDP.ToString());
                     GenerateEvent(ev);
                 }
 
             }
             catch(Exception err)
             {
-                Error(err.Message);
+                //Error(err.Message);
+                GenerateEventError(err);
             }
         }
 
@@ -298,12 +365,12 @@ namespace Sockets
 
         }
 
-        private void Error(string message)
+        /*private void Error(string message)
         {
             EventParameters evErr = new EventParameters();
             evErr.SetEvent(EventParameters.EventType.ERROR).SetData(message);
             GenerateEvent(evErr);
-        }
+        }*/
 
         internal void Send(string datos)
         {
@@ -339,12 +406,13 @@ namespace Sockets
                 else
                 {
                     
-                    Error("not connected");
+                    //Error("not connected");
                 }
             }
             catch (Exception err)
             {
-                Error(err.Message);
+                //Error(err.Message);
+                GenerateEventError(err);
             }
         }
 
@@ -355,7 +423,7 @@ namespace Sockets
 
             _clientSockUDP.Send(bytesEnviar, bytesEnviar.Length);
             EventParameters ev = new EventParameters();
-            ev.SetEvent(EventParameters.EventType.SEND_COMPLETE).SetSize(bytesEnviar.Length).SetIpDestino(_epUDP.ToString());
+            ev.SetEvent(EventParameters.EventType.SEND_COMPLETE).SetSize(bytesEnviar.Length).SetServerIp(_epUDP.ToString());
             GenerateEvent(ev);
 
         }
@@ -387,7 +455,8 @@ namespace Sockets
             }
             catch (Exception err)
             {
-                Error(err.Message);
+                //Error(err.Message);
+                GenerateEventError(err);
             }
         }
 
@@ -398,6 +467,30 @@ namespace Sockets
             ob.SetConnectionNumber(_connectionNumber).SetTCP(_tcp);
 
             Client_Event(ob);
+        }
+
+
+        private void GenerateEventError(Exception err, string optionalMessage = "")
+        {
+            if (err.HResult != -2146233040)
+            {
+                //-2146233040
+                //-2146233040
+                //-2146233040
+
+                Utils utils = new Utils();
+                EventParameters ev = new EventParameters();
+                if (optionalMessage != "")
+                {
+                    optionalMessage = " " + optionalMessage;
+                }
+                ev.SetListening(false).
+                    SetData(err.Message + optionalMessage).
+                    SetEvent(EventParameters.EventType.ERROR).
+                    SetErrorCode(utils.GetErrorCode(err));
+                //SetLineNumberError(utils.GetNumeroDeLineaError(err));
+                GenerateEvent(ev);
+            }
         }
     }
 }
