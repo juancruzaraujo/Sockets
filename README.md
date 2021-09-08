@@ -126,8 +126,3 @@ class Program
           }
     
 ```
-
-<<<<<<< HEAD
-
-=======
->>>>>>> master
