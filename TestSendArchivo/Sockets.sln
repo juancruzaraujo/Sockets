@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.489
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSendArchivo", "TestSendArchivo\TestSendArchivo.csproj", "{643F969C-35FF-4BDF-A826-5CC158AE06F4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sockets", "sockets\Sockets.csproj", "{1F571C58-B8A3-432F-9EE9-C23F11D497C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "udpClientTest", "udpClientTest\udpClientTest.csproj", "{D55CF5A6-22B4-4DBD-8C77-25039EE8A9B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleServer", "SimpleServer\SimpleServer.csproj", "{71B1B1E4-427F-439D-985B-AEA1A8277F2D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,18 @@ Global
 		{D55CF5A6-22B4-4DBD-8C77-25039EE8A9B0}.Release|x64.Build.0 = Release|Any CPU
 		{D55CF5A6-22B4-4DBD-8C77-25039EE8A9B0}.Release|x86.ActiveCfg = Release|Any CPU
 		{D55CF5A6-22B4-4DBD-8C77-25039EE8A9B0}.Release|x86.Build.0 = Release|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Debug|x64.Build.0 = Debug|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Debug|x86.Build.0 = Debug|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Release|x64.ActiveCfg = Release|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Release|x64.Build.0 = Release|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Release|x86.ActiveCfg = Release|Any CPU
+		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

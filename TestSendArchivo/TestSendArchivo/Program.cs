@@ -18,7 +18,7 @@ namespace TestSendArchivo
         static FileStream _ArchStream;
         static BinaryWriter _ArchWriter;
 
-        static Sockets.Sockets _obSocket;
+        static Socket _obSocket;
 
         //static int _tam;
 
@@ -84,8 +84,8 @@ namespace TestSendArchivo
 
             Console.WriteLine("\x1b[93m TEST SERVER.\r\n");
 
-            _obSocket = new Sockets.Sockets();
-            _obSocket.Event_Socket += new Sockets.Sockets.Delegate_Socket_Event(EvSockets); 
+            _obSocket = new Socket();
+            _obSocket.Event_Socket += new Socket.Delegate_Socket_Event(EvSockets); 
 
             if (args.Length > 0)
             {
@@ -183,7 +183,7 @@ namespace TestSendArchivo
             
             switch (ev.GetEventType)
             {
-                case EventParameters.EventType.NEW_CONNECTION:
+                case EventParameters.EventType.SERVER_NEW_CONNECTION:
                     Console.WriteLine (corchete(ev.GetConnectionNumber.ToString()) +  " conectado desde " + ev.GetClientIp);
                     _obSocket.Send("<SOS> " + ev.GetConnectionNumber.ToString(), ev.GetListIndex);
                     //_obSocket.Send("<SOS> " + ev.GetConnectionNumber.ToString(), 0);
@@ -225,7 +225,7 @@ namespace TestSendArchivo
                     Console.WriteLine("envio ok");
                     break;
 
-                case EventParameters.EventType.TIME_OUT:
+                case EventParameters.EventType.CLIENT_TIME_OUT:
                     Console.WriteLine("TIME OUT " +  ev.GetServerIp +  " " + ev.GetClientIp);
                     break;
 
@@ -255,7 +255,7 @@ namespace TestSendArchivo
             }
                       
             _obSocket.ServerMode = true;
-            _obSocket.SetServer(1492,Sockets.Sockets.C_DEFALT_CODEPAGE,tcp, C_MAX_CONEXIONES_SERVER,3);
+            _obSocket.SetServer(1492, Protocol.ConnectionProtocol.TCP, C_MAX_CONEXIONES_SERVER, 3);
             _obSocket.StartServer();
 
             if (Message != "")
@@ -345,11 +345,9 @@ namespace TestSendArchivo
             Console.Title = "MODO CLIENTE";
 
             _obSocket.ClientMode = true;
-            //_obSocket.SetCliente(1492, "127.0.0.1",5);
-            //_obSocket.Connect();
-            _obSocket.ReceiveTimeout = 10;
-            _obSocket.ConnectClient(1492, "127.0.0.1", 5,true,Sockets.Sockets.C_DEFALT_CODEPAGE,5);
             
+            //_obSocket.ReceiveTimeout = 10;
+            _obSocket.ConnectClient(1492, "127.0.0.1", Protocol.ConnectionProtocol.TCP, 5, Socket.C_DEFALT_CODEPAGE, 5);
 
 
             if (message != "")
@@ -367,9 +365,8 @@ namespace TestSendArchivo
             Console.Title = "MODO CLIENTE UDP";
 
             _obSocket.ClientMode = true;
-            _obSocket.ConnectClient(1492, "127.0.0.1", 5,false);
-            //_obSocket.SetCliente(1492, 0, "127.0.0.1",5, false);
-            //_obSocket.Connect();
+            //_obSocket.ConnectClient(1492, "127.0.0.1", 5,false);
+            _obSocket.ConnectClient(1492, "127.0.0.1", Protocol.ConnectionProtocol.UDP, 5);
 
 
         }

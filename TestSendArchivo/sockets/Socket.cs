@@ -6,11 +6,8 @@ using System.Threading;
 
 namespace Sockets
 {
-    public class Sockets
+    public class Socket
     {
-
-        //variables y objetos privados
-        //private Client _objClient;
         private List<Client> _lstObjClient;
         private List<ServerTCP> _lstObjServerTCP;
         private ServerUDP _objServerUDP;
@@ -32,7 +29,9 @@ namespace Sockets
         private string _ipClient;
         private string _data;
         private string _host;
-        private bool _tcp;
+        //private bool _tcp;
+        //private ConnectionProtocol _connectionProtocol;
+        private Protocol.ConnectionProtocol _connectionProtocol;
         private int _maxServerConnectionNumber;
         private int _numberServerConnections;
         private int _numCliConServer;
@@ -40,18 +39,15 @@ namespace Sockets
         private bool _stopingServer;
         private bool _serverStarted;
         private int _serverReceiveTimeout;
-
-        //constantes priavdas
-        private const string C_MENSAJE_ERROR_MODO_SOY_CLIENTE = "modo cliente";
-        private const string C_MENSAJE_ERROR_MODO_SOY_SERVER = "modo server";
+        private bool _lastClientConnected;
 
         public const int C_DEFALT_CODEPAGE = 65001;
+
 
         class SendArrayParamsContainer
         {
             internal byte[] memArray;
             internal int clusterSize;
-            //internal int indexConection;
             internal int connectionNumber;
         }
 
@@ -71,27 +67,13 @@ namespace Sockets
             }
         }
 
-        public bool tcp
+        public Protocol.ConnectionProtocol protocol
         {
             get
             {
-                return _tcp;
+                return _connectionProtocol;
             }
         }
-
-        /*
-        public string IpConnectedClient
-        {
-            get
-            {
-                string res = "";
-                if (_serverMode)
-                {
-                    //res = _objServidor.ip_Conexion;
-                }
-                return res;
-            }
-        }*/
 
         public int MaxNumberServerConnections
         {
@@ -100,7 +82,8 @@ namespace Sockets
                 _maxServerConnectionNumber = value;
                 if (_serverMode)
                 {
-                    if (!_tcp)
+                    //if (!_tcp)
+                    if (_connectionProtocol == Protocol.ConnectionProtocol.UDP)
                     {
                         _objServerUDP.MaxClientUDP = _maxServerConnectionNumber;
                     }
@@ -112,7 +95,7 @@ namespace Sockets
             }
         }
 
-        public Sockets()
+        public Socket()
         {
 
         }
@@ -130,8 +113,8 @@ namespace Sockets
             EventSocket(ev);
         }
 
-     
-        public void ConnectClient(int port,string host,int timeOut = 30,bool tcp = true,int codePage = C_DEFALT_CODEPAGE,int receiveTimeout = 0)
+
+        public void ConnectClient(int port, string host, Protocol.ConnectionProtocol connectionProtocol = Protocol.ConnectionProtocol.TCP, int timeOut = 30, int codePage = C_DEFALT_CODEPAGE, int receiveTimeout = 0)
         {
 
             int connNumber;
@@ -143,24 +126,24 @@ namespace Sockets
 
             _clientPort = port;
             _codePage = codePage;
-            //_connectionNumber = connectionNumber;
             _host = host;
 
-            Client objClient = new Client(tcp);
+
+            Client objClient = new Client(connectionProtocol);
 
             //objClient = new Client(tcp);
             objClient.SetGetTimeOut = timeOut;
             objClient.ReceiveTimeout = receiveTimeout;
             objClient.CodePage(_codePage);
-            
+
 
             objClient.clientEvent += new Client.Delegated_Client_Event(Evsocket);
-            
+
             _clientMode = true;
 
             _lstObjClient.Add(objClient);
 
-            if (tcp)
+            if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
             {
                 _clientConnectionNumberTCP++;
                 connNumber = _clientConnectionNumberTCP;
@@ -169,8 +152,9 @@ namespace Sockets
             {
                 _clientConnectionNumberUDP++;
                 connNumber = _clientConnectionNumberUDP;
+
             }
-            _lstObjClient[_lstObjClient.Count()-1].Connect(connNumber,host, port);
+            _lstObjClient[_lstObjClient.Count() - 1].Connect(connNumber, host, port);
         }
 
 
@@ -183,13 +167,14 @@ namespace Sockets
         /// <param name="tcp">protocol, tpc = true is default value</param>
         /// <param name="maxCon">maximum number of connections, in udp mode 0 is for unlimited connections</param>
         /// <param name="receiveTimeout">(only tcp mode) maximum waiting time in seconds for an incoming message, if it is 0 the waiting time is unlimited</param>
-        public void SetServer(int port, int codePage = C_DEFALT_CODEPAGE, bool tcp = true, int maxCon = 0,int receiveTimeout=0)
+        public void SetServer(int port, Protocol.ConnectionProtocol connectionProtocol, int maxCon = 0, int receiveTimeout = 0, int codePage = C_DEFALT_CODEPAGE)
         {
             string res = "";
             _listening = false;
             _serverPortListening = port;
             _codePage = codePage;
-            _tcp = tcp;
+            //_tcp = tcp;
+            _connectionProtocol = connectionProtocol;
             _maxServerConnectionNumber = maxCon;
             _numberServerConnections = 0;
             _numCliConServer = 1;
@@ -202,7 +187,8 @@ namespace Sockets
                 Error(ServerMode.ToString());
                 return;
             }
-            if (_tcp)
+            //if (_tcp)
+            if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
             {
                 _lstObjServerTCP = new List<ServerTCP>();
             }
@@ -221,9 +207,11 @@ namespace Sockets
 
         private void CreateServer(ref string message)
         {
+            
+            
             int indexList = GetLastSpaceFree();
-
-            if (_tcp)
+            
+            if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
             {
                 ServerTCP objServidor = new ServerTCP(_serverPortListening, _codePage, ref message);
                 if (message != "")
@@ -259,8 +247,11 @@ namespace Sockets
         /// </summary>
         public void StartServer()
         {
+
+            
             string res = "";
-            if (_tcp)
+            
+            if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
             {
                 _lstObjServerTCP[_lstObjServerTCP.Count() - 1].Start(ref res);
 
@@ -383,24 +374,6 @@ namespace Sockets
             }
         }
 
-        /// <summary>
-        /// reciebe timeout in secons. If the value is 0 there is no timeout
-        /// </summary>
-        public int ReceiveTimeout
-        {
-            set
-            {
-                if (ServerMode)
-                {
-
-                }
-                else
-                {
-
-                }
-            }
-        }
-
         public void Disconnect(int connectionNumber)
         {
             if (ClientMode)
@@ -426,13 +399,14 @@ namespace Sockets
         {
             if (ServerMode)
             {
-                if (_tcp)
+                if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
                 {
                     int clientIndexDisconnect = GetListIndexConnectedClientToServer(connectionNumber);
                     if (clientIndexDisconnect >= 0)
                     {
-                        _lstObjServerTCP[clientIndexDisconnect].DisconnectClient();
-                        OrderClientList();
+                        
+                        _lstObjServerTCP[clientIndexDisconnect].DisconnectClient(_stopingServer, _lastClientConnected);
+                        //_lastClientConnected = false;
                     }
 
                 }
@@ -445,24 +419,25 @@ namespace Sockets
 
         public void DisconnectAllConnectedClientsToMe()
         {
-            if (_tcp)
-            {
+            _lastClientConnected = false;
 
-                //for (int i = _lstObjServerTCP.Count() -1; i >= 0; i--)
+            if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
+            {
+                List<int> lstObjServerClientsIndex = new List<int>();
                 for (int i = 0; i < _lstObjServerTCP.Count(); i++)
                 {
-                    bool lastClientConnected = false;
-                    if (i == _lstObjServerTCP.Count() -1)
-                    {
-                        lastClientConnected = true;
-                    }
-
-                    _lstObjServerTCP[i].DisconnectClient(_stopingServer,lastClientConnected);
-
-                    OrderClientList();
-
+                    //desconecto y elimino los thread de todos incluso el objeto que esta ala espera de la nueva conexión
+                    lstObjServerClientsIndex.Add(_lstObjServerTCP[i].IndexConnection);
                 }
-
+                
+                for (int i=0; i< lstObjServerClientsIndex.Count();i++)
+                {
+                    if (i== lstObjServerClientsIndex.Count() -1)
+                    {
+                        _lastClientConnected = true;
+                    }
+                    DisconnectConnectedClientToMe(lstObjServerClientsIndex[i]);
+                }
             }
             else
             {
@@ -476,10 +451,10 @@ namespace Sockets
             {
                 _serverListening = false;
                 _stopingServer = true;
-                if (tcp)
+
+                if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
                 {
                     DisconnectAllConnectedClientsToMe();
-                    //_lstObjServerTCP.Clear();
                 }
                 else
                 {
@@ -503,6 +478,8 @@ namespace Sockets
             string message = "";
             bool showEvMaxConnections = false;
 
+            ev.SetSocketInstance(this);
+
             if ((_ipClient != ""))
             {
                 if (_ipClient != ev.GetClientIp)
@@ -514,24 +491,12 @@ namespace Sockets
             
             switch (ev.GetEventType)
             {
-                /*case EventParameters.EventType.ERROR:
-                    if (!_tcp)
-                    {
-                        //string aux = "";
-                        //_objServidor.Start(ref aux); //volvemos a iniciar el servidor udp
-                    }
-                    break;
-                */
-
-                case EventParameters.EventType.NEW_CONNECTION:
+                case EventParameters.EventType.SERVER_NEW_CONNECTION:
 
                     if (_serverMode)
                     {
-                        if (!_tcp)
-                        {
-                            //
-                        }
-                        else
+                        
+                        if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
                         {
                             if (_numberServerConnections >= (_maxServerConnectionNumber - 1)) //muy cabeza, pero funciona
                             {
@@ -541,6 +506,7 @@ namespace Sockets
                             _numCliConServer++;
                             if (GetConnectionNumber() < _maxServerConnectionNumber)
                             {
+                                Thread.Sleep(25); //por las dudas de que entren varias conexiones al mismo tiempo
                                 CreateServer(ref message);
                                 StartServer();
                             }
@@ -553,42 +519,32 @@ namespace Sockets
                         
                     if (_serverMode)
                     {
+
                         _lstObjServerTCP.RemoveAt(ev.GetListIndex);
                         OrderClientList();
+                        
+                        
                         _numberServerConnections--;
 
+                        /*
                         if (!_serverListening && !_stopingServer)
                         {
                             CreateServer(ref message);
                             StartServer();
-                        }
+                        }*/
+                        
                     }
                     else
                     {
-                        int cliIndex; //= GetClientListIndex(ev.GetConnectionNumber);
-                        //if (ev.GetTCP)
+                        int cliIndex;
                         {
                             cliIndex = GetClientListIndex(ev.GetConnectionNumber);
                             _lstObjClient.RemoveAt(cliIndex);
                         }
-                        //else
-                        //{
-
-                        //}
 
                     }
-                        
-
                     break;
 
-                case EventParameters.EventType.SERVER_STOP:
-                    _stopingServer = false;
-                    _serverStarted = false;
-                    if (tcp)
-                    {
-                        _lstObjServerTCP.Clear();
-                    }
-                    break;
             }
 
             EventSocket(ev); //envío el evento a quien lo este consumiendo(?)
@@ -602,6 +558,20 @@ namespace Sockets
                 evMaxCon.SetEvent(EventParameters.EventType.CONNECTION_LIMIT);
                 EventSocket(evMaxCon);
             }
+
+            if (_stopingServer && !_serverListening && _numberServerConnections == 0)
+            {
+                _stopingServer = false;
+                _serverStarted = false;
+                if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
+                {
+                    _lstObjServerTCP.Clear();
+                }
+
+                EventParameters evStopServer = new EventParameters();
+                evStopServer.SetEvent(EventParameters.EventType.SERVER_STOP);
+                EventSocket(evStopServer);
+            }
         }
 
 
@@ -610,7 +580,8 @@ namespace Sockets
         {
             if (_serverMode)
             {
-                if (_tcp)
+                //if (_tcp)
+                if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
                 {
                     _lstObjServerTCP[GetListIndexConnectedClientToServer(connectionNumber)].Send(message);
                 }
@@ -634,7 +605,8 @@ namespace Sockets
 
             if (_serverMode)
             {
-                if (_tcp)
+                //if (_tcp)
+                if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
                 {
                     if (_lstObjServerTCP[index].Connected)
                     {
@@ -663,7 +635,8 @@ namespace Sockets
             {
                 if (_serverMode)
                 {
-                    if (_tcp)
+                    //if (_tcp)
+                    if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
                     {
                         for (int i = 0; i < _lstObjServerTCP.Count(); i++)
                         {
@@ -777,10 +750,7 @@ namespace Sockets
                     {
                         sendParams.clusterSize = resultNumber; //ya estoy en el final y achico el cluster
                     }
-                    /*else
-                    {
-                        //por ahora no hago nada
-                    }*/
+
 
                     actualPositionNumber = readingPositionNumber;
                     EventParameters ev = new EventParameters();
@@ -813,7 +783,8 @@ namespace Sockets
         private int GetLastSpaceFree()
         {
             int res = 0;
-            if (_tcp)
+            //if (_tcp)
+            if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
             {
                 res = _lstObjServerTCP.Count();
             }
@@ -825,7 +796,7 @@ namespace Sockets
         {
             try
             {
-                if (_tcp)
+                if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
                 {
                     for (int i = 0; i < _lstObjServerTCP.Count(); i++)
                     {
@@ -849,7 +820,7 @@ namespace Sockets
         {
             try
             {
-                if (_tcp)
+                if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
                 {
                     for (int i = 0; i < _lstObjServerTCP.Count(); i++)
                     {
@@ -858,10 +829,6 @@ namespace Sockets
                             return i;
                         }
                     }
-                }
-                else
-                {
-                    //udp
                 }
             }
             catch (Exception err)

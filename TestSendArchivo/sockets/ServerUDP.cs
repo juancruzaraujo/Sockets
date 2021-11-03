@@ -62,10 +62,9 @@ namespace Sockets
 
         
         /// <summary>
-        /// Code page para iniciar la comunicacion
+        /// Code page
         /// </summary>
-        /// <param name="Codigo">codigo de codepage</param>
-        /// <param name="Error">Message que retorna en caso de error</param>
+        /// <param name="code">codigo de codepage</param>
         internal void CodePage(int code)
         {
             try
@@ -245,7 +244,7 @@ namespace Sockets
                                     _lstClientsUDP[indexMsg].connectionNumber = _numberConnections;
 
                                     EventParameters acceptCon = new EventParameters();
-                                    acceptCon.SetEvent(EventParameters.EventType.ACCEPT_CONNECTION)
+                                    acceptCon.SetEvent(EventParameters.EventType.SERVER_ACCEPT_CONNECTION)
                                         .SetClientIp(_ipConnection)
                                         .SetListIndex(indexMsg)
                                         .SetConnectionNumber(_lstClientsUDP[indexMsg].connectionNumber);
@@ -256,7 +255,7 @@ namespace Sockets
                                     //tendría que agregar algo que permita rechazar la conexion dsp de que se dispara ACCEPT_CONNECTION
 
                                     EventParameters newCon = new EventParameters();
-                                    newCon.SetEvent(EventParameters.EventType.NEW_CONNECTION)
+                                    newCon.SetEvent(EventParameters.EventType.SERVER_NEW_CONNECTION)
                                     .SetClientIp(_ipConnection)
                                     .SetListIndex(indexMsg)
                                     .SetConnectionNumber(_lstClientsUDP[indexMsg].connectionNumber);
