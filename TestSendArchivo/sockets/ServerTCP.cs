@@ -32,10 +32,11 @@ namespace Sockets
 
         private bool _connected;
         private int _receiveTimeout;
+        private string _clientIp;
 
         internal bool waitConnection;
-        //internal string ipConnection;
         internal int port;
+        //internal bool serverDisconnecting;
 
         internal delegate void Delegate_Server_Event(EventParameters serverParametersEvent);
         internal event Delegate_Server_Event evento_servidor;
@@ -99,6 +100,14 @@ namespace Sockets
             }
         }
 
+        internal string GetClientIp
+        {
+            get
+            {
+                return _clientIp;
+            }
+        }
+
         /// <summary>
         /// setea el socket para la escucha
         /// </summary>
@@ -111,6 +120,7 @@ namespace Sockets
             _indexConnection = -1;
             try
             {
+                //ARREGLAR ESTO
                 CodePage(Cod, ref message);
                 if (message != "")
                 {
@@ -200,13 +210,13 @@ namespace Sockets
                             evServerStop = true;
                         }
 
-
+                        /*
                         if (evServerStop)
                         {
                             EventParameters ev = new EventParameters();
                             ev.SetListening(waitConnection).SetEvent(EventParameters.EventType.SERVER_STOP);
                             GenerateEvent(ev);
-                        }
+                        }*/
 
                         thrClient.Abort();
                         _loopCommunicationClient = false;
@@ -231,16 +241,22 @@ namespace Sockets
             TcpClient clientTCP = new TcpClient();
 
             _tcpListen = new TcpListener(IPAddress.Any, port);
-            
+
+            //string test1;
             try
             {
                 waitConnection = true;
                 EventParameters ev = new EventParameters();
-                ev.SetEvent(EventParameters.EventType.WAIT_CONNECTION).SetListening(true);
+                ev.SetEvent(EventParameters.EventType.SERVER_WAIT_CONNECTION).SetListening(true);
                 GenerateEvent(ev);
 
+
+                //Thread.Sleep(100);
                 _tcpListen.Stop();
+                //test1 = "stop";
+                
                 _tcpListen.Start();
+                //test1 = "start";
                 _listening = true;
             }
             catch (Exception err)
@@ -248,8 +264,8 @@ namespace Sockets
                 //el error salta acá, porque ya abrí una nueva instancia que esta eschando acá.
                 waitConnection = false;
                 EventParameters evErr = new EventParameters();
-                evErr.SetEvent(EventParameters.EventType.WAIT_CONNECTION);
-                GenerateEvent(evErr); //ver porque puse dos eventos
+                //evErr.SetEvent(EventParameters.EventType.SERVER_WAIT_CONNECTION);
+                //GenerateEvent(evErr); //ver porque puse dos eventos
                 GenerateEventError(err);
                 return;
             }
@@ -262,22 +278,22 @@ namespace Sockets
 
                     //Escuchando = true;
                     clientTCP = _tcpListen.AcceptTcpClient();
-                    sAux = ((System.Net.IPEndPoint)(clientTCP.Client.RemoteEndPoint)).Address.ToString();
+                    _clientIp = ((System.Net.IPEndPoint)(clientTCP.Client.RemoteEndPoint)).Address.ToString();
 
                     waitConnection = false;
                     EventParameters ev = new EventParameters();
-                    ev.SetEvent(EventParameters.EventType.WAIT_CONNECTION);
+                    ev.SetEvent(EventParameters.EventType.SERVER_WAIT_CONNECTION);
                     GenerateEvent(ev);
 
                     try
                     {
                         _loopCommunicationClient = true;
                         _thrClienteConexion = new Thread(new ParameterizedThreadStart(ClientCommunication));
-                        _thrClienteConexion.Name = "ThrCliente";
+                        _thrClienteConexion.Name = "ThrC" + _listIndex;
                         _thrClienteConexion.IsBackground = true;
                         _thrClienteConexion.Start(clientTCP);
 
-                        ev.SetEvent(EventParameters.EventType.ACCEPT_CONNECTION).SetClientIp(sAux);
+                        ev.SetEvent(EventParameters.EventType.SERVER_ACCEPT_CONNECTION).SetClientIp(_clientIp);
                         GenerateEvent(ev);
 
                         //ahora tendria que dejar de escuchar
@@ -317,11 +333,11 @@ namespace Sockets
                 string strData;
 
                 _tcpClient = (TcpClient)Cliente;
-
+                
                 //levanto evento nueva conexion
                 _connected = true;
                 EventParameters ev = new EventParameters();
-                ev.SetClientIp(_tcpClient.Client.RemoteEndPoint.ToString()).SetEvent(EventParameters.EventType.NEW_CONNECTION);
+                ev.SetClientIp(_tcpClient.Client.RemoteEndPoint.ToString()).SetEvent(EventParameters.EventType.SERVER_NEW_CONNECTION);
                 GenerateEvent(ev);
 
                 if (_receiveTimeout != 0)
@@ -342,19 +358,38 @@ namespace Sockets
                     {
                         bytesRead = clientStream.Read(message, 0, 65535);
                     }
-                    catch(Exception error)
+                    catch
                     {
-                        if (error.HResult == -2146232800)
+
+                        bool timeOut = false;
+                        try
                         {
-                            EventParameters evRecieveTimeOut = new EventParameters();
-                            evRecieveTimeOut.SetEvent(EventParameters.EventType.RECIEVE_TIMEOUT).SetClientIp(_tcpClient.Client.RemoteEndPoint.ToString());
-                            GenerateEvent(evRecieveTimeOut);
+                            if (_tcpClient.Client.RemoteEndPoint != null)
+                            {
+                                timeOut = true;
+                            }
+                        }
+                        catch
+                        {
+                            timeOut = false;
                         }
 
                         EveYaDisparado = true;
                         _connected = false;
                         _tcpClient.Close();
-                        
+
+                        EventParameters eventDisconnection = new EventParameters();
+                        eventDisconnection.SetClientIp(_clientIp);
+                        if (timeOut)
+                        {
+                            eventDisconnection.SetEvent(EventParameters.EventType.RECIEVE_TIMEOUT);
+                        }
+                        else
+                        {
+                            eventDisconnection.SetEvent(EventParameters.EventType.END_CONNECTION);
+                        }
+                        GenerateEvent(eventDisconnection);
+
                         break;
                     }
 
@@ -364,7 +399,7 @@ namespace Sockets
                         _connected = false;
                         _tcpClient.Close();
                         ev.SetData("").SetEvent(EventParameters.EventType.END_CONNECTION);
-                        //EveYaDisparado = true;
+
                         break;
                     }
 
@@ -382,10 +417,12 @@ namespace Sockets
                     //el cliente cerro la conexion
                     _connected = false;
                     _tcpClient.Close();
+                    ev.SetEvent(EventParameters.EventType.END_CONNECTION).SetData("");
+                    GenerateEvent(ev);
                 }
 
-                ev.SetEvent(EventParameters.EventType.END_CONNECTION).SetData("");
-                GenerateEvent(ev);
+                //ev.SetEvent(EventParameters.EventType.END_CONNECTION).SetData("");
+                //GenerateEvent(ev);
                 
             }
             catch (Exception err)
@@ -406,8 +443,23 @@ namespace Sockets
             int buf=0;
             try
             {
-                TcpClient TcpClienteDatos = _tcpClient;
-                NetworkStream clienteStream = TcpClienteDatos.GetStream();
+
+                TcpClient tcpClientData = _tcpClient;
+                bool force = true;
+                while(force)
+                {
+                    if (tcpClientData != null)
+                    {
+                        force = false;
+                    }
+                    else
+                    {
+                        tcpClientData = _tcpClient;
+                    }
+                }
+
+
+                NetworkStream clienteStream = tcpClientData.GetStream();
 
                 byte[] buffer = _encoder.GetBytes(data);
                 buf = buffer.Length;

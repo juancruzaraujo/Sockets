@@ -22,8 +22,7 @@ namespace Sockets
 
         private TcpClient _clientSockTCP; //el socket en cuestion!
         private Thread _thrClient; //hilo con el flujo de datos
-        //private Thread _thr_TimeOut; //hilo que setea cuando se inicia el timer de timeout de intento de conexion
-        private bool _tcp;
+        Protocol.ConnectionProtocol _connectionProtocol;
         private UdpClient _clientSockUDP;
         private IPEndPoint _epUDP;
         private int _connectionNumber;
@@ -110,9 +109,10 @@ namespace Sockets
             this.clientEvent(serverParametersEvent);
         }
 
-        internal Client(bool tcp=true)
+        internal Client(Protocol.ConnectionProtocol connectionProtocol = Protocol.ConnectionProtocol.TCP)
         {
-            _tcp = tcp;
+            //_tcp = tcp;
+            _connectionProtocol = connectionProtocol;
             
         }
 
@@ -122,7 +122,7 @@ namespace Sockets
             _port = port;
             _connectionNumber = connectionNumber;
 
-            if (_tcp)
+            if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
             {
                 Connect_TCP(_host, _port);
             }
@@ -151,27 +151,6 @@ namespace Sockets
                     _clientSockTCP.ReceiveTimeout = _receiveTimeout;
                 }
 
-                /*
-                for (int i = 0; i < _timeOutValue; ++i)
-                {
-                    try
-                    {
-                        Console.WriteLine("time out value " + _timeOutValue);
-                        DateTime now = DateTime.Now;
-                        Console.WriteLine(now.ToString("F"));
-                        _clientSockTCP.Connect(host, nPort);
-                        break; // salgo del for
-
-                    }
-                    catch(Exception err)
-                    {
-                        DateTime now2 = DateTime.Now;
-                        Console.WriteLine(now2.ToString("F"));
-                        Thread.Sleep(10); //espero un segundo y vuelvo a intentar
-                    }
-
-                }*/
-
                 bool keep = true;
                 DateTime startTime = DateTime.Now;
                 while (keep)
@@ -180,10 +159,8 @@ namespace Sockets
                     {
                         _clientSockTCP.Connect(host, nPort);
                     }
-                    catch
-                    {
+                    catch { } //ACA QUEDE por que hice esto?
 
-                    }
                     if (_clientSockTCP.Connected)
                     {
                         keep = false;
@@ -207,7 +184,7 @@ namespace Sockets
                     conected = true;
 
                     EventParameters ev = new EventParameters();
-                    ev.SetEvent(EventParameters.EventType.CONNECTION_OK).SetServerIp(_host);
+                    ev.SetEvent(EventParameters.EventType.CLIENT_CONNECTION_OK).SetServerIp(_host);
                     GenerateEvent(ev);
 
                     ThreadStart thrclienteTCP = new ThreadStart(DataFlow_TCP);
@@ -219,7 +196,7 @@ namespace Sockets
                 {
                     //Eve_TimeOut(indiceCon);
                     EventParameters evTime = new EventParameters();
-                    evTime.SetEvent(EventParameters.EventType.TIME_OUT).SetServerIp(_host);
+                    evTime.SetEvent(EventParameters.EventType.CLIENT_TIME_OUT).SetServerIp(_host);
                     GenerateEvent(evTime);
                     return;
                 }
@@ -337,7 +314,6 @@ namespace Sockets
 
                     EventParameters ev = new EventParameters();
                     ev.SetEvent(EventParameters.EventType.DATA_IN)
-                        //.SetData((Encoding.ASCII.GetString(datosInUDP, 0, datosInUDP.Length)))
                         .SetData(_encoder.GetString(dataInUDP))
                         .SetServerIp(_epUDP.ToString());
                     GenerateEvent(ev);
@@ -346,7 +322,6 @@ namespace Sockets
             }
             catch(Exception err)
             {
-                //Error(err.Message);
                 GenerateEventError(err);
             }
         }
@@ -365,16 +340,10 @@ namespace Sockets
 
         }
 
-        /*private void Error(string message)
-        {
-            EventParameters evErr = new EventParameters();
-            evErr.SetEvent(EventParameters.EventType.ERROR).SetData(message);
-            GenerateEvent(evErr);
-        }*/
-
         internal void Send(string datos)
         {
-            if (_tcp)
+            //if (_tcp)
+            if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
             {
                 Send_TCP(datos);
             }
@@ -445,17 +414,16 @@ namespace Sockets
         /// CodePage:
         ///     Setea el codigo de paginas de carectes para enviar y recibir
         /// </summary>
-        /// <param name="Codigo">Código de pagina</param>
+        /// <param name="code">Código de pagina</param>
         /// <param name="Error">Sí hay un error se guarda en Error, de caso contrario queda vacio</param>
-        internal void CodePage(int Codigo)
+        internal void CodePage(int code)
         {
             try
             {
-                _encoder = Encoding.GetEncoding(Codigo);
+                _encoder = Encoding.GetEncoding(code);
             }
             catch (Exception err)
             {
-                //Error(err.Message);
                 GenerateEventError(err);
             }
         }
@@ -464,7 +432,7 @@ namespace Sockets
         
         private void GenerateEvent(EventParameters ob)
         {
-            ob.SetConnectionNumber(_connectionNumber).SetTCP(_tcp);
+            ob.SetConnectionNumber(_connectionNumber).SetTCP(_connectionProtocol);
 
             Client_Event(ob);
         }
@@ -488,7 +456,6 @@ namespace Sockets
                     SetData(err.Message + optionalMessage).
                     SetEvent(EventParameters.EventType.ERROR).
                     SetErrorCode(utils.GetErrorCode(err));
-                //SetLineNumberError(utils.GetNumeroDeLineaError(err));
                 GenerateEvent(ev);
             }
         }

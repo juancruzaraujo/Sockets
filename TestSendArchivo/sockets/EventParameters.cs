@@ -20,36 +20,38 @@ namespace Sockets
         private string _serverIp;
         private int _errorCode;
         private int _lineNumberError;
-        private bool _tcp;
+        //private bool _tcp;
+        private Protocol.ConnectionProtocol _connectionProtocol;
+
+        private Socket _socketInstance;
 
         /// <summary>
         /// Numero de evento que se dispara
         /// </summary>
         public enum EventType
         {
-            ERROR = 0,
-            SEND_COMPLETE = 1,
-            DATA_IN = 2,
+            ERROR,
+            SEND_COMPLETE,
+            DATA_IN,
             /// <summary>
             /// la comunucación con el cliente ya esta establecida
             /// </summary>
-            NEW_CONNECTION = 3,
-            END_CONNECTION = 4,
+            SERVER_NEW_CONNECTION,
+            END_CONNECTION,
             /// <summary>
             /// acepta conexión y se obtiene el ip del cliente, pero todavía no establece la comunucación
             /// </summary>
-            ACCEPT_CONNECTION = 5,
-            WAIT_CONNECTION = 6,
-            SEND_POSITION = 7,
-            CONNECTION_OK = 8,
-            TIME_OUT = 9,
-            SERVER_START = 10,
-            CONNECTION_LIMIT = 11,
-            SERVER_STOP = 12,
-            SEND_ARRAY_COMPLETE = 13,
-            RECIEVE_TIMEOUT = 14
-            //_receiveTimeout
-        };
+            SERVER_ACCEPT_CONNECTION,
+            SERVER_WAIT_CONNECTION,
+            SEND_POSITION,
+            CLIENT_CONNECTION_OK,
+            CLIENT_TIME_OUT,
+            SERVER_START,
+            CONNECTION_LIMIT,
+            SERVER_STOP,
+            SEND_ARRAY_COMPLETE,
+            RECIEVE_TIMEOUT
+        }
 
         internal EventParameters SetConnectionNumber(int conectionNumber)
         {
@@ -129,9 +131,16 @@ namespace Sockets
             return this;
         }
 
-        internal EventParameters SetTCP(bool val)
+        internal EventParameters SetTCP(Protocol.ConnectionProtocol connectionProtocol)
         {
-            _tcp = val;
+            _connectionProtocol = connectionProtocol;
+            return this;
+        }
+
+
+        internal EventParameters SetSocketInstance(Socket socket)
+        {
+            _socketInstance = socket;
             return this;
         }
 
@@ -226,6 +235,7 @@ namespace Sockets
             }
         }
 
+        /*
         public int GetConnectionNumberTCP
         {
             get
@@ -241,14 +251,21 @@ namespace Sockets
                 return _connectionNumberUDP;
             }
         }
-
-        public bool GetTCP
+        */
+        public Protocol.ConnectionProtocol GetProtocol
         {
             get
             {
-                return _tcp;
+                return _connectionProtocol;
             }
         }
 
+        public Socket GetSocketInstance
+        {
+            get
+            {
+                return _socketInstance;
+            }
+        }
     }
 }
