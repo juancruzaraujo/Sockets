@@ -504,6 +504,8 @@ namespace Sockets
                             }
                             _numberServerConnections++;
                             _numCliConServer++;
+
+                            
                             if (GetConnectionNumber() < _maxServerConnectionNumber)
                             {
                                 Thread.Sleep(25); //por las dudas de que entren varias conexiones al mismo tiempo

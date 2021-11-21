@@ -18,7 +18,7 @@ namespace Sockets
             private /*static*/ bool debug_Mode = false;
         #endif
 
-        private Thread thrClient;
+        private Thread thrClient;        
         private Thread _thrClienteConexion;
 
         private TcpListener _tcpListen;
@@ -37,6 +37,10 @@ namespace Sockets
         internal bool waitConnection;
         internal int port;
         //internal bool serverDisconnecting;
+
+
+        //ThreadStart client;
+
 
         internal delegate void Delegate_Server_Event(EventParameters serverParametersEvent);
         internal event Delegate_Server_Event evento_servidor;
@@ -145,13 +149,21 @@ namespace Sockets
         {
             try
             {
-                ThreadStart client;
-                client = new ThreadStart(Listen_TCP);
+
+                //en debug reemplaza este thread, en release crea uno nuevo y eso hace que falle
+
+                //if (thrClient == null)
+                {
+                    ThreadStart client;
+                    client = new ThreadStart(Listen_TCP);
+
+
+                    thrClient = new Thread(client);
+                    thrClient.Name = "ThTCP" + _listIndex;
+                    thrClient.IsBackground = true;
+                    thrClient.Start();
+                }
                 
-                thrClient = new Thread(client);
-                thrClient.Name = "ThTCP";
-                thrClient.IsBackground = true;
-                thrClient.Start();
 
             }
             catch (Exception err)
@@ -163,10 +175,7 @@ namespace Sockets
             }
         }
 
-        /*internal void Detener()
-        {
-            _loopCommunicationClient = false;
-        }*/
+
 
         /// <summary>
         /// Detiene todas las conexiones
@@ -210,17 +219,11 @@ namespace Sockets
                             evServerStop = true;
                         }
 
-                        /*
-                        if (evServerStop)
-                        {
-                            EventParameters ev = new EventParameters();
-                            ev.SetListening(waitConnection).SetEvent(EventParameters.EventType.SERVER_STOP);
-                            GenerateEvent(ev);
-                        }*/
+                        
 
                         thrClient.Abort();
                         _loopCommunicationClient = false;
-                        //_thrClienteConexion.Abort();
+                        
                         Thread.EndCriticalRegion(); //esto cierra todo con o sin conexiones
                     }
                 }
@@ -240,7 +243,7 @@ namespace Sockets
 
             TcpClient clientTCP = new TcpClient();
 
-            _tcpListen = new TcpListener(IPAddress.Any, port);
+            _tcpListen = new TcpListener(IPAddress.Any,port);
 
             //string test1;
             try
@@ -251,12 +254,13 @@ namespace Sockets
                 GenerateEvent(ev);
 
 
-                //Thread.Sleep(100);
-                _tcpListen.Stop();
-                //test1 = "stop";
-                
+                /*
+                 * en release este thread no se cierra a tiempo
+                 * por eso y se levanta otro de este tipo y ahí falla
+                */
+                _tcpListen.Stop();                
                 _tcpListen.Start();
-                //test1 = "start";
+
                 _listening = true;
             }
             catch (Exception err)
@@ -289,23 +293,26 @@ namespace Sockets
                     {
                         _loopCommunicationClient = true;
                         _thrClienteConexion = new Thread(new ParameterizedThreadStart(ClientCommunication));
-                        _thrClienteConexion.Name = "ThrC" + _listIndex;
+                        _thrClienteConexion.Name = "ThrConnectionTCP_" + _listIndex;
                         _thrClienteConexion.IsBackground = true;
                         _thrClienteConexion.Start(clientTCP);
+
+
+                        _listening = false;
+                        _tcpListen.Stop();
 
                         ev.SetEvent(EventParameters.EventType.SERVER_ACCEPT_CONNECTION).SetClientIp(_clientIp);
                         GenerateEvent(ev);
 
-                        //ahora tendria que dejar de escuchar
-                        _listening = false;
-                        _tcpListen.Stop();
                     }
                     catch (Exception err)
                     {
                         _listening = false;
+                        _tcpListen.Stop();
                         //ev.SetData(err.Message + " threadConexion").SetEvent(Parametrosvento.TipoEvento.ERROR);
                         //GenerateEvent(ev);
-                        GenerateEventError(err, "threadConexion");
+                        Thread thread = Thread.CurrentThread;
+                        GenerateEventError(err, thread.Name);
 
                     }
                 }
@@ -315,7 +322,6 @@ namespace Sockets
                     _tcpListen.Stop();
                     GenerateEventError(err, "TcpListen.Accept()");
                     
-                    //_thrClienteConexion.Abort();
                 }
 
             } while (_listening == true);//fin do
@@ -420,9 +426,6 @@ namespace Sockets
                     ev.SetEvent(EventParameters.EventType.END_CONNECTION).SetData("");
                     GenerateEvent(ev);
                 }
-
-                //ev.SetEvent(EventParameters.EventType.END_CONNECTION).SetData("");
-                //GenerateEvent(ev);
                 
             }
             catch (Exception err)
@@ -431,13 +434,6 @@ namespace Sockets
             }
         }
 
-        /// <summary>
-        /// Envia un message al cliente conectado
-        /// </summary>
-        /// <param name="Indice">Indice de conexion al que se el envia el message</param>
-        /// <param name="Datos">el message a enviar</param>
-        /// <param name="Resultado">Message que retorna en caso de error</param>
-        //internal void Send(int Indice,string Datos, ref string Resultado)
         internal void Send(string data)
         {
             int buf=0;
