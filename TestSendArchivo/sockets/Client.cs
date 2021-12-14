@@ -32,11 +32,25 @@ namespace Sockets
         private int _port;
         private bool _closingConnection = false;
         private int _receiveTimeout;
+        private string _clientTag;
 
         /// <summary>
         /// Verdadero estoy conectado, falso, no estoy conectado
         /// </summary>
         internal bool conected; //me dice si estoy conectado o no
+
+
+        internal string ClientTag
+        {
+            get
+            {
+                return _clientTag;
+            }
+            set
+            {
+                _clientTag = value;
+            }
+        }
 
         /// <summary>
         /// Devuelve o establece el indice de conexion, necesario si se crea una lista o un vector de este objeto
@@ -432,7 +446,7 @@ namespace Sockets
         
         private void GenerateEvent(EventParameters ob)
         {
-            ob.SetConnectionNumber(_connectionNumber).SetTCP(_connectionProtocol);
+            ob.SetConnectionNumber(_connectionNumber).SetTCP(_connectionProtocol).SetClientTag(_clientTag);
 
             Client_Event(ob);
         }

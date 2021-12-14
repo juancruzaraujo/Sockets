@@ -114,7 +114,8 @@ namespace Sockets
         }
 
 
-        public void ConnectClient(int port, string host, Protocol.ConnectionProtocol connectionProtocol = Protocol.ConnectionProtocol.TCP, int timeOut = 30, int codePage = C_DEFALT_CODEPAGE, int receiveTimeout = 0)
+        //public void ConnectClient(int port, string host, Protocol.ConnectionProtocol connectionProtocol = Protocol.ConnectionProtocol.TCP, int timeOut = 30, int codePage = C_DEFALT_CODEPAGE, int receiveTimeout = 0)
+        public void ConnectClient(ConnectionParameters connectionParameters)
         {
 
             int connNumber;
@@ -124,17 +125,18 @@ namespace Sockets
                 _lstObjClient = new List<Client>();
             }
 
-            _clientPort = port;
-            _codePage = codePage;
-            _host = host;
+            _clientPort = connectionParameters.GetPort;
+            _codePage = connectionParameters.GetCodePage;
+            _host = connectionParameters.GetHost;
 
 
-            Client objClient = new Client(connectionProtocol);
+            Client objClient = new Client(connectionParameters.GetConnectionProtocol);
 
             //objClient = new Client(tcp);
-            objClient.SetGetTimeOut = timeOut;
-            objClient.ReceiveTimeout = receiveTimeout;
+            objClient.SetGetTimeOut = connectionParameters.GetTimeOut;
+            objClient.ReceiveTimeout = connectionParameters.GetRecieveTimeOut;
             objClient.CodePage(_codePage);
+            objClient.ClientTag = connectionParameters.GetConnectionTag;
 
 
             objClient.clientEvent += new Client.Delegated_Client_Event(Evsocket);
@@ -154,7 +156,7 @@ namespace Sockets
                 connNumber = _clientConnectionNumberUDP;
 
             }
-            _lstObjClient[_lstObjClient.Count() - 1].Connect(connNumber, host, port);
+            _lstObjClient[_lstObjClient.Count() - 1].Connect(connNumber, _host, connectionParameters.GetPort);
         }
 
 
