@@ -63,7 +63,7 @@ namespace SimpleServer
 
             _serverTCP = new Socket();
             //_serverTCP.SetServer(port, Protocol.ConnectionProtocol.TCP, maxCon,60);
-            _serverTCP.SetServer(port, Protocol.ConnectionProtocol.TCP, maxCon);
+            _serverTCP.SetServer(port, Protocol.ConnectionProtocol.TCP, maxCon,10);
             _serverTCP.Event_Socket += ServerTCP_Event_Socket;
 
             _serverUDP = new Socket();

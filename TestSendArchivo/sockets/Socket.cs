@@ -133,8 +133,16 @@ namespace Sockets
             Client objClient = new Client(connectionParameters.GetConnectionProtocol);
 
             //objClient = new Client(tcp);
-            objClient.SetGetTimeOut = connectionParameters.GetTimeOut;
-            objClient.ReceiveTimeout = connectionParameters.GetRecieveTimeOut;
+            if (connectionParameters.GetTimeOut > 0)
+            {
+                objClient.SetGetTimeOut = connectionParameters.GetTimeOut;
+            }
+
+            if (connectionParameters.GetRecieveTimeOut > 0)
+            {
+                objClient.ReceiveTimeout = connectionParameters.GetRecieveTimeOut;
+            }
+
             objClient.CodePage(_codePage);
             objClient.ClientTag = connectionParameters.GetConnectionTag;
 
@@ -226,7 +234,11 @@ namespace Sockets
 
                 _lstObjServerTCP[indexList].IndexConnection = _numCliConServer;
                 _lstObjServerTCP[indexList].ListIndex = indexList;
-                _lstObjServerTCP[indexList].ReceiveTimeout = _serverReceiveTimeout;
+
+                if (_serverReceiveTimeout > 0)
+                { 
+                    _lstObjServerTCP[indexList].ReceiveTimeout = _serverReceiveTimeout;
+                }
             }
             else
             {

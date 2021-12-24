@@ -372,7 +372,10 @@ namespace Sockets
                         {
                             if (_tcpClient.Client.RemoteEndPoint != null)
                             {
-                                timeOut = true;
+                                if (_tcpClient.Client.ReceiveTimeout != 0)
+                                {
+                                    timeOut = true;
+                                }
                             }
                         }
                         catch

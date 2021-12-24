@@ -20,9 +20,9 @@ namespace Sockets
 
         public ConnectionParameters()
         {
-            _timeOut = 30;
+            _timeOut = 0;
             _codePage = C_DEFALT_CODEPAGE;
-            _receiveTimeout = 30;
+            _receiveTimeout = 0;
         }
 
         public ConnectionParameters SetPort(int port)
