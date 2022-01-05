@@ -63,15 +63,15 @@ namespace SimpleServer
 
             _serverTCP = new Socket();
             //_serverTCP.SetServer(port, Protocol.ConnectionProtocol.TCP, maxCon,60);
-            _serverTCP.SetServer(port, Protocol.ConnectionProtocol.TCP, maxCon);
+            _serverTCP.SetServer(port, Protocol.ConnectionProtocol.TCP, maxCon,10);
             _serverTCP.Event_Socket += ServerTCP_Event_Socket;
 
             _serverUDP = new Socket();
-            _serverUDP.SetServer(port, Protocol.ConnectionProtocol.UDP, 0);
+            //_serverUDP.SetServer(port, Protocol.ConnectionProtocol.UDP, 0);
             _serverUDP.Event_Socket += ServerUDP_Event_Socket;
 
             _serverTCP.StartServer();
-            _serverUDP.StartServer();
+            //_serverUDP.StartServer();
 
             while (keep)
             {
@@ -96,7 +96,7 @@ namespace SimpleServer
             Socket aux = eventParameters.GetSocketInstance;
             switch (eventParameters.GetEventType)
             {
-                case EventParameters.EventType.SERVER_ACCEPT_CONNECTION:
+                case EventParameters.EventType.SERVER_NEW_CONNECTION:
 
                     Console.WriteLine("connection number " + eventParameters.GetConnectionNumber + " " + eventParameters.GetClientIp);
                     aux.Send(eventParameters.GetConnectionNumber, "Welcome! "+ eventParameters.GetConnectionNumber  + "\r\n ");

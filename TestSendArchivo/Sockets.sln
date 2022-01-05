@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "udpClientTest", "udpClientT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleServer", "SimpleServer\SimpleServer.csproj", "{71B1B1E4-427F-439D-985B-AEA1A8277F2D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DummyClients", "DummyClients\DummyClients.csproj", "{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Release|x64.Build.0 = Release|Any CPU
 		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Release|x86.ActiveCfg = Release|Any CPU
 		{71B1B1E4-427F-439D-985B-AEA1A8277F2D}.Release|x86.Build.0 = Release|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Debug|x64.Build.0 = Debug|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Debug|x86.Build.0 = Debug|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Release|x64.ActiveCfg = Release|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Release|x64.Build.0 = Release|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Release|x86.ActiveCfg = Release|Any CPU
+		{83945D71-1FFB-4B76-B84D-A97F9A25DE1A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

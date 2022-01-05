@@ -345,9 +345,19 @@ namespace TestSendArchivo
             Console.Title = "MODO CLIENTE";
 
             _obSocket.ClientMode = true;
-            
+
             //_obSocket.ReceiveTimeout = 10;
-            _obSocket.ConnectClient(1492, "127.0.0.1", Protocol.ConnectionProtocol.TCP, 5, Socket.C_DEFALT_CODEPAGE, 5);
+            ConnectionParameters conn = new ConnectionParameters();
+            conn.SetPort(1492)
+                .SetHost("127.0.0.1")
+                .SetProtocol(Protocol.ConnectionProtocol.TCP)
+                .SetTimeOut(5)
+                .SetCodePage(ConnectionParameters.C_DEFALT_CODEPAGE)
+                .SetRecieveTimeOut(5)
+                .SetConnectionTag("CLIENTE_TCP");
+
+            //_obSocket.ConnectClient(1492, "127.0.0.1", Protocol.ConnectionProtocol.TCP, 5, Socket.C_DEFALT_CODEPAGE, 5);
+            _obSocket.ConnectClient(conn);
 
 
             if (message != "")
@@ -366,7 +376,15 @@ namespace TestSendArchivo
 
             _obSocket.ClientMode = true;
             //_obSocket.ConnectClient(1492, "127.0.0.1", 5,false);
-            _obSocket.ConnectClient(1492, "127.0.0.1", Protocol.ConnectionProtocol.UDP, 5);
+
+            ConnectionParameters connectionParameters = new ConnectionParameters();
+            connectionParameters.SetPort(1492)
+                .SetHost("127.0.0.1")
+                .SetProtocol(Protocol.ConnectionProtocol.UDP)
+                .SetTimeOut(5);
+
+
+            _obSocket.ConnectClient(connectionParameters);
 
 
         }

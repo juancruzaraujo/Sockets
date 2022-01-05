@@ -20,7 +20,8 @@ namespace Sockets
         private string _serverIp;
         private int _errorCode;
         private int _lineNumberError;
-        //private bool _tcp;
+        private string _clientTag;
+        
         private Protocol.ConnectionProtocol _connectionProtocol;
 
         private Socket _socketInstance;
@@ -141,6 +142,12 @@ namespace Sockets
         internal EventParameters SetSocketInstance(Socket socket)
         {
             _socketInstance = socket;
+            return this;
+        }
+        
+        internal EventParameters SetClientTag(string clientTag)
+        {
+            _clientTag = clientTag;
             return this;
         }
 
@@ -265,6 +272,14 @@ namespace Sockets
             get
             {
                 return _socketInstance;
+            }
+        }
+
+        public String GetClientTag
+        {
+            get
+            {
+                return _clientTag; ;
             }
         }
     }
