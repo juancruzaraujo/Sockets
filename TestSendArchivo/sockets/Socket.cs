@@ -10,6 +10,7 @@ namespace Sockets
     {
         private List<Client> _lstObjClient;
         private List<ServerTCP> _lstObjServerTCP;
+        
         private ServerUDP _objServerUDP;
 
         private string _message;
