@@ -25,7 +25,7 @@ namespace UnityClientSocket
         Protocol.ConnectionProtocol _connectionProtocol;
         private UdpClient _clientSockUDP;
         private IPEndPoint _epUDP;
-        private int _connectionNumber;
+        //private int _connectionNumber;
         private int _timeOutValue;
         private Encoding _encoder;
         private string _host;
@@ -33,6 +33,7 @@ namespace UnityClientSocket
         private bool _closingConnection = false;
         private int _receiveTimeout;
         private string _clientTag;
+        public const int C_DEFALT_CODEPAGE = 65001;
 
         private List<IObserver> _observers = new List<IObserver>();
 
@@ -54,6 +55,7 @@ namespace UnityClientSocket
             }
         }
 
+        /*
         /// <summary>
         /// Devuelve o establece el indice de conexion, necesario si se crea una lista o un vector de este objeto
         /// </summary>
@@ -65,6 +67,7 @@ namespace UnityClientSocket
                 return _connectionNumber;
             }
         }
+        */
 
         public string GetHost
         {
@@ -144,11 +147,16 @@ namespace UnityClientSocket
 
         }
 
-        public void Connect(int connectionNumber, string host, int port)
+        //public void Connect(int connectionNumber, string host, int port)
+        public void Connect(ConnectionParameters connectionParameters)
         {
-            _host = host;
-            _port = port;
-            _connectionNumber = connectionNumber;
+            _host = connectionParameters.GetHost;
+            _port = connectionParameters.GetPort;
+            _encoder= Encoding.GetEncoding(connectionParameters.GetCodePage);
+            _receiveTimeout = connectionParameters.GetRecieveTimeOut;
+            _timeOutValue = connectionParameters.GetTimeOut;
+
+            //_connectionNumber = connectionNumber;
 
             if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
             {
@@ -156,7 +164,7 @@ namespace UnityClientSocket
             }
             else
             {
-                Connect_UDP(host, _port);
+                Connect_UDP(_host, _port);
             }
         }
 
@@ -460,7 +468,7 @@ namespace UnityClientSocket
 
         private void GenerateEvent(EventParameters ob)
         {
-            ob.SetConnectionNumber(_connectionNumber).SetTCP(_connectionProtocol).SetClientTag(_clientTag);
+            ob.SetTCP(_connectionProtocol).SetClientTag(_clientTag);
 
             this.State = ob;
             this.Notify();

@@ -8,9 +8,9 @@ namespace UnityClientSocket
 {
     public class EventParameters
     {
-        private int _conectionNumber;
-        private int _connectionNumberTCP;
-        private int _connectionNumberUDP;
+        //private int _conectionNumber;
+        //private int _connectionNumberTCP;
+        //private int _connectionNumberUDP;
         private int _listIndex;
         private EventType _eventType;
         private bool _listen;
@@ -55,6 +55,7 @@ namespace UnityClientSocket
             RECIEVE_TIMEOUT
         }
 
+        /*
         internal EventParameters SetConnectionNumber(int conectionNumber)
         {
             _conectionNumber = conectionNumber;
@@ -72,7 +73,7 @@ namespace UnityClientSocket
             _connectionNumberUDP = connectionNumberUDP;
             return this;
         }
-
+        */
         internal EventParameters SetListIndex(int listIndex)
         {
             _listIndex = listIndex;
@@ -153,6 +154,7 @@ namespace UnityClientSocket
             return this;
         }
 
+        /*
         /// <summary>
         /// retorna el numero de conexión actual del cliente conectado
         /// </summary>
@@ -163,6 +165,7 @@ namespace UnityClientSocket
                 return _conectionNumber;
             }
         }
+        */
 
         public int GetListIndex
         {
