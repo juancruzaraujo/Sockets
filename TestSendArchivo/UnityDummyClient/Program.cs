@@ -25,6 +25,8 @@ namespace UnityDummyClient
 
             ConnectionParameters connectionParameters = new ConnectionParameters();
             connectionParameters.SetHost("127.0.0.1").SetPort(1987);
+            //connectionParameters.SetProtocol(Protocol.ConnectionProtocol.UDP);
+
             unityClient.Connect(connectionParameters);
 
             while(keepRunning)

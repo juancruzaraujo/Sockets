@@ -12,14 +12,16 @@ namespace UnityDummyClient
         public void Update(ISubject subject)
         {
 
-            if ((subject as UnityClient).State.GetEventType == EventParameters.EventType.CLIENT_CONNECTION_OK)
+            if ((subject as UnityClient).UnityClientEvent.GetEventType == EventParameters.EventType.CLIENT_CONNECTION_OK)
             {
                 Console.WriteLine("conectado ok....");
+                (subject as UnityClient).UnityClientEvent.GetUnityClientInstance.Send("Hello!");
+
             }
 
-            if ((subject as UnityClient).State.GetEventType == EventParameters.EventType.DATA_IN)
+            if ((subject as UnityClient).UnityClientEvent.GetEventType == EventParameters.EventType.DATA_IN)
             {
-                Console.WriteLine((subject as UnityClient).State.GetData);
+                Console.WriteLine((subject as UnityClient).UnityClientEvent.GetData);
             }
         }
     }

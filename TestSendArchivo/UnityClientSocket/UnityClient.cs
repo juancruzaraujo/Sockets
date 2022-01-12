@@ -17,7 +17,7 @@ namespace UnityClientSocket
         #else
             private /*static*/ bool debug_Mode = false;
         #endif
-
+        
 
 
         private TcpClient _clientSockTCP; //el socket en cuestion!
@@ -118,16 +118,18 @@ namespace UnityClientSocket
             }
         }
 
-        public Protocol.ConnectionProtocol SetProtocol
+        public Protocol.ConnectionProtocol GetConnectionProtocol
         {
-            set
+            get
             {
-                _connectionProtocol = value;
+                return _connectionProtocol;
             }
         }
 
-
-        public EventParameters State { get; set; }
+        /// <summary>
+        /// return the event (state)
+        /// </summary>
+        public EventParameters UnityClientEvent { get; set; }
 
         //private int _tipoCod;
 
@@ -140,12 +142,12 @@ namespace UnityClientSocket
             this.clientEvent(serverParametersEvent);
         }*/
 
-        public UnityClient(Protocol.ConnectionProtocol connectionProtocol = Protocol.ConnectionProtocol.TCP)
+        /*public UnityClient(Protocol.ConnectionProtocol connectionProtocol = Protocol.ConnectionProtocol.TCP)
         {
             //_tcp = tcp;
             _connectionProtocol = connectionProtocol;
 
-        }
+        }*/
 
         //public void Connect(int connectionNumber, string host, int port)
         public void Connect(ConnectionParameters connectionParameters)
@@ -155,6 +157,7 @@ namespace UnityClientSocket
             _encoder= Encoding.GetEncoding(connectionParameters.GetCodePage);
             _receiveTimeout = connectionParameters.GetRecieveTimeOut;
             _timeOutValue = connectionParameters.GetTimeOut;
+            _connectionProtocol = connectionParameters.GetConnectionProtocol;
 
             //_connectionNumber = connectionNumber;
 
@@ -406,7 +409,7 @@ namespace UnityClientSocket
 
                     EventParameters ev = new EventParameters();
                     ev.SetEvent(EventParameters.EventType.SEND_COMPLETE);
-                    GenerateEvent(ev);
+                    //GenerateEvent(ev);
                 }
                 else
                 {
@@ -469,8 +472,8 @@ namespace UnityClientSocket
         private void GenerateEvent(EventParameters ob)
         {
             ob.SetTCP(_connectionProtocol).SetClientTag(_clientTag);
-
-            this.State = ob;
+            ob.SetUnityClientInstance(this);
+            this.UnityClientEvent = ob;
             this.Notify();
             
         }

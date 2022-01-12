@@ -8,9 +8,6 @@ namespace UnityClientSocket
 {
     public class EventParameters
     {
-        //private int _conectionNumber;
-        //private int _connectionNumberTCP;
-        //private int _connectionNumberUDP;
         private int _listIndex;
         private EventType _eventType;
         private bool _listen;
@@ -24,6 +21,7 @@ namespace UnityClientSocket
         private string _clientTag;
 
         private Protocol.ConnectionProtocol _connectionProtocol;
+        private UnityClient _unityClientInstance;
 
         //private Socket _socketInstance;
 
@@ -141,12 +139,12 @@ namespace UnityClientSocket
         }
 
 
-        /*
-        internal EventParameters SetSocketInstance(Socket socket)
+
+        internal EventParameters SetUnityClientInstance(UnityClient unityClient)
         {
-            _socketInstance = socket;
+            _unityClientInstance = unityClient;
             return this;
-        }*/
+        }
 
         internal EventParameters SetClientTag(string clientTag)
         {
@@ -247,23 +245,7 @@ namespace UnityClientSocket
             }
         }
 
-        /*
-        public int GetConnectionNumberTCP
-        {
-            get
-            {
-                return _connectionNumberTCP;
-            }
-        }
-
-        public int GetConnectionNumberUDP
-        {
-            get
-            {
-                return _connectionNumberUDP;
-            }
-        }
-        */
+     
         public Protocol.ConnectionProtocol GetProtocol
         {
             get
@@ -272,14 +254,14 @@ namespace UnityClientSocket
             }
         }
 
-        /*
-        public Socket GetSocketInstance
+        
+        public UnityClient GetUnityClientInstance
         {
             get
             {
-                return _socketInstance;
+                return _unityClientInstance;
             }
-        }*/
+        }
 
         public String GetClientTag
         {
