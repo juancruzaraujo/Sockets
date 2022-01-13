@@ -129,7 +129,7 @@ namespace Sockets
             _clientPort = connectionParameters.GetPort;
             _codePage = connectionParameters.GetCodePage;
             _host = connectionParameters.GetHost;
-
+            _connectionProtocol = connectionParameters.GetConnectionProtocol;
 
             Client objClient = new Client(connectionParameters.GetConnectionProtocol);
 

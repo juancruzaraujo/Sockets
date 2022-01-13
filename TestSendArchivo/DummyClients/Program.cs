@@ -54,10 +54,23 @@ namespace DummyClients
 
                 ConnectionParameters conparam = new ConnectionParameters();
                 conparam.SetPort(port).SetHost(host).SetConnectionTag("connection_" + i);
+                conparam.SetProtocol(Protocol.ConnectionProtocol.TCP);
+                //clientTCP.ConnectClient(conparam);
 
-                clientTCP.ConnectClient(conparam);
+
+                conparam.SetProtocol(Protocol.ConnectionProtocol.UDP);
+                clientUDP.ConnectClient(conparam);
+
+                //se tiene que hacer que se le pueda pasar el tag de conexíón
+                //y que no haga falta crear la conexión creando un método que sea 
+                //SendUDP(conectionParameter,mensaje)
+                clientUDP.Send(i+1, "hola mundo"); 
+                
+
                 Thread.Sleep(500);
             }
+
+            
 
             Console.WriteLine(" press enter to exit");
             Console.ReadKey();
@@ -68,7 +81,24 @@ namespace DummyClients
 
         private static void ClientUDP_Event_Socket(EventParameters eventParameters)
         {
-            
+            switch (eventParameters.GetEventType)
+            {
+                case EventParameters.EventType.CLIENT_CONNECTION_OK:
+                    Console.WriteLine("connection to " + host + " connection number " + eventParameters.GetConnectionNumber + " " + eventParameters.GetClientTag);
+                    clientUDP.Send(eventParameters.GetConnectionNumber, "hola mundo");
+                    break;
+
+                case EventParameters.EventType.DATA_IN:
+                    Console.WriteLine("UDP " + eventParameters.GetData);
+                    //clientTCP.Disconnect(eventParameters.GetConnectionNumber);
+
+                    //clientTCP.ConnectClient(port, host);
+                    break;
+
+                case EventParameters.EventType.ERROR:
+                    Console.WriteLine(eventParameters.GetData);
+                    break;
+            }
         }
 
         private static void ClientTCP_Event_Socket(EventParameters eventParameters)
@@ -81,7 +111,7 @@ namespace DummyClients
                     break;
 
                 case EventParameters.EventType.DATA_IN:
-                    Console.WriteLine(" " + eventParameters.GetData);
+                    Console.WriteLine("TCP " + eventParameters.GetData);
                     //clientTCP.Disconnect(eventParameters.GetConnectionNumber);
                     
                     //clientTCP.ConnectClient(port, host);
