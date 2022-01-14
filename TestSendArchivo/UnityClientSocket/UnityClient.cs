@@ -42,6 +42,12 @@ namespace UnityClientSocket
         /// </summary>
         public bool conected; //me dice si estoy conectado o no
 
+        class SendArrayParamsContainer
+        {
+            internal byte[] memArray;
+            internal int clusterSize;
+        }
+
 
         internal string ClientTag
         {
@@ -54,20 +60,6 @@ namespace UnityClientSocket
                 _clientTag = value;
             }
         }
-
-        /*
-        /// <summary>
-        /// Devuelve o establece el indice de conexion, necesario si se crea una lista o un vector de este objeto
-        /// </summary>
-        //internal int indexCon;
-        public int GetConnectionNumber
-        {
-            get
-            {
-                return _connectionNumber;
-            }
-        }
-        */
 
         public string GetHost
         {
@@ -131,25 +123,7 @@ namespace UnityClientSocket
         /// </summary>
         public EventParameters UnityClientEvent { get; set; }
 
-        //private int _tipoCod;
-
-
-        /*
-        internal delegate void Delegated_Client_Event(EventParameters serverParametersEvent);
-        internal event Delegated_Client_Event clientEvent;
-        private void Client_Event(EventParameters serverParametersEvent)
-        {
-            this.clientEvent(serverParametersEvent);
-        }*/
-
-        /*public UnityClient(Protocol.ConnectionProtocol connectionProtocol = Protocol.ConnectionProtocol.TCP)
-        {
-            //_tcp = tcp;
-            _connectionProtocol = connectionProtocol;
-
-        }*/
-
-        //public void Connect(int connectionNumber, string host, int port)
+        
         public void Connect(ConnectionParameters connectionParameters)
         {
             _host = connectionParameters.GetHost;
@@ -158,8 +132,6 @@ namespace UnityClientSocket
             _receiveTimeout = connectionParameters.GetRecieveTimeOut;
             _timeOutValue = connectionParameters.GetTimeOut;
             _connectionProtocol = connectionParameters.GetConnectionProtocol;
-
-            //_connectionNumber = connectionNumber;
 
             if (_connectionProtocol == Protocol.ConnectionProtocol.TCP)
             {
@@ -233,7 +205,6 @@ namespace UnityClientSocket
                 }
                 else
                 {
-                    //Eve_TimeOut(indiceCon);
                     EventParameters evTime = new EventParameters();
                     evTime.SetEvent(EventParameters.EventType.CLIENT_TIME_OUT).SetServerIp(_host);
                     GenerateEvent(evTime);
@@ -411,15 +382,10 @@ namespace UnityClientSocket
                     ev.SetEvent(EventParameters.EventType.SEND_COMPLETE);
                     //GenerateEvent(ev);
                 }
-                else
-                {
 
-                    //Error("not connected");
-                }
             }
             catch (Exception err)
             {
-                //Error(err.Message);
                 GenerateEventError(err);
             }
         }
@@ -518,5 +484,98 @@ namespace UnityClientSocket
                 observer.Update(this);
             }
         }
+
+        public void SendArray(byte[] memArray, int clusterSize)
+        {
+            try
+            {
+
+                SendArrayParamsContainer sendArrayParams = new SendArrayParamsContainer();
+                sendArrayParams.memArray = memArray;
+                sendArrayParams.clusterSize = clusterSize;
+                
+
+                Thread sendArrayThread = new Thread(new ParameterizedThreadStart(SendArrayThread));
+                sendArrayThread.Name = "sendArrayThread_UnitySocketClient";
+                sendArrayThread.Start(sendArrayParams);
+
+            }
+            catch (Exception err)
+            {
+                GenerateEventError(err);
+            }
+        }
+
+
+        private void SendArrayThread(object sendArrayParams)
+        {
+            string data = "";
+            int actualPositionNumber = 0;
+            int nSize;
+            int resultNumber = 0;
+            //int nPosLectura = 0;
+            int readingPositionNumber = 0;
+            int conditionNumber;
+
+            SendArrayParamsContainer aux = (SendArrayParamsContainer)sendArrayParams;
+            SendArrayParamsContainer sendParams = new SendArrayParamsContainer();
+            sendParams.clusterSize = aux.clusterSize;
+            sendParams.memArray = aux.memArray;
+
+            nSize = sendParams.memArray.Length; 
+
+            if (nSize <= sendParams.clusterSize)
+            {
+                sendParams.clusterSize = nSize;
+            }
+
+            try
+            {
+
+                while (actualPositionNumber < nSize - 1) 
+                {
+                    conditionNumber = actualPositionNumber + sendParams.clusterSize;
+                    for (int I = actualPositionNumber; I <= conditionNumber - 1; I++)
+                    {
+                        //meto todo al string para manadar
+                        data = data + Convert.ToChar(sendParams.memArray[I]);
+                        readingPositionNumber++;
+                    }
+
+                    //me re acomodo en el array
+                    resultNumber = nSize - readingPositionNumber;
+                    if (resultNumber <= sendParams.clusterSize)
+                    {
+                        sendParams.clusterSize = resultNumber; //ya estoy en el final y achico el cluster
+                    }
+
+
+                    actualPositionNumber = readingPositionNumber;
+                    EventParameters ev = new EventParameters();
+                    ev.SetPosition(actualPositionNumber).SetEvent(EventParameters.EventType.SEND_POSITION);
+                    GenerateEvent(ev);
+
+                    //ACÁ ENVIO LOS DATOS
+                    //Send(data, sendParams.indexConection);
+                    Send(data);
+                    ev.SetEvent(EventParameters.EventType.SEND_COMPLETE).SetPosition(actualPositionNumber);
+                    GenerateEvent(ev);
+
+                    Thread.Sleep(5);
+
+                    data = ""; //limpio la cadena
+                }//fin while
+
+                EventParameters evSendArrayComplete = new EventParameters();
+                evSendArrayComplete.SetEvent(EventParameters.EventType.SEND_ARRAY_COMPLETE);
+                GenerateEvent(evSendArrayComplete);
+            }
+            catch (Exception err)
+            {
+                GenerateEventError(err);
+            }
+
+        }
+
     }
 }
