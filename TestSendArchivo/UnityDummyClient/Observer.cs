@@ -9,7 +9,8 @@ namespace UnityDummyClient
 {
     class Observer : IObserver
     {
-        public void Update(ISubject subject)
+
+        public void EventTrigger(ISubject subject)
         {
 
             if ((subject as UnityClient).UnityClientEvent.GetEventType == EventParameters.EventType.CLIENT_CONNECTION_OK)

@@ -8,6 +8,6 @@ namespace UnityClientSocket
 {
     public interface IObserver
     {
-        void Update(ISubject subject);
+        void EventTrigger(ISubject subject);
     }
 }

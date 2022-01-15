@@ -481,7 +481,7 @@ namespace UnityClientSocket
         {
             foreach (var observer in _observers)
             {
-                observer.Update(this);
+                observer.EventTrigger(this);
             }
         }
 
