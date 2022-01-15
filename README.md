@@ -196,7 +196,7 @@ using UnityClientSocket;
 
 class Observer : IObserver
     {
-        public void Update(ISubject subject)
+        public void EventTrigger(ISubject subject)
         {
 
             if ((subject as UnityClient).UnityClientEvent.GetEventType == EventParameters.EventType.CLIENT_CONNECTION_OK)
@@ -329,7 +329,7 @@ public class SocketObserver : IObserver
         }
     }
 
-    public void Update(ISubject subject)
+    public void EventTrigger(ISubject subject)
     {
 
         //ManagerConsola.instance.WriteLine("EVENTO-->" + (subject as UnityClient).UnityClientEvent.GetEventType.ToString());
@@ -359,7 +359,101 @@ public class SocketObserver : IObserver
 }
 
 
-
-
 ```
 
+# otro ejemplo de uso de UnityClientSocket
+
+```csharp
+
+using UnityClientSocket;
+
+public class ConsoleCommands : MonoBehaviour, IObserver
+{
+	string _msgToSend;
+    UnityClient unityClient;
+    Protocol connectionProtocol;
+    string msgFromServer;
+    string msgFromServerToShow;
+
+
+    private void SendMessageToServer(string command, string parameters)
+    {
+        if (unityClient == null)
+        {
+
+            _msgToSend = parameters;
+
+            SocketObserver socketObserver = new SocketObserver();
+            socketObserver.SetMgs = parameters;
+            socketObserver.SetConsoleCommands = this;
+
+            unityClient = new UnityClient();
+            //unityClient.Attach(socketObserver);
+            unityClient.Attach(this); 
+
+            ConnectionParameters connectionParameters = new ConnectionParameters();
+            connectionParameters.SetHost("127.0.0.1");
+            connectionParameters.SetPort(1987);
+            connectionParameters.SetProtocol(Protocol.ConnectionProtocol.TCP);
+            connectionParameters.SetCodePage(ConnectionParameters.C_DEFALT_CODEPAGE);
+
+            unityClient.Connect(connectionParameters);
+
+        }
+        else
+        {
+            if (unityClient.conected)
+            {
+                unityClient.Send(parameters);
+            }
+        }
+        
+    }
+
+    public void EventTrigger(ISubject subject)
+    {
+        
+        Debug.Log("EVENTO-->" + (subject as UnityClient).UnityClientEvent.GetEventType.ToString());
+
+        if ((subject as UnityClient).UnityClientEvent.GetEventType == EventParameters.EventType.CLIENT_CONNECTION_OK)
+        {
+            Debug.Log("CONECTADO OK");
+            (subject as UnityClient).UnityClientEvent.GetUnityClientInstance.Send(_msgToSend + "");
+        }
+
+        if ((subject as UnityClient).UnityClientEvent.GetEventType == EventParameters.EventType.DATA_IN)
+        {
+            msgFromServer = (subject as UnityClient).UnityClientEvent.GetData;
+            Debug.Log((subject as UnityClient).UnityClientEvent.GetData);
+        }
+
+        if ((subject as UnityClient).UnityClientEvent.GetEventType == EventParameters.EventType.ERROR)
+        {
+            Debug.Log((subject as UnityClient).UnityClientEvent.GetData);
+        }
+
+    }
+
+    void Update()
+    {
+        if (msgFromServer != "" && msgFromServer != msgFromServerToShow)
+        {
+            msgFromServerToShow = msgFromServer;
+            //hago lo que quiero con el string msgFromServerToShow
+
+            
+        }
+    }
+
+    private void OnDestroy()
+    {
+        Debug.Log("saliendo =(");
+        if (unityClient !=null && unityClient.conected)
+        {
+            unityClient.CloseConnection();
+        }
+
+    }
+}
+
+```
