@@ -8,10 +8,10 @@ namespace UnityClientSocket
 {
     public interface ISubject
     {
-         void Attach(IObserver observer);
+         void Attach(IUnityClientSocketEventObserver observer);
 
         // Detach an observer from the subject.
-        void Detach(IObserver observer);
+        void Detach(IUnityClientSocketEventObserver observer);
 
         // Notify all observers about an event.
         void Notify();

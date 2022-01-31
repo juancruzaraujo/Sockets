@@ -7,7 +7,7 @@ using UnityClientSocket;
 
 namespace UnityDummyClient
 {
-    class Observer : IObserver
+    class Observer : IUnityClientSocketEventObserver
     {
 
         public void EventTrigger(ISubject subject)

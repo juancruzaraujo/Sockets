@@ -35,7 +35,7 @@ namespace UnityClientSocket
         private string _clientTag;
         public const int C_DEFALT_CODEPAGE = 65001;
 
-        private List<IObserver> _observers = new List<IObserver>();
+        private List<IUnityClientSocketEventObserver> _observers = new List<IUnityClientSocketEventObserver>();
 
         /// <summary>
         /// Verdadero estoy conectado, falso, no estoy conectado
@@ -467,12 +467,12 @@ namespace UnityClientSocket
             }
         }
 
-        public void Attach(IObserver observer)
+        public void Attach(IUnityClientSocketEventObserver observer)
         {
             this._observers.Add(observer);
         }
 
-        public void Detach(IObserver observer)
+        public void Detach(IUnityClientSocketEventObserver observer)
         {
             this._observers.Remove(observer);
         }

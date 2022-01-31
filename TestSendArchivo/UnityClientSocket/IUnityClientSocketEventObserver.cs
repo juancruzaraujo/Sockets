@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace UnityClientSocket
 {
-    public interface IObserver
+    public interface IUnityClientSocketEventObserver
     {
         void EventTrigger(ISubject subject);
     }

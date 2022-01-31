@@ -19,13 +19,9 @@ namespace UnityDummyClient
             Observer observer = new Observer();
             unityClient.Attach(observer);
 
-            //unityClient.SetProtocol = Protocol.ConnectionProtocol.TCP;
-            //unityClient.CodePage(65001);
-            //unityClient.Connect(0, "127.0.0.1", 1987);
-
             ConnectionParameters connectionParameters = new ConnectionParameters();
             connectionParameters.SetHost("127.0.0.1").SetPort(1987);
-            //connectionParameters.SetProtocol(Protocol.ConnectionProtocol.UDP);
+            connectionParameters.SetProtocol(Protocol.ConnectionProtocol.UDP);
 
             unityClient.Connect(connectionParameters);
 
