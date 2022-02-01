@@ -363,7 +363,7 @@ namespace Sockets
             }
         }
 
-        public int GetConnectionNumber()
+        public int GetServerConnectionsCounts()
         {
             return _numberServerConnections;
         }
@@ -521,7 +521,7 @@ namespace Sockets
                             _numCliConServer++;
 
                             
-                            if (GetConnectionNumber() < _maxServerConnectionNumber)
+                            if (GetServerConnectionsCounts() < _maxServerConnectionNumber)
                             {
                                 Thread.Sleep(25); //por las dudas de que entren varias conexiones al mismo tiempo
                                 CreateServer(ref message);
@@ -591,7 +591,21 @@ namespace Sockets
             }
         }
 
+        public void Send(string tag,string message)
+        {
+            int connectionNumber;
+            try
+            {
+                connectionNumber = GetClientConnectionNumber(tag);
+                Send(connectionNumber, message);
+            }
+            catch(Exception err)
+            {
+                GenerateErrorEvent(err);
+            }
 
+            
+        }
 
         public void Send(int connectionNumber,string message)
         {
@@ -721,7 +735,20 @@ namespace Sockets
                 }
             }
 
-            return -1;
+            return -1; //nunca se llega acá
+        }
+
+        public int GetClientConnectionNumber(string clientTag)
+        {
+            for (int i = 0; i < _lstObjClient.Count(); i++)
+            {
+                if (clientTag == _lstObjClient[i].ClientTag)
+                {
+                    return _lstObjClient[i].GetConnectionNumber; 
+                }
+            }
+
+            throw new Exception("Client tag not found");
         }
 
         private void SendArrayThread(object sendArrayParams)

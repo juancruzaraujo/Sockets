@@ -19,6 +19,8 @@ namespace DummyClients
         static int maxCon;
         static string msgType;
 
+        const string C_TAG = "CONNECTION_";
+
         static void Main(string[] args)
         {
 
@@ -53,18 +55,21 @@ namespace DummyClients
                 Console.WriteLine(" Connectinig " + i);
 
                 ConnectionParameters conparam = new ConnectionParameters();
-                conparam.SetPort(port).SetHost(host).SetConnectionTag("connection_" + i);
+                conparam.SetPort(port).SetHost(host); 
                 conparam.SetProtocol(Protocol.ConnectionProtocol.TCP);
-                //clientTCP.ConnectClient(conparam);
+                //conparam.SetConnectionTag("connection_" + i);
+                conparam.SetConnectionTag(C_TAG);
 
 
-                conparam.SetProtocol(Protocol.ConnectionProtocol.UDP);
-                clientUDP.ConnectClient(conparam);
+                //conparam.SetProtocol(Protocol.ConnectionProtocol.UDP);
+                clientTCP.ConnectClient(conparam);
 
                 //se tiene que hacer que se le pueda pasar el tag de conexíón
                 //y que no haga falta crear la conexión creando un método que sea 
                 //SendUDP(conectionParameter,mensaje)
-                clientUDP.Send(i+1, "hola mundo"); 
+
+
+                //clientUDP.Send(i+1, "hola mundo"); 
                 
 
                 Thread.Sleep(500);
@@ -90,9 +95,6 @@ namespace DummyClients
 
                 case EventParameters.EventType.DATA_IN:
                     Console.WriteLine("UDP " + eventParameters.GetData);
-                    //clientTCP.Disconnect(eventParameters.GetConnectionNumber);
-
-                    //clientTCP.ConnectClient(port, host);
                     break;
 
                 case EventParameters.EventType.ERROR:
@@ -107,14 +109,14 @@ namespace DummyClients
             {
                 case EventParameters.EventType.CLIENT_CONNECTION_OK:
                     Console.WriteLine("connection to " + host + " connection number " + eventParameters.GetConnectionNumber + " " + eventParameters.GetClientTag);
-                    clientTCP.Send(eventParameters.GetConnectionNumber, "hola mundo");
+                    //clientTCP.Send(eventParameters.GetConnectionNumber, "hola mundo");
+                    //clientTCP.Send("sadadasda", "hola mundo");
+                    //clientTCP.Send(C_TAG, "hola mundo");
+                    clientTCP.Send(eventParameters.GetClientTag, "hola mundo");
                     break;
 
                 case EventParameters.EventType.DATA_IN:
                     Console.WriteLine("TCP " + eventParameters.GetData);
-                    //clientTCP.Disconnect(eventParameters.GetConnectionNumber);
-                    
-                    //clientTCP.ConnectClient(port, host);
                     break;
 
                 case EventParameters.EventType.ERROR:
