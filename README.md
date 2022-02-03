@@ -75,7 +75,7 @@ class Program
     static void Connect()
         {
             ConnectionParameters conparam = new ConnectionParameters();
-            conparam.SetPort(1789).SetHost("127.0.0.1").SetConnectionTag("connection_" + i);
+            conparam.SetPort(1789).SetHost("127.0.0.1").SetConnectionTag("clientTag");
             
             //SetConnectionTag setea un tag que se guarda para identificar al cliente y este es devuelto en todos los eventos
             //de dicho cliente.
@@ -89,10 +89,7 @@ class Program
             conparam.SetProtocol(Protocol.ConnectionProtocol.UDP);
             clientUDP.ConnectClient(conparam);
 
-            //se tiene que hacer que se le pueda pasar el tag de conexíón
-            //y que no haga falta crear la conexión creando un método que sea 
-            //SendUDP(conectionParameter,mensaje)
-            clientUDP.Send(i+1, "hola mundo"); 
+            clientUDP.Send("clientTag"", "hola mundo"); 
             
 
         }
@@ -194,7 +191,7 @@ using UnityClientSocket;
     
 using UnityClientSocket;
 
-class Observer : IObserver
+class Observer : IUnityClientSocketEventObserver
     {
         public void EventTrigger(ISubject subject)
         {
@@ -228,26 +225,17 @@ using InGameConsole;
 using UnityEngine.SceneManagement;
 using UnityClientSocket;
 
-public class ConsoleCommands : MonoBehaviour
+public class TuClaseEnUnity : MonoBehaviour
 {
 
     string _msgToSend;
     UnityClient unityClient;
     Protocol connectionProtocol;
 
-    
-
-    private void Awake()
-    {
-        
-    }
-
     // Start is called before the first frame update
     void Start()
     {
-        /*Socket*/
-        
-        CreateCommands();
+       
     }
 
     
@@ -262,26 +250,7 @@ public class ConsoleCommands : MonoBehaviour
         Debug.Log("saliendo =(");
     }
 
-    private void CreateCommands()
-    {
-        Commands.commandInstance.AddCommand("/testlevel", "move to test level", ChangeLevel);
-        Commands.commandInstance.AddCommand("/send", "envía un mensaje al servidor", SendMessageToServer);
-
-    }
-
-    private void Write(string text)
-    {
-        ManagerConsola.instance.WriteLine(text);
-    }
-
-    private void ChangeLevel(string command, string parameters)
-    {
-        Write("Chage to " + parameters);
-        SceneManager.LoadScene("battleRoyale_testLevel", LoadSceneMode.Additive);
-        ManagerConsola.instance.OpenCloseConsola(false);
-    }
-
-    private void SendMessageToServer(string command, string parameters)
+    private void SendMessageToServer(string parameters)
     {
         if (unityClient == null)
         {
@@ -317,7 +286,7 @@ using UnityEngine;
 using UnityClientSocket;
 using InGameConsole;
 
-public class SocketObserver : IObserver
+public class SocketObserver : IUnityClientSocketEventObserver
 {
 
     string _msg;
@@ -367,18 +336,21 @@ public class SocketObserver : IObserver
 
 using UnityClientSocket;
 
-public class ConsoleCommands : MonoBehaviour, IObserver
+public class ConsoleCommands : MonoBehaviour, IUnityClientSocketEventObserver
 {
-	string _msgToSend;
-    UnityClient unityClient;
+    string _msgToSend;
+    
+    UnityClient unityClientTCP;
+    UnityClient unityClientUDP;
     Protocol connectionProtocol;
+    
     string msgFromServer;
     string msgFromServerToShow;
 
 
-    private void SendMessageToServer(string command, string parameters)
+    private void SendTCPMessageToServer(string parameters)
     {
-        if (unityClient == null)
+        if (unityClientTCP == null)
         {
 
             _msgToSend = parameters;
@@ -387,28 +359,56 @@ public class ConsoleCommands : MonoBehaviour, IObserver
             socketObserver.SetMgs = parameters;
             socketObserver.SetConsoleCommands = this;
 
-            unityClient = new UnityClient();
-            //unityClient.Attach(socketObserver);
-            unityClient.Attach(this); 
+            unityClientTCP = new UnityClient();
+            unityClientTCP.Attach(this);
 
-            ConnectionParameters connectionParameters = new ConnectionParameters();
+            UnityClientSocket.ConnectionParameters connectionParameters = new UnityClientSocket.ConnectionParameters();
             connectionParameters.SetHost("127.0.0.1");
             connectionParameters.SetPort(1987);
-            connectionParameters.SetProtocol(Protocol.ConnectionProtocol.TCP);
-            connectionParameters.SetCodePage(ConnectionParameters.C_DEFALT_CODEPAGE);
+            connectionParameters.SetProtocol(UnityClientSocket.Protocol.ConnectionProtocol.TCP);
+            connectionParameters.SetCodePage(UnityClientSocket.ConnectionParameters.C_DEFALT_CODEPAGE);
 
-            unityClient.Connect(connectionParameters);
+            unityClientTCP.Connect(connectionParameters);
 
         }
         else
         {
-            if (unityClient.conected)
+            if (unityClientTCP.conected)
             {
-                unityClient.Send(parameters);
+                unityClientTCP.Send(parameters);
             }
         }
         
     }
+
+    private void SendUDPMessageToServer(string command, string parameters)
+    {
+        if (unityClientUDP == null)
+        {
+
+            _msgToSend = parameters;
+
+            SocketObserver socketObserver = new SocketObserver();
+            socketObserver.SetMgs = parameters;
+            socketObserver.SetConsoleCommands = this;
+
+            unityClientUDP = new UnityClient();
+            unityClientUDP.Attach(this);
+
+            UnityClientSocket.ConnectionParameters connectionParameters = new UnityClientSocket.ConnectionParameters();
+            connectionParameters.SetHost("127.0.0.1");
+            connectionParameters.SetPort(1987);
+            connectionParameters.SetProtocol(UnityClientSocket.Protocol.ConnectionProtocol.UDP);
+            connectionParameters.SetCodePage(UnityClientSocket.ConnectionParameters.C_DEFALT_CODEPAGE);
+
+            unityClientUDP.Connect(connectionParameters);
+            unityClientUDP.Send(parameters);
+
+        }
+
+        unityClientUDP.Send(parameters);
+    }
+
 
     public void EventTrigger(ISubject subject)
     {
@@ -440,20 +440,156 @@ public class ConsoleCommands : MonoBehaviour, IObserver
         {
             msgFromServerToShow = msgFromServer;
             //hago lo que quiero con el string msgFromServerToShow
-
-            
+   
         }
     }
 
     private void OnDestroy()
     {
         Debug.Log("saliendo =(");
-        if (unityClient !=null && unityClient.conected)
+        if (unityClientTCP != null && unityClientTCP.conected)
         {
-            unityClient.CloseConnection();
+            unityClientTCP.CloseConnection();
         }
 
     }
+}
+
+```
+# Ejemplo de cliente usando lib Socket en unity
+copiar la lib socket al directorio de assets
+
+```csharp
+
+using Sockets;
+
+public class TuClaseDeUnity : MonoBehaviour
+{
+    private void Send(string command, string parameters)
+    {
+        _msgToSend = parameters;
+
+        if (socket == null)
+        {
+            socket = new Socket();
+            Sockets.ConnectionParameters connectionParameters = new Sockets.ConnectionParameters();
+            connectionParameters.SetHost("127.0.0.1").SetPort(1987).SetConnectionTag("socketlib");
+
+            socket.Event_Socket += Socket_Event_Socket;
+            socket.ConnectClient(connectionParameters);
+        }
+        else
+        {
+            socket.Send("socketlib", _msgToSend);
+        }
+
+    }
+    
+    private void Socket_Event_Socket(Sockets.EventParameters eventParameters)
+    {
+        switch(eventParameters.GetEventType)
+        {
+            case Sockets.EventParameters.EventType.CLIENT_CONNECTION_OK:
+                Debug.Log("connection ok");
+                eventParameters.GetSocketInstance.Send(eventParameters.GetConnectionNumber, _msgToSend);
+                break;
+
+            case Sockets.EventParameters.EventType.DATA_IN:
+                Debug.Log(eventParameters.GetData);
+                msgFromServer = eventParameters.GetData;
+                break;
+
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        Debug.Log("saliendo =(");
+
+        if (socket !=null)
+        {
+            socket.DisconnectAll();
+        }
+
+
+    }
+    
+    void Update()
+    {
+        if (msgFromServer != "" && msgFromServer != msgFromServerToShow)
+        {
+            msgFromServerToShow = msgFromServer;
+            ManagerConsola.instance.WriteLine(msgFromServerToShow);
+            msgFromServer = "";
+            msgFromServerToShow = "";
+        }
+    }
+    
+}
+
+```
+
+# Ejemplo de Server usando lib Socket en unity
+copiar la lib socket al directorio de assets
+
+```csharp
+
+using Sockets;
+
+public class TuClaseDeUnity : MonoBehaviour
+{
+    private void StartServer()
+    {
+        if (socketServer == null)
+        {
+            socketServer = new Socket();
+            socketServer.SetServer(1987, Sockets.Protocol.ConnectionProtocol.TCP,10);
+            socketServer.Event_Socket += Socket_Event_Socket;
+            socketServer.StartServer();
+            ManagerConsola.instance.WriteLine("server iniciado");
+        }
+        else
+        {
+            ManagerConsola.instance.WriteLine("server ya iniciado");
+        }
+    }
+    
+    private void Socket_Event_Socket(Sockets.EventParameters eventParameters)
+    {
+        switch(eventParameters.GetEventType)
+        {
+            case Sockets.EventParameters.EventType.DATA_IN:
+                Debug.Log(eventParameters.GetData);
+                msgFromServer = eventParameters.GetData;
+                break;
+
+            case Sockets.EventParameters.EventType.SERVER_NEW_CONNECTION:
+                eventParameters.GetSocketInstance.Send(eventParameters.GetConnectionNumber, "vienbenido todo funsiona josha!");
+                break;
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        Debug.Log("saliendo =(");
+        
+        if (socketServer !=null)
+        {
+            socketServer.KillServer();
+        }
+    }
+    
+    void Update()
+    {
+        if (msgFromServer != "" && msgFromServer != msgFromServerToShow)
+        {
+            msgFromServerToShow = msgFromServer;
+            ManagerConsola.instance.WriteLine(msgFromServerToShow);
+            msgFromServer = "";
+            msgFromServerToShow = "";
+        }
+    }
+    
 }
 
 ```
