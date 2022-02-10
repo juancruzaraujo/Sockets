@@ -8,6 +8,9 @@ los mensajes que llegan generan un evento
 
 see EventParameters.EventType
 
+contacto:
+<juancruzaraujo@gmail.com>
+
 # simple server example
 
 
