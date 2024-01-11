@@ -39,7 +39,7 @@ class Program
             obSocket.Event_Socket += new Sockets.Sockets.Delegate_Socket_Event(EvSockets);
 
             obSocket.ServerMode = true;
-            obSocket.SetServer(1492, Sockets.Sockets.C_DEFALT_CODEPAGE, true, 10);
+            obSocket.SetServer(1492, Protocol.ConnectionProtocol.TCP);
             obSocket.StartServer();
         }
 
@@ -47,7 +47,7 @@ class Program
         {
             switch (eventParameters.GetEventType)
             {
-                case EventParameters.EventType.NEW_CONNECTION:
+                case EventParameters.EventType.SERVER_NEW_CONNECTION:
                     obSocket.Send("HELLO THERE MY FRIEND!\n\r", eventParameters.GetListIndex);
                     obSocket.DisconnectConnectedClientToMe(eventParameters.GetConnectionNumber); 
                     break;
