@@ -417,7 +417,8 @@ namespace Sockets
                     ev.SetData(strData)
                         .SetClientIp(_tcpClient.Client.RemoteEndPoint.ToString())
                         .SetEvent(EventParameters.EventType.DATA_IN)
-                        .SetSize(strData.Length);
+                        .SetSize(strData.Length)
+                        .SetNetworkStream(_tcpClient.GetStream());
                     GenerateEvent(ev);
                 }
 

@@ -4,3 +4,11 @@ F:\Fuentes\C# 2015\Sockets\TestSendArchivo\udpClientTest\bin\Release\udpClientTe
 F:\Fuentes\C# 2015\Sockets\TestSendArchivo\udpClientTest\obj\Release\udpClientTest.csproj.CoreCompileInputs.cache
 F:\Fuentes\C# 2015\Sockets\TestSendArchivo\udpClientTest\obj\Release\udpClientTest.exe
 F:\Fuentes\C# 2015\Sockets\TestSendArchivo\udpClientTest\obj\Release\udpClientTest.pdb
+F:\Fuentes\C#\Sockets\TestSendArchivo\udpClientTest\bin\Release\udpClientTest.exe.config
+F:\Fuentes\C#\Sockets\TestSendArchivo\udpClientTest\bin\Release\udpClientTest.exe
+F:\Fuentes\C#\Sockets\TestSendArchivo\udpClientTest\bin\Release\udpClientTest.pdb
+F:\Fuentes\C#\Sockets\TestSendArchivo\udpClientTest\obj\Release\udpClientTest.csproj.SuggestedBindingRedirects.cache
+F:\Fuentes\C#\Sockets\TestSendArchivo\udpClientTest\obj\Release\udpClientTest.csproj.CoreCompileInputs.cache
+F:\Fuentes\C#\Sockets\TestSendArchivo\udpClientTest\obj\Release\udpClientTest.exe
+F:\Fuentes\C#\Sockets\TestSendArchivo\udpClientTest\obj\Release\udpClientTest.pdb
+F:\Fuentes\C#\Sockets\TestSendArchivo\udpClientTest\obj\Release\udpClientTest.csproj.AssemblyReference.cache

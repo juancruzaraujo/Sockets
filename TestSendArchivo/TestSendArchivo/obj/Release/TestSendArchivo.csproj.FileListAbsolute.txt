@@ -18,3 +18,14 @@ F:\Fuentes\C# 2015\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendA
 F:\Fuentes\C# 2015\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.csproj.CopyComplete
 F:\Fuentes\C# 2015\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.exe
 F:\Fuentes\C# 2015\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.pdb
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\bin\Release\TestSendArchivo.exe.config
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\bin\Release\TestSendArchivo.exe
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\bin\Release\TestSendArchivo.pdb
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\bin\Release\Sockets.dll
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\bin\Release\Sockets.pdb
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.csproj.AssemblyReference.cache
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.csproj.SuggestedBindingRedirects.cache
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.csproj.CoreCompileInputs.cache
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.csproj.CopyComplete
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.exe
+F:\Fuentes\C#\Sockets\TestSendArchivo\TestSendArchivo\obj\Release\TestSendArchivo.pdb

@@ -1,0 +1,21 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "b24bed30-6c93-4fcf-89eb-5d3d5c069f8f": {
+      "ProjectGuid": "b24bed30-6c93-4fcf-89eb-5d3d5c069f8f",
+      "DisplayName": "BasicSMTPServer",
+      "ColorIndex": 0
+    },
+    "71b1b1e4-427f-439d-985b-aea1a8277f2d": {
+      "ProjectGuid": "71b1b1e4-427f-439d-985b-aea1a8277f2d",
+      "DisplayName": "SimpleServer",
+      "ColorIndex": 1
+    },
+    "1f571c58-b8a3-432f-9ee9-c23f11d497c5": {
+      "ProjectGuid": "1f571c58-b8a3-432f-9ee9-c23f11d497c5",
+      "DisplayName": "Sockets",
+      "ColorIndex": 2
+    }
+  },
+  "NextColorIndex": 3
+}

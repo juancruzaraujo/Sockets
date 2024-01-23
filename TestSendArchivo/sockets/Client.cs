@@ -299,7 +299,7 @@ namespace Sockets
                     strDatos = _encoder.GetString(message, 0, bytesRead);
                     
                     EventParameters ev = new EventParameters();
-                    ev.SetEvent(EventParameters.EventType.DATA_IN).SetData(strDatos);
+                    ev.SetEvent(EventParameters.EventType.DATA_IN).SetData(strDatos).SetNetworkStream(clientStream);
                     GenerateEvent(ev);
 
                 }
