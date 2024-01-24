@@ -104,10 +104,12 @@ namespace SimpleServer
 
                 case EventParameters.EventType.ERROR:
                     Console.WriteLine(eventParameters.GetData);
+                    System.Net.Sockets.NetworkStream stream = eventParameters.GetNetworkStream;
                     break;
 
                 case EventParameters.EventType.DATA_IN:
                     Console.WriteLine(eventParameters.GetConnectionNumber + " " + eventParameters.GetData);
+                    
                     //aux.DisconnectConnectedClientToMe(eventParameters.GetConnectionNumber);
                     aux.Send(eventParameters.GetConnectionNumber, "ok" + eventParameters.GetConnectionNumber + "\r\n ");
                     break;
@@ -126,6 +128,11 @@ namespace SimpleServer
 
                 case EventParameters.EventType.SERVER_STOP:
                     Console.WriteLine("SERVER STOPED");
+                    break;
+
+                case EventParameters.EventType.DATASTREAM_IN:
+                    Console.WriteLine("datastream in");
+                    var networkstream = eventParameters.GetNetworkStream;
                     break;
             }
         }

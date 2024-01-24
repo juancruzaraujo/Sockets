@@ -53,7 +53,8 @@ namespace Sockets
             CONNECTION_LIMIT,
             SERVER_STOP,
             SEND_ARRAY_COMPLETE,
-            RECIEVE_TIMEOUT
+            RECIEVE_TIMEOUT,
+            DATASTREAM_IN
         }
 
         internal EventParameters SetConnectionNumber(int conectionNumber)
