@@ -23,6 +23,8 @@ namespace Sockets
         private int _lineNumberError;
         private string _clientTag;
         private NetworkStream _networkStream;
+        private bool _isServerEvent;
+        
 
         private Protocol.ConnectionProtocol _connectionProtocol;
 
@@ -157,6 +159,12 @@ namespace Sockets
         internal EventParameters SetNetworkStream(NetworkStream networkStream)
         {
             _networkStream = networkStream;
+            return this;
+        }
+
+        internal EventParameters SetIsServerEvent(bool isServerEvent)
+        {
+            _isServerEvent = isServerEvent;
             return this;
         }
 
@@ -297,6 +305,14 @@ namespace Sockets
             get
             {
                 return _networkStream;
+            }
+        }
+
+        public bool GetIsServerEvent
+        {
+            get
+            {
+                return _isServerEvent;
             }
         }
 

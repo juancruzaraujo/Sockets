@@ -511,7 +511,7 @@ namespace Sockets
 
         private void GenerateEvent(EventParameters ob)
         {
-            ob.SetConnectionNumber(_indexConnection).SetListIndex(_listIndex);
+            ob.SetConnectionNumber(_indexConnection).SetListIndex(_listIndex).SetIsServerEvent(true);
             Event_Server(ob);
         }
 

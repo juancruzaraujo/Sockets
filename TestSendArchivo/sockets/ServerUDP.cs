@@ -356,6 +356,7 @@ namespace Sockets
 
         private void GenerateEvent(EventParameters ob)
         {
+            ob.SetIsServerEvent(true);
             Event_Server(ob);
         }
         

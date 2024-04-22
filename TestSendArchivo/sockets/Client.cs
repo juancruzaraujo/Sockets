@@ -461,7 +461,7 @@ namespace Sockets
         
         private void GenerateEvent(EventParameters ob)
         {
-            ob.SetConnectionNumber(_connectionNumber).SetTCP(_connectionProtocol).SetClientTag(_clientTag);
+            ob.SetConnectionNumber(_connectionNumber).SetTCP(_connectionProtocol).SetClientTag(_clientTag).SetIsServerEvent(false);
 
             Client_Event(ob);
         }
