@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 
 namespace Sockets
@@ -21,7 +22,10 @@ namespace Sockets
         private int _errorCode;
         private int _lineNumberError;
         private string _clientTag;
+        private NetworkStream _networkStream;
+        private bool _isServerEvent;
         
+
         private Protocol.ConnectionProtocol _connectionProtocol;
 
         private Socket _socketInstance;
@@ -51,7 +55,8 @@ namespace Sockets
             CONNECTION_LIMIT,
             SERVER_STOP,
             SEND_ARRAY_COMPLETE,
-            RECIEVE_TIMEOUT
+            RECIEVE_TIMEOUT,
+            DATASTREAM_IN
         }
 
         internal EventParameters SetConnectionNumber(int conectionNumber)
@@ -148,6 +153,18 @@ namespace Sockets
         internal EventParameters SetClientTag(string clientTag)
         {
             _clientTag = clientTag;
+            return this;
+        }
+
+        internal EventParameters SetNetworkStream(NetworkStream networkStream)
+        {
+            _networkStream = networkStream;
+            return this;
+        }
+
+        internal EventParameters SetIsServerEvent(bool isServerEvent)
+        {
+            _isServerEvent = isServerEvent;
             return this;
         }
 
@@ -275,12 +292,29 @@ namespace Sockets
             }
         }
 
-        public String GetClientTag
+        public string GetClientTag
         {
             get
             {
                 return _clientTag; ;
             }
         }
+
+        public NetworkStream GetNetworkStream
+        {
+            get
+            {
+                return _networkStream;
+            }
+        }
+
+        public bool GetIsServerEvent
+        {
+            get
+            {
+                return _isServerEvent;
+            }
+        }
+
     }
 }

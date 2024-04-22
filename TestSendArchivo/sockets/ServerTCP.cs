@@ -336,6 +336,7 @@ namespace Sockets
             {
                 _tcpClient = (TcpClient)Cliente;
                 NetworkStream clientStream = _tcpClient.GetStream();
+                
                 string strData;
 
                 _tcpClient = (TcpClient)Cliente;
@@ -358,6 +359,20 @@ namespace Sockets
 
                 while (_loopCommunicationClient)
                 {
+                    bool dataAvailableToBeSaved = true;
+                    while (dataAvailableToBeSaved)
+                    {
+                        // Verificar si hay datos disponibles en el NetworkStream
+                        if (clientStream.DataAvailable)
+                        {
+                            ev.SetNetworkStream(clientStream).SetEvent(EventParameters.EventType.DATASTREAM_IN);
+                            GenerateEvent(ev);
+                            dataAvailableToBeSaved = false;
+                        }
+                    }
+
+
+
                     bytesRead = 0;
 
                     try
@@ -496,7 +511,7 @@ namespace Sockets
 
         private void GenerateEvent(EventParameters ob)
         {
-            ob.SetConnectionNumber(_indexConnection).SetListIndex(_listIndex);
+            ob.SetConnectionNumber(_indexConnection).SetListIndex(_listIndex).SetIsServerEvent(true);
             Event_Server(ob);
         }
 

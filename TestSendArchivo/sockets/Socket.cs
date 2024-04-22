@@ -287,7 +287,7 @@ namespace Sockets
             {
                 _serverStarted = true;
                 EventParameters ev = new EventParameters();
-                ev.SetEvent(EventParameters.EventType.SERVER_START);
+                ev.SetEvent(EventParameters.EventType.SERVER_START).SetIsServerEvent(true);
                 Evsocket(ev);
             }
 

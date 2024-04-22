@@ -264,6 +264,21 @@ namespace Sockets
 
                 while (true)
                 {
+
+                    bool dataAvailableToBeSaved = true;
+                    while (dataAvailableToBeSaved)
+                    {
+                        // Verificar si hay datos disponibles en el NetworkStream
+                        if (clientStream.DataAvailable)
+                        {
+                            EventParameters evNetworkStream = new EventParameters();
+                            evNetworkStream.SetNetworkStream(clientStream).SetEvent(EventParameters.EventType.DATASTREAM_IN);
+                            GenerateEvent(evNetworkStream);
+                            dataAvailableToBeSaved = false;
+                        }
+                    }
+
+
                     bytesRead = 0;
 
                     try
@@ -446,7 +461,7 @@ namespace Sockets
         
         private void GenerateEvent(EventParameters ob)
         {
-            ob.SetConnectionNumber(_connectionNumber).SetTCP(_connectionProtocol).SetClientTag(_clientTag);
+            ob.SetConnectionNumber(_connectionNumber).SetTCP(_connectionProtocol).SetClientTag(_clientTag).SetIsServerEvent(false);
 
             Client_Event(ob);
         }
