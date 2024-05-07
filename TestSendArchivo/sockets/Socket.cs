@@ -543,12 +543,12 @@ namespace Sockets
                         
                         _numberServerConnections--;
 
-                        /*
+                        
                         if (!_serverListening && !_stopingServer)
                         {
                             CreateServer(ref message);
                             StartServer();
-                        }*/
+                        }
                         
                     }
                     else
@@ -767,9 +767,9 @@ namespace Sockets
             sendParams.connectionNumber = aux.connectionNumber;
             sendParams.memArray = aux.memArray;
 
-            nSize = sendParams.memArray.Length; //memArray.Length;
+            nSize = sendParams.memArray.Length; 
 
-            if (nSize <= sendParams.clusterSize) //TamCluster)
+            if (nSize <= sendParams.clusterSize)
             {
                 //TamCluster = nTam; //sí es mas chico lo que mando que el cluster
                 sendParams.clusterSize = nSize;
