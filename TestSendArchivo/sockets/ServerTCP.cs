@@ -359,20 +359,7 @@ namespace Sockets
 
                 while (_loopCommunicationClient)
                 {
-                    bool dataAvailableToBeSaved = true;
-                    while (dataAvailableToBeSaved)
-                    {
-                        // Verificar si hay datos disponibles en el NetworkStream
-                        if (clientStream.DataAvailable)
-                        {
-                            ev.SetNetworkStream(clientStream).SetEvent(EventParameters.EventType.DATASTREAM_IN);
-                            GenerateEvent(ev);
-                            dataAvailableToBeSaved = false;
-                        }
-                    }
-
-
-
+                    
                     bytesRead = 0;
 
                     try
@@ -434,6 +421,7 @@ namespace Sockets
                         .SetEvent(EventParameters.EventType.DATA_IN)
                         .SetSize(strData.Length);
                     GenerateEvent(ev);
+
                 }
 
                 if (!EveYaDisparado)

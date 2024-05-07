@@ -265,20 +265,6 @@ namespace Sockets
                 while (true)
                 {
 
-                    bool dataAvailableToBeSaved = true;
-                    while (dataAvailableToBeSaved)
-                    {
-                        // Verificar si hay datos disponibles en el NetworkStream
-                        if (clientStream.DataAvailable)
-                        {
-                            EventParameters evNetworkStream = new EventParameters();
-                            evNetworkStream.SetNetworkStream(clientStream).SetEvent(EventParameters.EventType.DATASTREAM_IN);
-                            GenerateEvent(evNetworkStream);
-                            dataAvailableToBeSaved = false;
-                        }
-                    }
-
-
                     bytesRead = 0;
 
                     try

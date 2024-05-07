@@ -55,8 +55,7 @@ namespace Sockets
             CONNECTION_LIMIT,
             SERVER_STOP,
             SEND_ARRAY_COMPLETE,
-            RECIEVE_TIMEOUT,
-            DATASTREAM_IN
+            RECIEVE_TIMEOUT
         }
 
         internal EventParameters SetConnectionNumber(int conectionNumber)
@@ -153,12 +152,6 @@ namespace Sockets
         internal EventParameters SetClientTag(string clientTag)
         {
             _clientTag = clientTag;
-            return this;
-        }
-
-        internal EventParameters SetNetworkStream(NetworkStream networkStream)
-        {
-            _networkStream = networkStream;
             return this;
         }
 
@@ -259,23 +252,6 @@ namespace Sockets
             }
         }
 
-        /*
-        public int GetConnectionNumberTCP
-        {
-            get
-            {
-                return _connectionNumberTCP;
-            }
-        }
-
-        public int GetConnectionNumberUDP
-        {
-            get
-            {
-                return _connectionNumberUDP;
-            }
-        }
-        */
         public Protocol.ConnectionProtocol GetProtocol
         {
             get
@@ -297,14 +273,6 @@ namespace Sockets
             get
             {
                 return _clientTag; ;
-            }
-        }
-
-        public NetworkStream GetNetworkStream
-        {
-            get
-            {
-                return _networkStream;
             }
         }
 

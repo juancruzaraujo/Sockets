@@ -56,14 +56,14 @@ namespace SimpleServer
             port = int.Parse(args[0]);
             maxCon = int.Parse(args[1]);
 
-            maxCon = 1000;
+            //maxCon = 1000;
 
             Console.WriteLine(@"port " + port);
             Console.WriteLine(@"max connections " + maxCon);
 
             _serverTCP = new Socket();
             //_serverTCP.SetServer(port, Protocol.ConnectionProtocol.TCP, maxCon,60);
-            _serverTCP.SetServer(port, Protocol.ConnectionProtocol.TCP, maxCon,10);
+            _serverTCP.SetServer(port, Protocol.ConnectionProtocol.TCP, maxCon);
             _serverTCP.Event_Socket += ServerTCP_Event_Socket;
 
             _serverUDP = new Socket();
@@ -104,7 +104,6 @@ namespace SimpleServer
 
                 case EventParameters.EventType.ERROR:
                     Console.WriteLine(eventParameters.GetData);
-                    System.Net.Sockets.NetworkStream stream = eventParameters.GetNetworkStream;
                     break;
 
                 case EventParameters.EventType.DATA_IN:
@@ -130,10 +129,6 @@ namespace SimpleServer
                     Console.WriteLine("SERVER STOPED");
                     break;
 
-                case EventParameters.EventType.DATASTREAM_IN:
-                    Console.WriteLine("datastream in");
-                    var networkstream = eventParameters.GetNetworkStream;
-                    break;
             }
         }
 

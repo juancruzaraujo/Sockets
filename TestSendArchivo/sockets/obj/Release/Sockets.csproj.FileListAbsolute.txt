@@ -11,7 +11,6 @@ F:\Fuentes\C# 2015\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.dll
 F:\Fuentes\C# 2015\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.pdb
 F:\Fuentes\C#\Sockets\TestSendArchivo\sockets\bin\Release\Sockets.dll
 F:\Fuentes\C#\Sockets\TestSendArchivo\sockets\bin\Release\Sockets.pdb
-F:\Fuentes\C#\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.csproj.AssemblyReference.cache
 F:\Fuentes\C#\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.csproj.CoreCompileInputs.cache
 F:\Fuentes\C#\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.dll
 F:\Fuentes\C#\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.pdb
@@ -21,3 +20,4 @@ C:\Fuentes\C#\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.csprojAssembly
 C:\Fuentes\C#\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.csproj.CoreCompileInputs.cache
 C:\Fuentes\C#\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.dll
 C:\Fuentes\C#\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.pdb
+F:\Fuentes\C#\Sockets\TestSendArchivo\sockets\obj\Release\Sockets.csproj.AssemblyReference.cache
